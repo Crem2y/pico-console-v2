@@ -43,7 +43,7 @@ void bridge_do_cmd(bridge_protocol_t* cmd);
 
 int main() { // uses core 0 to sub core
   uartLog_init(uart0, 0, 1, 115200);
-  uart_bridge_init(uart1, 4, 5, 115200);
+  uart_bridge_init(uart1, 4, 5, 921600);
   set_bridge_do_cmd(bridge_do_cmd);
   LedCtrl.init();
 
