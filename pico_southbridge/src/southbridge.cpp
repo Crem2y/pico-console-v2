@@ -42,24 +42,27 @@ int main() {
     time_ms_t now_time = get_system_time_ms();
     bridge_protocol_t response_cmd; 
     uint8_t temp_payload[PAYLOAD_MAX_SIZE];
+    int payload_size = 0;
 
     bridge_handle();
 
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
       Gamepad.update();
-      Gamepad.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
-
-      response_cmd = bridge_protocol_create(CMD_GAMEPAD_DATA, 6, temp_payload);
-      bridge_cmd_queue_push(response_cmd);
+      payload_size = Gamepad.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
+      if(payload_size > 0) {
+        response_cmd = bridge_protocol_create(CMD_GAMEPAD_DATA, payload_size, temp_payload);
+        bridge_cmd_queue_push(response_cmd);
+      }
     }
     if(system_time_elapsed_ms(now_time, temperature_timer) > 1000) {
       temperature_timer = now_time;
       Temperature.update();
-      Temperature.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
-
-      response_cmd = bridge_protocol_create(CMD_TEMPERATURE_DATA, 4, temp_payload);
-      bridge_cmd_queue_push(response_cmd);
+      payload_size = Temperature.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
+      if(payload_size > 0) {
+        response_cmd = bridge_protocol_create(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
+        bridge_cmd_queue_push(response_cmd);
+      }
     }
     // Bat.get_level();
   }
