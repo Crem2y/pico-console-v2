@@ -13,7 +13,7 @@
 #define GP_JOYSTICK_TO_BTN_THRESHOLD 50
 
 enum btn_code {
-  BTN_UP,
+  BTN_UP = 0,
   BTN_DOWN,
   BTN_LEFT,
   BTN_RIGHT,

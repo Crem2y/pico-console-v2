@@ -11,9 +11,7 @@
 #define GP_JOYSTICK_MIN -127
 
 enum btn_code {
-  BTN_S1_UP = 0,
-  BTN_S1_DOWN,
-  BTN_UP,
+  BTN_UP = 0,
   BTN_DOWN,
   BTN_LEFT,
   BTN_RIGHT,
@@ -40,9 +38,6 @@ class gamepad {
     void update(void);
 
     int make_bridge_payload(uint8_t* payload_buf, uint max_size);
-
-    int8_t get_joystick_x(int joystick_num);
-    int8_t get_joystick_y(int joystick_num);
 
   private:
     btn_matrix* btns;

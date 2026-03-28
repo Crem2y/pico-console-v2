@@ -36,24 +36,14 @@ void gamepad::update(void) {
 int gamepad::make_bridge_payload(uint8_t* payload_buf, uint max_size) {
   if(max_size < 6) return -1;
 
-  uint32_t btn_data = btns->get_btn_data() ? 0x1000 : 0x0000; //placeholder for START button
+  uint32_t btn_data = btns->get_btn_data() ? 1 << BTN_START : 0x0000; //placeholder for START button
 
   payload_buf[0] = btn_data >> 8 & 0xFF;
   payload_buf[1] = btn_data & 0xFF;
-  payload_buf[2] = get_joystick_x(0); // joyLx
-  payload_buf[3] = get_joystick_y(0); // joyLy
-  payload_buf[4] = get_joystick_x(1); // joyRx
-  payload_buf[5] = get_joystick_y(1); // joyRy
+  payload_buf[2] = joystick_x[0]; // joyLx
+  payload_buf[3] = joystick_y[0]; // joyLy
+  payload_buf[4] = joystick_x[1]; // joyRx
+  payload_buf[5] = joystick_y[1]; // joyRy
 
   return 6;
-}
-
-int8_t gamepad::get_joystick_x(int joystick_num) {
-  if(joystick_num < 0 || joystick_num >= GP_JOYSTICK_NUM) return 0;
-  return joystick_x[joystick_num];
-}
-
-int8_t gamepad::get_joystick_y(int joystick_num) {
-  if(joystick_num < 0 || joystick_num >= GP_JOYSTICK_NUM) return 0;
-  return joystick_y[joystick_num];
 }
