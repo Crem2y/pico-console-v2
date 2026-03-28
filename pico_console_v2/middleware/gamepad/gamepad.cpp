@@ -65,6 +65,50 @@ void gamepad::update(void) {
       btn_last_released_ms[BTN_S1_UP] = current_time_ms;
     }
   }
+
+  // S2 joystick
+  if(joystick_x[1] > GP_JOYSTICK_TO_BTN_THRESHOLD)
+  {
+    if(!btn_state[BTN_S2_RIGHT]) {
+      btn_state[BTN_S2_RIGHT] = 1;
+      btn_last_pressed_ms[BTN_S2_RIGHT] = current_time_ms;
+    }
+  } else if(joystick_x[1] < -GP_JOYSTICK_TO_BTN_THRESHOLD) {
+    if(!btn_state[BTN_S2_LEFT]) {
+      btn_state[BTN_S2_LEFT] = 1;
+      btn_last_pressed_ms[BTN_S2_LEFT] = current_time_ms;
+    }
+  } else {
+    if(btn_state[BTN_S2_RIGHT]) {
+      btn_state[BTN_S2_RIGHT] = 0;
+      btn_last_released_ms[BTN_S2_RIGHT] = current_time_ms;
+    }
+    if(btn_state[BTN_S2_LEFT]) {
+      btn_state[BTN_S2_LEFT] = 0;
+      btn_last_released_ms[BTN_S2_LEFT] = current_time_ms;
+    }
+  }
+
+  if(joystick_y[1] > GP_JOYSTICK_TO_BTN_THRESHOLD) {
+    if(!btn_state[BTN_S2_DOWN]) {
+      btn_state[BTN_S2_DOWN] = 1;
+      btn_last_pressed_ms[BTN_S2_DOWN] = current_time_ms;
+    }
+  } else if(joystick_y[1] < -GP_JOYSTICK_TO_BTN_THRESHOLD) {
+    if(!btn_state[BTN_S2_UP]) {
+      btn_state[BTN_S2_UP] = 1;
+      btn_last_pressed_ms[BTN_S2_UP] = current_time_ms;
+    }
+  } else {
+    if(btn_state[BTN_S2_DOWN]) {
+      btn_state[BTN_S2_DOWN] = 0;
+      btn_last_released_ms[BTN_S2_DOWN] = current_time_ms;
+    }
+    if(btn_state[BTN_S2_UP]) {
+      btn_state[BTN_S2_UP] = 0;
+      btn_last_released_ms[BTN_S2_UP] = current_time_ms;
+    }
+  }
 }
 
 void gamepad::update_from_bridge(uint8_t* data, uint8_t len) {
