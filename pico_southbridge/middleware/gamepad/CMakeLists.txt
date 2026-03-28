@@ -10,8 +10,8 @@ target_include_directories(${OUTPUT_STATIC_LIB} PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
 target_link_libraries(${OUTPUT_STATIC_LIB}
-  pca9554
-  system_time
+  btn_matrix
+  joystick
 )
 
 message(STATUS "building lib \"${LIB_NAME}\" completed!")

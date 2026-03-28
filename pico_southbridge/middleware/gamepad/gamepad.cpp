@@ -1,88 +1,51 @@
 #include "gamepad.hpp"
 
-gamepad::gamepad(pca9554* key_ptr) {
-  key = key_ptr;
+gamepad::gamepad(btn_matrix* btn_matrix, joystick* joy_1, joystick* joy_2) {
+  btns = btn_matrix;
+  joy1 = joy_1;
+  joy2 = joy_2;
 }
 
 void gamepad::init(void) {
-  key->init();
+  btns->init();
+  if(joy1) joy1->init();
+  if(joy2) joy2->init();
+
+  joystick_x[0] = 0;
+  joystick_y[0] = 0;
+  joystick_x[1] = 0;
+  joystick_y[1] = 0;
 }
 
 void gamepad::update(void) {
-  current_time_ms = get_system_time_ms();
 
-  // btn data update
-  key->get_btn_data();
+  btns->update();
 
-  for(int i=0; i<GP_BTN_NUM; i++) {
-    int is_pressed = (key->key_pressed & (0x00000001 << i)) ? 1 : 0;
-    if(is_pressed && !btn_state[i]) { // button just pressed
-      btn_state[i] = 1;
-      btn_last_pressed_ms[i] = current_time_ms;
-    } else if(!is_pressed && btn_state[i]) { // button just released
-      btn_state[i] = 0;
-      btn_last_released_ms[i] = current_time_ms;
-    }
+  if(joy1) {
+    joy1->update();
+    joystick_x[0] = joy1->x;
+    joystick_y[0] = joy1->y;
   }
-
-  // joystick data update
-  // S1 joystick
-  if(btn_state[BTN_S1_UP]) {
-    joystick_y[0] = GP_JOYSTICK_MAX;
-  } else if(btn_state[BTN_S1_DOWN]) {
-    joystick_y[0] = GP_JOYSTICK_MIN;
-  } else {
-    joystick_y[0] = 0;
-  }
-
-  if(btn_state[BTN_S1_LEFT]) {
-    joystick_x[0] = GP_JOYSTICK_MIN;
-  } else if(btn_state[BTN_S1_RIGHT]) {
-    joystick_x[0] = GP_JOYSTICK_MAX;
-  } else {
-    joystick_x[0] = 0;
-  }
-
-  // S2 joystick
-  if(btn_state[BTN_S2_UP]) {
-    joystick_y[1] = GP_JOYSTICK_MAX;
-  } else if(btn_state[BTN_S2_DOWN]) {
-    joystick_y[1] = GP_JOYSTICK_MIN;
-  } else {
-    joystick_y[1] = 0;
-  }
-
-  if(btn_state[BTN_S2_LEFT]) {
-    joystick_x[1] = GP_JOYSTICK_MIN;
-  } else if(btn_state[BTN_S2_RIGHT]) {
-    joystick_x[1] = GP_JOYSTICK_MAX;
-  } else {
-    joystick_x[1] = 0;
+  if(joy2) {
+    joy2->update();
+    joystick_x[1] = joy2->x;
+    joystick_y[1] = joy2->y;
   }
 }
 
-int gamepad::is_btn_pressed(enum btn_code btn) {
-  return btn_state[btn];
-}
+int gamepad::make_bridge_payload(uint8_t* payload_buf, uint max_size) {
+  if(max_size < 6) return -1;
 
-int gamepad::is_btn_released(enum btn_code btn) {
-  return !btn_state[btn];
-}
+  uint32_t btn_data = btns->get_btn_data() ? 0x1000 : 0x0000; //placeholder for START button
 
-time_ms_t gamepad::get_btn_pressed_duration(enum btn_code btn) {
-  if(btn_state[btn]) {
-    return system_time_elapsed_ms(current_time_ms, btn_last_pressed_ms[btn]);
-  } else {
-    return 0;
-  }
-}
+  payload_buf[0] = btn_data >> 8 & 0xFF;
+  payload_buf[1] = btn_data & 0xFF;
+  payload_buf[2] = get_joystick_x(0); // joyLx
+  payload_buf[3] = get_joystick_y(0); // joyLy
+  payload_buf[4] = get_joystick_x(1); // joyRx
+  payload_buf[5] = get_joystick_y(1); // joyRy
 
-time_ms_t gamepad::get_btn_released_duration(enum btn_code btn) {
-  if(!btn_state[btn]) {
-    return system_time_elapsed_ms(current_time_ms, btn_last_released_ms[btn]);
-  } else {
-    return 0;
-  }
+  return 6;
 }
 
 int8_t gamepad::get_joystick_x(int joystick_num) {
