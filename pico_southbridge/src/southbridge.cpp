@@ -27,6 +27,7 @@ int main() {
   set_bridge_do_cmd(bridge_do_cmd);
 
   audio_init(6, 7);
+  Audio.init();
   Gamepad.init();
   Temperature.init();
 
@@ -80,14 +81,15 @@ void bridge_do_cmd(bridge_protocol_t* cmd) {
   enum bridge_cmd command = cmd->cmd;
   switch (command)
   {
-  case CMD_AUDIO_PCM_DATA:
-  {
-    //placeholder for audio data handling
-    int octave = (cmd->payload[0] >> 4) & 0x0F; // upper 4 bits for octave
-    int note = cmd->payload[0] & 0x0F; // lower 4 bits for note
-    voice_note_on(0, octave, note, g_voices[0].vol_q8);
+  case CMD_AUDIO_ENABLE:
+    // Audio.enable();
     break;
-  }
+  case CMD_AUDIO_PCM_DATA:
+    Audio.update_from_bridge(cmd->payload, cmd->payload_size);
+    break;
+  case CMD_AUDIO_DISABLE:
+    // Audio.disable();
+    break;
   default:
     break;
   }

@@ -8,6 +8,7 @@ class audioSystem {
     audioSystem(void);
 
     void init(void);
+    void update_from_bridge(uint8_t* data, uint8_t len);
 
   private:
 
