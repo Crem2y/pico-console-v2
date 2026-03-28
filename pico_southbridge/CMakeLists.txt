@@ -23,7 +23,7 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico CACHE STRING "Board type")
+set(PICO_BOARD pico2 CACHE STRING "Board type")
 
 if(PICO_SDK_PATH)
 else()
@@ -40,8 +40,8 @@ include(pico_extras_import.cmake)
 project(pico_southbridge C CXX ASM)
 
 # clock setup. if changed, you must (re)configure the cmake.
-add_compile_definitions(SYS_CLK_MHZ=200) # set clock to 200MHz (RP2040 maximum clock)
-#add_compile_definitions(SYS_CLK_MHZ=150) # set clock to 150MHz (RP2350 default clock)
+#add_compile_definitions(SYS_CLK_MHZ=200) # set clock to 200MHz (RP2040 maximum clock)
+add_compile_definitions(SYS_CLK_MHZ=150) # set clock to 150MHz (RP2350 default clock)
 
 pico_sdk_init()
 

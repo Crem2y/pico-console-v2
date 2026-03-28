@@ -35,6 +35,8 @@ temperature Temperature = temperature();
 void core1_entry(void);
 void bridge_do_cmd(bridge_protocol_t* cmd);
 
+#define BTN_START_PIN 3 //placeholder
+
 //////// function ////////
 
 int main() {
@@ -45,9 +47,9 @@ int main() {
 
   audio_init(6, 7);
   
-  gpio_init(29);
-  gpio_set_dir(29, GPIO_IN);
-  gpio_pull_up(29);
+  gpio_init(BTN_START_PIN);
+  gpio_set_dir(BTN_START_PIN, GPIO_IN);
+  gpio_pull_up(BTN_START_PIN);
 
   sleep_ms(100);
 
@@ -74,7 +76,7 @@ int main() {
     bridge_handle();
 
     //placeholder
-    int btn_status = gpio_get(29);
+    int btn_status = gpio_get(BTN_START_PIN);
     if(btn_status != btn_status_old) {
       btn_status_old = btn_status;
 
