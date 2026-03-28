@@ -4,7 +4,7 @@ add_subdirectory(gamepad)
 add_subdirectory(imu)
 add_subdirectory(ir_communication)
 add_subdirectory(led_control)
-# add_subdirectory(sound_system)
+add_subdirectory(audio_system)
 add_subdirectory(temperature)
 add_subdirectory(ui_system)
 add_subdirectory(vibration)
@@ -18,7 +18,7 @@ target_link_libraries(middleware INTERFACE
 #  imu
 #  ir_communication
   led_control
-#   sound_system
+  audio_system
   temperature
 #  ui_system
 #  vibration

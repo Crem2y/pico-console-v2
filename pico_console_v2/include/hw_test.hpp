@@ -19,7 +19,7 @@
 
 // middlewares
 #include "gamepad.hpp"
-// #include "sound_system.hpp"
+#include "audio_system.hpp"
 #include "led_control.hpp"
 #include "temperature.hpp"
 
