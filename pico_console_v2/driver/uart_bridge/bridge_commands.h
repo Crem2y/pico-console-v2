@@ -3,7 +3,7 @@
 enum bridge_cmd {
   CMD_NONE              = 0x00,
 
-  CMD_TEMPERATURE_DATA  = 0x11,
+  CMD_TEMPERATURE_DATA  = 0x11, // [temp1_L][temp1_H][temp2_L][temp2_H]...
   CMD_POWER_STATUS      = 0x12,
 
   CMD_GAMEPAD_DATA      = 0x21, // [btn1][btn2][joyLx][joyLy][joyRx][joyRy]

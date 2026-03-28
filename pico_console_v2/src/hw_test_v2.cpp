@@ -40,6 +40,7 @@ void core1_entry();
 void bridge_do_cmd(bridge_protocol_t* cmd);
 
 time_ms_t gamepad_timer;
+time_ms_t temperature_timer;
 
 //////// function ////////
 
@@ -82,10 +83,10 @@ int main() { // uses core 0 to sub core
   Lcd.print_5x8("Gamepad init...");
   Gamepad.init();
   LOG_PRINTF("Gamepad ok\n");
-  // Lcd.setCursor(0,0);
-  // Lcd.print_5x8("TEMP init...");
-  // Temperature.init();
-  // LOG_PRINTF("TEMP ok\n");
+  Lcd.setCursor(0,0);
+  Lcd.print_5x8("TEMP init...");
+  Temperature.init();
+  LOG_PRINTF("TEMP ok\n");
   Lcd.setCursor(0,0);
   Lcd.print_5x8("               ");
   LOG_PRINTF("all HWs ok!\n");
@@ -162,9 +163,12 @@ int main() { // uses core 0 to sub core
       gamepad_timer = now_time;
       Gamepad.update();
     }
+    if(system_time_elapsed_ms(now_time, temperature_timer) > 1000) {
+      temperature_timer = now_time;
+      Temperature.update();
+    }
     //Bat.get_level();
     LedCtrl.update();
-    // Temperature.update();
   }
 
   return 0;
@@ -269,9 +273,11 @@ main_menu_loop:
         case MAIN_BAT_TEST:
           menu_bat_test();
           break;
+        */
         case MAIN_TEMP_TEST:
           menu_temp_test();
           break;
+        /*
         case MAIN_IR_TEST:
           menu_ir_test();
           break;
@@ -676,7 +682,7 @@ void menu_bat_test(void) {
     }
   }
 }
-
+*/
 void menu_temp_test(void) {
   Lcd.setTextSize(1);
   Lcd.setCursor(0,232);
@@ -691,13 +697,16 @@ void menu_temp_test(void) {
     sprintf(string_buf, "TEMP_BUILTIN : % 3.1fC", (float)Temperature.get_temp(TEMP_BUILTIN) / 100.0f);
     Lcd.setCursor(0,16);
     Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "TEMP_SOUTHBRIDGE : % 3.1fC", (float)Temperature.get_temp(TEMP_SOUTHBRIDGE) / 100.0f);
+    Lcd.setCursor(0,32);
+    Lcd.print_5x8(string_buf);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       return;
     }
   }
 }
-
+/*
 void menu_ir_test(void) {
   Lcd.setTextSize(1);
   Lcd.setCursor(0,232);
@@ -838,6 +847,9 @@ void bridge_do_cmd(bridge_protocol_t* cmd) {
   enum bridge_cmd command = cmd->cmd;
   switch (command)
   {
+  case CMD_TEMPERATURE_DATA:
+    Temperature.update_from_bridge(cmd->payload, cmd->payload_size);
+    break;
   case CMD_GAMEPAD_DATA:
     Gamepad.update_from_bridge(cmd->payload, cmd->payload_size);
     break;

@@ -38,6 +38,7 @@ void core1_entry(void);
 void bridge_do_cmd(bridge_protocol_t* cmd);
 
 time_ms_t gamepad_timer;
+time_ms_t temperature_timer;
 
 //////// function ////////
 
@@ -49,6 +50,7 @@ int main() {
 
   audio_init(6, 7);
   Gamepad.init();
+  Temperature.init();
 
   sleep_ms(100);
 
@@ -71,9 +73,15 @@ int main() {
       response_cmd = bridge_protocol_create(CMD_GAMEPAD_DATA, 6, temp_payload);
       bridge_cmd_queue_push(response_cmd);
     }
+    if(system_time_elapsed_ms(now_time, temperature_timer) > 1000) {
+      temperature_timer = now_time;
+      Temperature.update();
+      Temperature.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
+
+      response_cmd = bridge_protocol_create(CMD_TEMPERATURE_DATA, 4, temp_payload);
+      bridge_cmd_queue_push(response_cmd);
+    }
     // Bat.get_level();
-    // LedCtrl.update();
-    // Temperature.update();
   }
 
   return 0;

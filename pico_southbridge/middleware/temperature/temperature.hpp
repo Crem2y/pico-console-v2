@@ -18,6 +18,8 @@ class temperature {
     void init(void);
     void update(void);
 
+    int make_bridge_payload(uint8_t* payload_buf, uint max_size);
+
     temp_t get_temp(temp_ch ch);
 
   private:
