@@ -39,6 +39,8 @@ temperature Temperature = temperature();
 void core1_entry();
 void bridge_do_cmd(bridge_protocol_t* cmd);
 
+time_ms_t gamepad_timer;
+
 //////// function ////////
 
 int main() { // uses core 0 to sub core
@@ -152,9 +154,14 @@ int main() { // uses core 0 to sub core
   // Gamepad.update();
 
   while (true) {
-    // sleep_ms(10);
+    time_ms_t now_time = get_system_time_ms();
+
     bridge_handle();
-    Gamepad.update();
+
+    if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
+      gamepad_timer = now_time;
+      Gamepad.update();
+    }
     //Bat.get_level();
     LedCtrl.update();
     // Temperature.update();

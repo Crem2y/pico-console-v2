@@ -24,20 +24,20 @@
 #include "temperature.hpp"
 
 // // hw lib init
-// pca9554 Key = pca9554(i2c1, 3,2);
 // liBattery Bat = liBattery(28, ((float)1/2));
 // irRemote Ir = irRemote(21);
 btn_matrix BtnMatrix = btn_matrix(28);
 joystick Joy1 = joystick(26, 27, 0, 1);
 
 // // middleware lib init
-// ledControl LedCtrl = ledControl(&Led);
 gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, NULL);
 audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
 
 void core1_entry(void);
 void bridge_do_cmd(bridge_protocol_t* cmd);
+
+time_ms_t gamepad_timer;
 
 //////// function ////////
 
@@ -54,29 +54,23 @@ int main() {
 
   multicore_launch_core1(core1_entry);
 
-  // boot sound
-
-//  LOG_PRINTF("go to main loop\n");
-//  multicore_fifo_push_blocking(1);
-
-  sleep_ms(100);
   // boot sequence end
-  
-  // Gamepad.update();
 
-  int btn_status_old = 0;
   while (true) {
-    sleep_ms(10);
-    bridge_handle();
-
+    time_ms_t now_time = get_system_time_ms();
     bridge_protocol_t response_cmd; 
     uint8_t temp_payload[PAYLOAD_MAX_SIZE];
 
-    Gamepad.update();
-    Gamepad.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
+    bridge_handle();
 
-    response_cmd = bridge_protocol_create(CMD_GAMEPAD_DATA, 6, temp_payload);
-    bridge_cmd_queue_push(response_cmd);
+    if(system_time_elapsed_ms(now_time, gamepad_timer) > 100) {
+      gamepad_timer = now_time;
+      Gamepad.update();
+      Gamepad.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
+
+      response_cmd = bridge_protocol_create(CMD_GAMEPAD_DATA, 6, temp_payload);
+      bridge_cmd_queue_push(response_cmd);
+    }
     // Bat.get_level();
     // LedCtrl.update();
     // Temperature.update();
