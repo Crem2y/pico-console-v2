@@ -68,9 +68,37 @@ void uart_bridge_init(uart_inst_t* uart, int tx_pin, int rx_pin, int baudrate) {
   gpio_set_function(_rx_pin, GPIO_FUNC_UART);
 
   irq_set_exclusive_handler(irq_num, on_uart_irq);
-  irq_set_enabled(irq_num, true);
+  //uart_bridge_enable_irq();
+}
 
+void uart_bridge_enable_irq(void) {
+  irq_num_t irq_num;
+  if(_uart == uart0) {
+    irq_num = UART0_IRQ;
+  } else if(_uart == uart1) {
+    irq_num = UART1_IRQ;
+  } else {
+    // invalid uart instance
+    return;
+  }
+
+  irq_set_enabled(irq_num, true);
   uart_set_irq_enables(_uart, true, false);
+}
+
+void uart_bridge_disable_irq(void) {
+  irq_num_t irq_num;
+  if(_uart == uart0) {
+    irq_num = UART0_IRQ;
+  } else if(_uart == uart1) {
+    irq_num = UART1_IRQ;
+  } else {
+    // invalid uart instance
+    return;
+  }
+
+  irq_set_enabled(irq_num, false);
+  uart_set_irq_enables(_uart, false, false);
 }
 
 /**

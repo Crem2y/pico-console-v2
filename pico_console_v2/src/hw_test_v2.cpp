@@ -108,7 +108,7 @@ int main() { // uses core 0 to sub core
   Lcd.setCursor(170,210);
   Lcd.print_5x8("or touch the screen");
 
-//  menu_lcd_test();
+  uart_bridge_enable_irq();
 
   time_ms_t touch_time_ms = 0; //placeholder
   time_ms_t display_time_ms = 0;

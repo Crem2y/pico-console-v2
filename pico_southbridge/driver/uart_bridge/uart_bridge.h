@@ -21,6 +21,9 @@ extern "C" {
 
 void uart_bridge_init(uart_inst_t* _uart, int tx_pin, int rx_pin, int baudrate);
 
+void uart_bridge_enable_irq(void);
+void uart_bridge_disable_irq(void);
+
 int uart_bridge_readable(void);
 int uart_bridge_writable(void);
 
