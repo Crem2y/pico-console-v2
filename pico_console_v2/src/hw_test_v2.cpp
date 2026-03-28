@@ -832,16 +832,8 @@ void bridge_do_cmd(bridge_protocol_t* cmd) {
   switch (command)
   {
   case CMD_GAMEPAD_DATA:
-  {
-    //placeholder for gamepad data handling
-    if(cmd->payload[0] == 0x00) {
-      Gamepad.force_update(BTN_START, false);
-    } else {
-      Gamepad.force_update(BTN_START, true);
-    }
-    Gamepad.force_update_stick(0, cmd->payload[2], cmd->payload[3]);
+    Gamepad.update_from_bridge(cmd->payload, cmd->payload_size);
     break;
-  }
   default:
     break;
   }

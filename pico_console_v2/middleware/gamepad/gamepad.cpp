@@ -1,29 +1,26 @@
 #include "gamepad.hpp"
 
 gamepad::gamepad(void) {
-  //key = key_ptr;
+
 }
 
 void gamepad::init(void) {
-  //key->init();
+
 }
 
 void gamepad::update(void) {
   current_time_ms = get_system_time_ms();
 
-  // btn data update
-  // key->get_btn_data();
-
-  // for(int i=0; i<GP_BTN_NUM; i++) {
-  //   int is_pressed = (key->key_pressed & (0x00000001 << i)) ? 1 : 0;
-  //   if(is_pressed && !btn_state[i]) { // button just pressed
-  //     btn_state[i] = 1;
-  //     btn_last_pressed_ms[i] = current_time_ms;
-  //   } else if(!is_pressed && btn_state[i]) { // button just released
-  //     btn_state[i] = 0;
-  //     btn_last_released_ms[i] = current_time_ms;
-  //   }
-  // }
+  for(int i=0; i<16; i++) {
+    int is_pressed = (key_data & (0x00000001 << i)) ? 1 : 0;
+    if(is_pressed && !btn_state[i]) { // button just pressed
+      btn_state[i] = 1;
+      btn_last_pressed_ms[i] = current_time_ms;
+    } else if(!is_pressed && btn_state[i]) { // button just released
+      btn_state[i] = 0;
+      btn_last_released_ms[i] = current_time_ms;
+    }
+  }
 
   // joystick -> btn data update
   // S1 joystick
@@ -70,22 +67,15 @@ void gamepad::update(void) {
   }
 }
 
-void gamepad::force_update(enum btn_code btn, int pressed) {
-  current_time_ms = get_system_time_ms();
+void gamepad::update_from_bridge(uint8_t* data, uint8_t len) {
+  if(len < 6) return;
 
-  if(pressed && !btn_state[btn]) { // button just pressed
-    btn_state[btn] = 1;
-    btn_last_pressed_ms[btn] = current_time_ms;
-  } else if(!pressed && btn_state[btn]) { // button just released
-    btn_state[btn] = 0;
-    btn_last_released_ms[btn] = current_time_ms;
-  }
-}
+  key_data = (data[0] << 8) | (data[1]);
 
-void gamepad::force_update_stick(int joystick_num, int8_t x, int8_t y) {
-  if(joystick_num < 0 || joystick_num >= GP_JOYSTICK_NUM) return;
-  joystick_x[joystick_num] = x;
-  joystick_y[joystick_num] = y;
+  joystick_x[0] = data[2];
+  joystick_y[0] = data[3];
+  joystick_x[1] = data[4];
+  joystick_y[1] = data[5];
 }
 
 int gamepad::is_btn_pressed(enum btn_code btn) {
