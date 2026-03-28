@@ -47,6 +47,7 @@ class gamepad {
     void init(void);
     void update(void);
     void force_update(enum btn_code btn, int pressed); //placeholder
+    void force_update_stick(int joystick_num, int8_t x, int8_t y); //placeholder
 
     int is_btn_pressed(enum btn_code btn);
     int is_btn_released(enum btn_code btn);

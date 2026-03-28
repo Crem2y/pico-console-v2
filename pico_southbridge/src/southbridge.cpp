@@ -35,7 +35,9 @@ temperature Temperature = temperature();
 void core1_entry(void);
 void bridge_do_cmd(bridge_protocol_t* cmd);
 
-#define BTN_START_PIN 3 //placeholder
+#define JOY1_X_PIN 26 //placeholder
+#define JOY1_Y_PIN 27 //placeholder
+#define BTN_START_PIN 28 //placeholder
 
 //////// function ////////
 
@@ -47,20 +49,20 @@ int main() {
 
   audio_init(6, 7);
   
+  //placeholder
   gpio_init(BTN_START_PIN);
   gpio_set_dir(BTN_START_PIN, GPIO_IN);
   gpio_pull_up(BTN_START_PIN);
+
+  adc_init();
+  adc_gpio_init(JOY1_X_PIN);
+  adc_gpio_init(JOY1_Y_PIN);
 
   sleep_ms(100);
 
   multicore_launch_core1(core1_entry);
 
   // boot sound
-  // voice_note_on(0, 6, 0, g_voices[0].vol_q8);
-  // sleep_ms(100);
-  // voice_note_on(0, 7, 0, g_voices[0].vol_q8);
-  // sleep_ms(100);
-  getchar_timeout_us(100);
 
 //  LOG_PRINTF("go to main loop\n");
 //  multicore_fifo_push_blocking(1);
@@ -72,20 +74,29 @@ int main() {
 
   int btn_status_old = 0;
   while (true) {
-    //sleep_ms(10);
+    sleep_ms(10);
     bridge_handle();
 
     //placeholder
     int btn_status = gpio_get(BTN_START_PIN);
-    if(btn_status != btn_status_old) {
-      btn_status_old = btn_status;
+    adc_select_input(0);
+    uint16_t joy1_x_raw = adc_read();
+    adc_select_input(1);
+    uint16_t joy1_y_raw = adc_read();
 
-      bridge_protocol_t response_cmd;
-      uint8_t temp_payload[PAYLOAD_MAX_SIZE];
-      temp_payload[0] = !btn_status;
-      response_cmd = bridge_protocol_create(CMD_GAMEPAD_DATA, 1, temp_payload);
-      bridge_cmd_queue_push(response_cmd);
-    }
+    int8_t joy1_x = (int16_t)(joy1_x_raw >> 4) - 128; // convert to -128 ~ 127
+    int8_t joy1_y = (int16_t)(joy1_y_raw >> 4) - 128; // convert to -128 ~ 127
+
+    bridge_protocol_t response_cmd;
+    uint8_t temp_payload[PAYLOAD_MAX_SIZE];
+    temp_payload[0] = !btn_status;
+    temp_payload[1] = 0; // btn2
+    temp_payload[2] = joy1_x; // joyLx
+    temp_payload[3] = joy1_y; // joyLy
+    temp_payload[4] = 0; // joyRx
+    temp_payload[5] = 0; // joyRy
+    response_cmd = bridge_protocol_create(CMD_GAMEPAD_DATA, 6, temp_payload);
+    bridge_cmd_queue_push(response_cmd);
     // Gamepad.update();
     // Bat.get_level();
     // LedCtrl.update();

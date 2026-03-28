@@ -251,9 +251,11 @@ main_menu_loop:
         case MAIN_LED_TEST:
           menu_led_test();
           break;
+        */
         case MAIN_LCD_TEST:
           menu_lcd_test();
           break;
+        /*
         case MAIN_DAC_TEST:
           menu_dac_test();
           break;
@@ -837,6 +839,7 @@ void bridge_do_cmd(bridge_protocol_t* cmd) {
     } else {
       Gamepad.force_update(BTN_START, true);
     }
+    Gamepad.force_update_stick(0, cmd->payload[2], cmd->payload[3]);
     break;
   }
   default:
