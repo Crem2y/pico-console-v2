@@ -10,7 +10,7 @@ liBattery Bat = liBattery(28, ((float)1/2));
 // middleware lib init
 ledControl LedCtrl = ledControl(&Led);
 gamepad Gamepad = gamepad();
-//soundSystem Sound = soundSystem();
+audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
 
 void core1_entry();
@@ -18,6 +18,7 @@ void bridge_do_cmd(bridge_protocol_t* cmd);
 
 time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
+time_ms_t audio_timer;
 
 //////// function ////////
 
@@ -124,6 +125,9 @@ int main() { // uses core 0 to sub core
 
   while (true) {
     time_ms_t now_time = get_system_time_ms();
+    bridge_protocol_t response_cmd; 
+    uint8_t temp_payload[PAYLOAD_MAX_SIZE];
+    int payload_size = 0;
 
     bridge_handle();
 
@@ -134,6 +138,15 @@ int main() { // uses core 0 to sub core
     if(system_time_elapsed_ms(now_time, temperature_timer) > 1000) {
       temperature_timer = now_time;
       Temperature.update();
+    }
+    if(system_time_elapsed_ms(now_time, audio_timer) > 1) {
+      audio_timer = now_time;
+      Audio.update();
+      payload_size = Audio.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
+      if(payload_size > 0) {
+        response_cmd = bridge_protocol_create(CMD_AUDIO_PCM_DATA, payload_size, temp_payload);
+        bridge_cmd_queue_push(response_cmd);
+      }
     }
     //Bat.get_level();
     LedCtrl.update();
@@ -151,15 +164,18 @@ void core1_entry() { // uses core 1 to main core
   // LedCtrl.set_mode(LED_CONTROL_3, LED_DARKER);
   // LedCtrl.set_mode(LED_CONTROL_4, LED_DARKER);
 
-  bridge_protocol_t response_cmd;
-  uint8_t temp_payload[PAYLOAD_MAX_SIZE];
-  temp_payload[0] = 0x60;
-  response_cmd = bridge_protocol_create(CMD_AUDIO_PCM_DATA, 1, temp_payload);
-  bridge_cmd_queue_push(response_cmd);
-  sleep_ms(100);
-  temp_payload[0] = 0x70;
-  response_cmd = bridge_protocol_create(CMD_AUDIO_PCM_DATA, 1, temp_payload);
-  bridge_cmd_queue_push(response_cmd);
+  music_note_t boot_notes[2] = {
+    {6, 0},   // C6
+    {7, 0}    // C7
+  };
+
+  music_table_t boot_music = {
+    .len = 2,
+    .note_duration_ms = 100,
+    .notes = boot_notes
+  };
+
+  Audio.play_music(&boot_music);
 
   char string_buf[32];
   uint8_t cursor_x = 0;
@@ -178,7 +194,7 @@ main_menu_loop:
     Lcd.setCursor(16,32);
     Lcd.print_5x8("LCD test");
     Lcd.setCursor(16,48);
-    Lcd.print_5x8("DAC test");
+    Lcd.print_5x8("Audio test");
     Lcd.setCursor(16,64);
     Lcd.print_5x8("Battery test");
     Lcd.setCursor(16,80);
@@ -234,10 +250,10 @@ main_menu_loop:
         case MAIN_LCD_TEST:
           menu_lcd_test();
           break;
-        /*
-        case MAIN_DAC_TEST:
-          menu_dac_test();
+        case MAIN_AUDIO_TEST:
+          menu_audio_test();
           break;
+        /*
         case MAIN_BAT_TEST:
           menu_bat_test();
           break;
@@ -601,24 +617,37 @@ void menu_lcd_test(void) {
     // }
   }
 }
-/*
-void menu_dac_test(void) {
+
+void menu_audio_test(void) {
   Lcd.setTextSize(1);
   Lcd.setCursor(0,232);
   Lcd.print_5x8("press SELECT & START to exit menu");
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
-  Lcd.print_5x8("DAC test");
+  Lcd.print_5x8("Audio test");
 
   Lcd.setCursor(0,16);
   Lcd.print_5x8("press A to play sound");
 
+  music_note_t test_notes[4] = {
+    {4, 0},   // C4
+    {4, 4},   // E4
+    {4, 7},   // G4
+    {5, 0}    // C5
+  };
+
+  music_table_t test_music = {
+    .len = 4,
+    .note_duration_ms = 100,
+    .notes = test_notes
+  };
+
   while(1) {
     sleep_ms(100);
-    
-    if(Gamepad.is_btn_pressed(BTN_A)) {
-      Sound.play_music_ex(Music_Test, 10, 100);
-      Sound.set_mute(true);
+
+    //if(Gamepad.is_btn_pressed(BTN_A)) {
+    if(Gamepad.is_btn_pressed(BTN_START)) { //test
+      Audio.play_music(&test_music);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
@@ -626,7 +655,7 @@ void menu_dac_test(void) {
     }
   }
 }
-
+/*
 void menu_bat_test(void) {
   Lcd.setTextSize(1);
   Lcd.setCursor(0,232);
