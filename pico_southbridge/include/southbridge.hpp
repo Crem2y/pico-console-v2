@@ -1,21 +1,23 @@
 #pragma once
 
-enum menu_main {
-  MAIN_BTN_TEST,
-  MAIN_LED_TEST,
-  MAIN_LCD_TEST,
-  MAIN_DAC_TEST,
-  MAIN_BAT_TEST,
-  MAIN_TEMP_TEST,
-  MAIN_IR_TEST,
-  MAIN_SD_TEST,
-};
+#include <stdio.h>
 
-void menu_btn_test();
-void menu_led_test();
-void menu_lcd_test();
-void menu_dac_test();
-void menu_bat_test();
-void menu_temp_test();
-void menu_ir_test();
-void menu_sd_test();
+// pico libraries
+#include "pico/stdlib.h"
+#include "pico/multicore.h"
+
+// drivers
+// #include "uart_log.h"
+#include "uart_bridge.h"
+#include "i2s_pcm.h"
+#include "btn_matrix.hpp"
+#include "joystick.hpp"
+// #include "li_battery.hpp"
+// #include "ir_remote.hpp"
+#include "system_time.h"
+#include "temp_builtin.h"
+
+// middlewares
+#include "audio_system.hpp"
+#include "gamepad.hpp"
+#include "temperature.hpp"

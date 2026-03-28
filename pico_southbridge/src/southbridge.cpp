@@ -1,27 +1,5 @@
-#include <stdio.h>
-
-// pico libraries
-#include "pico/stdlib.h"
-#include "pico/multicore.h"
-
 // headers
 #include "southbridge.hpp"
-
-// drivers
-// #include "uart_log.h"
-#include "uart_bridge.h"
-#include "i2s_pcm.h"
-#include "btn_matrix.hpp"
-#include "joystick.hpp"
-// #include "li_battery.hpp"
-// #include "ir_remote.hpp"
-#include "system_time.h"
-#include "temp_builtin.h"
-
-// middlewares
-#include "audio_system.hpp"
-#include "gamepad.hpp"
-#include "temperature.hpp"
 
 // // hw lib init
 // liBattery Bat = liBattery(28, ((float)1/2));

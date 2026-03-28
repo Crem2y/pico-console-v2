@@ -1,28 +1,5 @@
-#include <stdio.h>
-
-// pico libraries
-#include "pico/stdlib.h"
-#include "pico/multicore.h"
-
 // headers
 #include "hw_test.hpp"
-
-// drivers
-#include "uart_log.h"
-#include "uart_bridge.h"
-#include "led_builtin.h"
-#include "led_status.hpp"
-#include "li_battery.hpp"
-#include "ili9488_40_hstx.hpp"
-#include "system_time.h"
-#include "temp_builtin.h"
-#include "xpt2046.hpp"
-
-// middlewares
-#include "gamepad.hpp"
-// #include "sound_system.hpp"
-#include "led_control.hpp"
-#include "temperature.hpp"
 
 // hw lib init
 ledStatus Led = ledStatus(26,27,28,29);
