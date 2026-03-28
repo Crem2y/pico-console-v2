@@ -120,16 +120,7 @@ int main() { // uses core 0 to sub core
 
   LOG_PRINTF("go to main loop\n");
   multicore_fifo_push_blocking(1);
-
-  // Gamepad.update();
-  // if(!Gamepad.is_btn_pressed(BTN_SELECT)) {
-  //   Sound.set_waning(32);
-  //   Sound.play_music_ex(Music_Boot_ex, 10, 100);
-  // }
-  //Sound.set_mute(true);
   // boot sequence end
-  
-  // Gamepad.update();
 
   while (true) {
     time_ms_t now_time = get_system_time_ms();

@@ -33,6 +33,7 @@ int main() {
   sleep_ms(100);
 
   multicore_launch_core1(core1_entry);
+  uart_bridge_enable_irq();
 
   // boot sequence end
 
@@ -43,7 +44,7 @@ int main() {
 
     bridge_handle();
 
-    if(system_time_elapsed_ms(now_time, gamepad_timer) > 100) {
+    if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
       Gamepad.update();
       Gamepad.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
