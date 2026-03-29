@@ -165,8 +165,8 @@ void core1_entry() { // uses core 1 to main core
   // LedCtrl.set_mode(LED_CONTROL_4, LED_DARKER);
 
   music_note_t boot_notes[2] = {
-    {6, 0},   // C6
-    {7, 0}    // C7
+    {0, 6, 0},   // C6
+    {0, 7, 0}    // C7
   };
 
   music_table_t boot_music = {
@@ -630,10 +630,10 @@ void menu_audio_test(void) {
   Lcd.print_5x8("press A to play sound");
 
   music_note_t test_notes[4] = {
-    {4, 0},   // C4
-    {4, 4},   // E4
-    {4, 7},   // G4
-    {5, 0}    // C5
+    {0, 4, 0},   // C4
+    {1, 4, 4},   // E4
+    {2, 4, 7},   // G4
+    {3, 5, 0}    // C5
   };
 
   music_table_t test_music = {

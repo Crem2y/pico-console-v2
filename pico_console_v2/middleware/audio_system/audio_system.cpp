@@ -20,14 +20,14 @@ void audioSystem::update(void) {
     if(current_note_index >= current_note_len) {
       current_note = NULL;
       current_note_index = 0;
-      note_now = (music_note_t){0, 0}; // no sound
+      note_now = (music_note_t){0, 0, 0}; // no sound
       return;
     }
 
     note_now = current_note[current_note_index];
     current_note_index++;
   } else {
-    note_now = (music_note_t){0, 0}; // no sound
+    note_now = (music_note_t){0, 0, 0}; // no sound
   }
 }
 
@@ -38,10 +38,11 @@ int audioSystem::make_bridge_payload(uint8_t* payload_buf, uint max_size) {
     return 0; // no update
   }
 
-  payload_buf[0] = note_now.octave;
-  payload_buf[1] = note_now.note;
+  payload_buf[0] = note_now.channel;
+  payload_buf[1] = note_now.octave;
+  payload_buf[2] = note_now.note;
 
-  return 2;
+  return 3;
 }
 
 void audioSystem::play_music(music_table_t* music_table) {

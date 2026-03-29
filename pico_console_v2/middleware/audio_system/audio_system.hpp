@@ -4,6 +4,7 @@
 #include "system_time.h"
 
 typedef struct _music_note_t { //placeholder
+  uint8_t channel;
   uint8_t octave;
   uint8_t note;
 } music_note_t;
