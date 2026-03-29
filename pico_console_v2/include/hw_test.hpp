@@ -25,6 +25,7 @@
 
 enum menu_main {
   MAIN_BTN_TEST,
+  MAIN_JOYSTICK_TEST,
   MAIN_LED_TEST,
   MAIN_LCD_TEST,
   MAIN_AUDIO_TEST,
@@ -35,6 +36,7 @@ enum menu_main {
 };
 
 void menu_btn_test();
+void menu_joystick_test();
 void menu_led_test();
 void menu_lcd_test();
 void menu_audio_test();

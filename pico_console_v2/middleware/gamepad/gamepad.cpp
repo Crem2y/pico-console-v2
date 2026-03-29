@@ -148,10 +148,18 @@ time_ms_t gamepad::get_btn_released_duration(enum btn_code btn) {
 
 int8_t gamepad::get_joystick_x(int joystick_num) {
   if(joystick_num < 0 || joystick_num >= GP_JOYSTICK_NUM) return 0;
+
+  if(joystick_x[joystick_num] > GP_JOYSTICK_MAX) joystick_x[joystick_num] = GP_JOYSTICK_MAX;
+  if(joystick_x[joystick_num] < GP_JOYSTICK_MIN) joystick_x[joystick_num] = GP_JOYSTICK_MIN;
+
   return joystick_x[joystick_num];
 }
 
 int8_t gamepad::get_joystick_y(int joystick_num) {
   if(joystick_num < 0 || joystick_num >= GP_JOYSTICK_NUM) return 0;
+
+  if(joystick_y[joystick_num] > GP_JOYSTICK_MAX) joystick_y[joystick_num] = GP_JOYSTICK_MAX;
+  if(joystick_y[joystick_num] < GP_JOYSTICK_MIN) joystick_y[joystick_num] = GP_JOYSTICK_MIN;
+
   return joystick_y[joystick_num];
 }

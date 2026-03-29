@@ -81,7 +81,7 @@ int main() { // uses core 0 to sub core
     sleep_ms(50);
   }
 
-  Lcd.setCursor(372,304);
+  Lcd.setCursor(480-(12*9),320-(16));
   Lcd.print_5x8("by Crem2y");
   Lcd.setTextSize(1);
   Lcd.setCursor(190,200);
@@ -190,24 +190,26 @@ main_menu_loop:
     Lcd.setCursor(16,0);
     Lcd.print_5x8("Button test");
     Lcd.setCursor(16,16);
-    Lcd.print_5x8("LED test");
+    Lcd.print_5x8("Joystick test");
     Lcd.setCursor(16,32);
-    Lcd.print_5x8("LCD test");
+    Lcd.print_5x8("LED test");
     Lcd.setCursor(16,48);
-    Lcd.print_5x8("Audio test");
+    Lcd.print_5x8("LCD test");
     Lcd.setCursor(16,64);
-    Lcd.print_5x8("Battery test");
+    Lcd.print_5x8("Audio test");
     Lcd.setCursor(16,80);
-    Lcd.print_5x8("Temperature test");
+    Lcd.print_5x8("Battery test");
     Lcd.setCursor(16,96);
-    Lcd.print_5x8("IR LED test");
+    Lcd.print_5x8("Temperature test");
     Lcd.setCursor(16,112);
+    Lcd.print_5x8("IR LED test");
+    Lcd.setCursor(16,128);
     Lcd.print_5x8("SD card test");
 
     Lcd.setTextSize(1);
-    Lcd.setCursor(0,224);
+    Lcd.setCursor(0,320-(8*2));
     Lcd.print_5x8("press up/down to move cursor");
-    Lcd.setCursor(0,232);
+    Lcd.setCursor(0,320-(8*1));
     Lcd.print_5x8("press A or START to select");
 
     while(1) {
@@ -241,6 +243,9 @@ main_menu_loop:
         {
         case MAIN_BTN_TEST:
           menu_btn_test();
+          break;
+        case MAIN_JOYSTICK_TEST:
+          menu_joystick_test();
           break;
         /*
         case MAIN_LED_TEST:
@@ -280,7 +285,7 @@ main_menu_loop:
 
 void menu_btn_test(void) {
   Lcd.setTextSize(1);
-  Lcd.setCursor(0,232);
+  Lcd.setCursor(0,320-8);
   Lcd.print_5x8("press SELECT & START to exit menu");
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
@@ -543,10 +548,65 @@ void menu_btn_test(void) {
     }
   }
 }
+
+void menu_joystick_test(void) {
+  Lcd.setTextSize(1);
+  Lcd.setCursor(0,320-8);
+  Lcd.print_5x8("press SELECT & START to exit menu");
+  Lcd.setTextSize(2);
+  Lcd.setCursor(0,0);
+  Lcd.print_5x8("Joystick test");
+
+  uint16_t prev_pos1_x, prev_pos1_y;
+  uint16_t prev_pos2_x, prev_pos2_y;
+
+  Lcd.drawRect(160-72, 160-72, 128+15, 128+15, LCD_WHITE);
+  Lcd.drawRect(320-72, 160-72, 128+15, 128+15, LCD_WHITE);
+
+  while(1) {
+    sleep_ms(10);
+
+    int8_t joy1_x = Gamepad.get_joystick_x(0);
+    int8_t joy1_y = Gamepad.get_joystick_y(0);
+
+    uint16_t pos1_x = 160 + (joy1_x >> 1);
+    uint16_t pos1_y = 160 + (joy1_y >> 1);
+
+    if(pos1_x != prev_pos1_x || pos1_y != prev_pos1_y) {
+      Lcd.fillRect(prev_pos1_x-7,prev_pos1_y-7,14,14,LCD_BLACK);
+      Lcd.drawCircle(159,159,71,LCD_WHITE);
+      Lcd.drawLine(88,160,88+128+15,160,LCD_WHITE);
+      Lcd.drawLine(160,88,160,88+128+15,LCD_WHITE);
+      Lcd.fillRect(pos1_x-7,pos1_y-7,14,14,LCD_WHITE);
+      prev_pos1_x = pos1_x;
+      prev_pos1_y = pos1_y;
+    }
+
+    int8_t joy2_x = Gamepad.get_joystick_x(1);
+    int8_t joy2_y = Gamepad.get_joystick_y(1);
+
+    uint16_t pos2_x = 320 + (joy2_x >> 1);
+    uint16_t pos2_y = 160 + (joy2_y >> 1);
+
+    if(pos2_x != prev_pos2_x || pos2_y != prev_pos2_y) {
+      Lcd.fillRect(prev_pos2_x-7,prev_pos2_y-7,14,14,LCD_BLACK);
+      Lcd.drawCircle(319,159,71,LCD_WHITE);
+      Lcd.drawLine(248,160,248+128+15,160,LCD_WHITE);
+      Lcd.drawLine(320,88,320,88+128+15,LCD_WHITE);
+      Lcd.fillRect(pos2_x-7,pos2_y-7,14,14,LCD_WHITE);
+      prev_pos2_x = pos2_x;
+      prev_pos2_y = pos2_y;
+    }
+
+    if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
+      return;
+    }
+  }
+}
 /*
 void menu_led_test(void) {
   Lcd.setTextSize(1);
-  Lcd.setCursor(0,232);
+  Lcd.setCursor(0,320-8);
   Lcd.print_5x8("press SELECT & START to exit menu");
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
@@ -580,7 +640,7 @@ void menu_led_test(void) {
 */
 void menu_lcd_test(void) {
   Lcd.setTextSize(1);
-  Lcd.setCursor(0,312);
+  Lcd.setCursor(0,320-8);
   Lcd.print_5x8("press SELECT & START to exit menu");
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
@@ -620,7 +680,7 @@ void menu_lcd_test(void) {
 
 void menu_audio_test(void) {
   Lcd.setTextSize(1);
-  Lcd.setCursor(0,232);
+  Lcd.setCursor(0,320-8);
   Lcd.print_5x8("press SELECT & START to exit menu");
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
@@ -658,7 +718,7 @@ void menu_audio_test(void) {
 /*
 void menu_bat_test(void) {
   Lcd.setTextSize(1);
-  Lcd.setCursor(0,232);
+  Lcd.setCursor(0,320-8);
   Lcd.print_5x8("press SELECT & START to exit menu");
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
@@ -682,7 +742,7 @@ void menu_bat_test(void) {
 */
 void menu_temp_test(void) {
   Lcd.setTextSize(1);
-  Lcd.setCursor(0,232);
+  Lcd.setCursor(0,320-8);
   Lcd.print_5x8("press SELECT & START to exit menu");
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
@@ -706,7 +766,7 @@ void menu_temp_test(void) {
 /*
 void menu_ir_test(void) {
   Lcd.setTextSize(1);
-  Lcd.setCursor(0,232);
+  Lcd.setCursor(0,320-8);
   Lcd.print_5x8("press SELECT & START to exit menu");
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
@@ -754,7 +814,7 @@ void menu_ir_test(void) {
 
 void menu_sd_test(void) {
   Lcd.setTextSize(1);
-  Lcd.setCursor(0,232);
+  Lcd.setCursor(0,320-8);
   Lcd.print_5x8("press SELECT & START to exit menu");
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
