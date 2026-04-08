@@ -23,7 +23,7 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico2 CACHE STRING "Board type")
+set(PICO_BOARD pimoroni_pico_plus2_rp2350 CACHE STRING "Board type")
 
 if(PICO_SDK_PATH)
 else()
