@@ -270,10 +270,10 @@ main_menu_loop:
         case MAIN_IR_TEST:
           menu_ir_test();
           break;
+        */
         case MAIN_SD_TEST:
           menu_sd_test();
           break;
-        */
         }
         goto main_menu_loop;
       }
@@ -820,7 +820,7 @@ void menu_ir_test(void) {
     }
   }
 }
-
+*/
 void menu_sd_test(void) {
   Lcd.setTextSize(1);
   Lcd.setCursor(0,320-8);
@@ -829,85 +829,27 @@ void menu_sd_test(void) {
   Lcd.setCursor(0,0);
   Lcd.print_5x8("SD card test");
 
+  //placeholder
+  const uint8_t sd_detect_pin = 9;
+  gpio_init(sd_detect_pin);
+  gpio_set_dir(sd_detect_pin, GPIO_IN);
+  gpio_pull_up(sd_detect_pin);
+
   sleep_ms(100);
   char string_buf[32];
-  sprintf(string_buf, "SD card : %s", Sdcard.card_check() ? "inserted    " : "not inserted");
-  Lcd.setCursor(0,16);
-  Lcd.print_5x8(string_buf);
-
-  int ret = Sdcard.card_init();
-  if(ret < 0) {
-    Sdcard.card_deinit();
-  }
-
-  sprintf(string_buf, "inited : %s", Sdcard.info.is_inited ? "yes" : "error");
-  Lcd.setCursor(0,32);
-  Lcd.print_5x8(string_buf);
-
-  if(!Sdcard.info.is_inited) {
-    sprintf(string_buf, "(%d)", ret);
-    Lcd.print_5x8(string_buf);
-
-  } else {
-    Lcd.setCursor(0,48);
-    Lcd.print_5x8("SD card type : ");
-  
-    switch (Sdcard.info.type)
-    {
-    case SD_TYPE_SDSC:
-      Lcd.print_5x8("SDSC");
-      break;
-    case SD_TYPE_SDHC:
-      if(Sdcard.info.size > 34359738368) { // 34359738368 = 1024^3
-        Lcd.print_5x8("SDXC");
-      } else {
-        Lcd.print_5x8("SDHC");
-      }
-      break;
-    default:
-      Lcd.print_5x8("UNKNOWN");
-      break;
-    }
-
-    Lcd.setCursor(0,64);
-    Lcd.print_5x8("size : ");
-    sprintf(string_buf, "%llu MB", (Sdcard.info.size / 1000000));
-    Lcd.print_5x8(string_buf);
-
-    int ret;
-    uint8_t buf[512] = {0,};
-    ret = Sdcard.sector_read(0, buf);
-    if(ret < 0) {
-      LOG_PRINTF("sector_read error(%d)\n", ret);
-    }
-    LOG_PRINTF("SD SECTOR[0] : ");
-    for(int i=0; i<512; i++)
-    {
-      LOG_PRINTF("%02X ", buf[i]);
-    }
-    LOG_PRINTF("\n");
-
-    ret = Sdcard.sector_read(1, buf);
-    if(ret < 0) {
-      LOG_PRINTF("sector_read error(%d)\n", ret);
-    }
-    LOG_PRINTF("SD SECTOR[1] : ");
-    for(int i=0; i<512; i++)
-    {
-      LOG_PRINTF("%02X ", buf[i]);
-    }
-    LOG_PRINTF("\n");
-  }
 
   while(1) {
     sleep_ms(100);
+
+    sprintf(string_buf, "SD card : %s", gpio_get(sd_detect_pin) ? "not inserted" : "inserted    ");
+    Lcd.setCursor(0,16);
+    Lcd.print_5x8(string_buf);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       return;
     }
   }
 }
-*/
 
 void bridge_do_cmd(bridge_protocol_t* cmd) {
   enum bridge_cmd command = cmd->cmd;
