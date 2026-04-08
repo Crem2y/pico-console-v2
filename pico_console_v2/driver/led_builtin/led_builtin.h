@@ -8,7 +8,7 @@
 #else
 #define LED_CYW43_ENABLE 0
 #include "hardware/gpio.h"
-#define LED_BUILTIN_PIN 25
+#define LED_BUILTIN_PIN 10
 //#define LED_BUILTIN_PIN PICO_DEFAULT_LED_PIN
 #endif
 
