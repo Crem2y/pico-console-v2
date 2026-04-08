@@ -565,6 +565,7 @@ void menu_joystick_test(void) {
 
   while(1) {
     sleep_ms(10);
+    char string_buf[32];
 
     int8_t joy1_x = Gamepad.get_joystick_x(0);
     int8_t joy1_y = Gamepad.get_joystick_y(0);
@@ -580,6 +581,10 @@ void menu_joystick_test(void) {
       Lcd.fillRect(pos1_x-7,pos1_y-7,14,14,LCD_WHITE);
       prev_pos1_x = pos1_x;
       prev_pos1_y = pos1_y;
+
+      sprintf(string_buf, "L stick : % 4d, % 4d", joy1_x, joy1_y);
+      Lcd.setCursor(0,16);
+      Lcd.print_5x8(string_buf);
     }
 
     int8_t joy2_x = Gamepad.get_joystick_x(1);
@@ -596,6 +601,10 @@ void menu_joystick_test(void) {
       Lcd.fillRect(pos2_x-7,pos2_y-7,14,14,LCD_WHITE);
       prev_pos2_x = pos2_x;
       prev_pos2_y = pos2_y;
+
+      sprintf(string_buf, "R stick : % 4d, % 4d", joy2_x, joy2_y);
+      Lcd.setCursor(0,32);
+      Lcd.print_5x8(string_buf);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
