@@ -3,9 +3,8 @@
 
 // hw lib init
 ledStatus Led = ledStatus(26,27,28,29);
-ili9488_40 Lcd = ili9488_40(12,13,14,15, 16,17);
-xpt2046 Touch = xpt2046(spi0, 19,20,18,21, -1);
-liBattery Bat = liBattery(28, ((float)1/2));
+ili9488_40 Lcd = ili9488_40(17,16,14,15, 18,19);
+xpt2046 Touch = xpt2046(spi0, 23,20,22,21, 24);
 
 // middleware lib init
 ledControl LedCtrl = ledControl(&Led);
@@ -23,8 +22,9 @@ time_ms_t audio_timer;
 //////// function ////////
 
 int main() { // uses core 0 to sub core
-  uartLog_init(uart0, 0, 1, 115200);
-  uart_bridge_init(uart1, 24, 25, 921600);
+  // uartLog_init(uart0, 0, 1, 115200);
+  //uart_bridge_init(uart1, 24, 25, 921600);
+  uart_bridge_init(uart0, 12, 13, 921600);
   set_bridge_do_cmd(bridge_do_cmd);
   LedCtrl.init();
 
@@ -37,14 +37,14 @@ int main() { // uses core 0 to sub core
   multicore_launch_core1(core1_entry);
 
   // initalizing hardwares
-  // LedCtrl.set_brightness(LED_CONTROL_1, 255);
-  // LedCtrl.set_brightness(LED_CONTROL_2, 255);
-  // LedCtrl.set_brightness(LED_CONTROL_3, 255);
-  // LedCtrl.set_brightness(LED_CONTROL_4, 255);
-  // LedCtrl.set_mode(LED_CONTROL_1, LED_ON);
-  // LedCtrl.set_mode(LED_CONTROL_2, LED_ON);
-  // LedCtrl.set_mode(LED_CONTROL_3, LED_ON);
-  // LedCtrl.set_mode(LED_CONTROL_4, LED_ON);
+  LedCtrl.set_brightness(LED_CONTROL_1, 255);
+  LedCtrl.set_brightness(LED_CONTROL_2, 255);
+  LedCtrl.set_brightness(LED_CONTROL_3, 255);
+  LedCtrl.set_brightness(LED_CONTROL_4, 255);
+  LedCtrl.set_mode(LED_CONTROL_1, LED_ON);
+  LedCtrl.set_mode(LED_CONTROL_2, LED_ON);
+  LedCtrl.set_mode(LED_CONTROL_3, LED_ON);
+  LedCtrl.set_mode(LED_CONTROL_4, LED_ON);
   LedCtrl.update();
   LOG_PRINTF("LED ok\n");
   Lcd.begin();
@@ -159,10 +159,10 @@ void core1_entry() { // uses core 1 to main core
 
   multicore_fifo_pop_blocking(); // wait until boot process is done
 
-  // LedCtrl.set_mode(LED_CONTROL_1, LED_DARKER);
-  // LedCtrl.set_mode(LED_CONTROL_2, LED_DARKER);
-  // LedCtrl.set_mode(LED_CONTROL_3, LED_DARKER);
-  // LedCtrl.set_mode(LED_CONTROL_4, LED_DARKER);
+  LedCtrl.set_mode(LED_CONTROL_1, LED_DARKER);
+  LedCtrl.set_mode(LED_CONTROL_2, LED_DARKER);
+  LedCtrl.set_mode(LED_CONTROL_3, LED_DARKER);
+  LedCtrl.set_mode(LED_CONTROL_4, LED_DARKER);
 
   music_note_t boot_notes[2] = {
     {0, 6, 0},   // C6
@@ -216,7 +216,8 @@ main_menu_loop:
       sleep_ms(100);
 
       Lcd.setTextSize(1);
-      sprintf(string_buf, "BAT:% 3.1f%%", Bat.level);
+      //sprintf(string_buf, "BAT:% 3.1f%%", Bat.level);
+      sprintf(string_buf, "BAT:% 3.1f%%", 0.0f);
       Lcd.setCursor(254,0);
       Lcd.print_5x8(string_buf);
 
@@ -247,11 +248,9 @@ main_menu_loop:
         case MAIN_JOYSTICK_TEST:
           menu_joystick_test();
           break;
-        /*
         case MAIN_LED_TEST:
           menu_led_test();
           break;
-        */
         case MAIN_LCD_TEST:
           menu_lcd_test();
           break;
@@ -612,7 +611,7 @@ void menu_joystick_test(void) {
     }
   }
 }
-/*
+
 void menu_led_test(void) {
   Lcd.setTextSize(1);
   Lcd.setCursor(0,320-8);
@@ -646,7 +645,7 @@ void menu_led_test(void) {
     }
   }
 }
-*/
+
 void menu_lcd_test(void) {
   Lcd.setTextSize(1);
   Lcd.setCursor(0,320-8);
