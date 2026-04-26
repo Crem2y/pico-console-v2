@@ -16,6 +16,7 @@
 // #include "ir_remote.hpp"
 #include "system_time.h"
 #include "temp_builtin.h"
+#include "vibration_lra.hpp"
 
 // middlewares
 #include "audio_system.hpp"

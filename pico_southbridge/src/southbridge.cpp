@@ -6,6 +6,7 @@
 // irRemote Ir = irRemote(21);
 btn_matrix BtnMatrix = btn_matrix(28);
 joystick Joy1 = joystick(26, 27, 0, 1);
+vibrationLRA Vibration = vibrationLRA(10, 11);
 
 // // middleware lib init
 gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, NULL);
@@ -30,6 +31,7 @@ int main() {
   Audio.init();
   Gamepad.init();
   Temperature.init();
+  Vibration.init();
 
   sleep_ms(100);
 
@@ -92,6 +94,15 @@ void bridge_do_cmd(bridge_protocol_t* cmd) {
     break;
   case CMD_AUDIO_DISABLE:
     // Audio.disable();
+    break;
+  case CMD_VIBRATION_ENABLE:
+    Vibration.enable();
+    break;
+  case CMD_VIBRATION_DATA:
+    Vibration.update_from_bridge(cmd->payload, cmd->payload_size);
+    break;
+  case CMD_VIBRATION_DISABLE:
+    Vibration.disable();
     break;
   default:
     break;

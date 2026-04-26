@@ -9,6 +9,7 @@ add_subdirectory(li_battery)
 add_subdirectory(ir_remote)
 add_subdirectory(system_time)
 add_subdirectory(temp_builtin)
+add_subdirectory(vibration_lra)
 
 add_library(driver INTERFACE)
 
@@ -22,6 +23,7 @@ target_link_libraries(driver INTERFACE
   ir_remote
   system_time
   temp_builtin
+  vibration_lra
 )
 
 message(STATUS "building drivers completed!")
