@@ -4,6 +4,8 @@
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
 
+#define LRA_PWM_FREQ_HZ 65000
+#define LRA_PWM_TOP 255
 #define LRA_PWM_MAX 255
 #define LRA_PWM_MIN 0
 #define LRA_NUM 2

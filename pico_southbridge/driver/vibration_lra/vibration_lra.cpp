@@ -6,7 +6,7 @@ static bool output_level_l = false;
 static bool output_level_r = false;
 
 int64_t lra_l_timer_callback(alarm_id_t id, void *user_data) {
-  if(lra->lra_dulation_us[0] > 0) {
+  if(lra->lra_enabled && lra->lra_dulation_us[0] > 0) {
     output_level_l = !output_level_l;
     if(output_level_l) {
       pwm_set_chan_level(lra->slice_num[0], lra->lra_pwm_ch[0], lra->lra_power[0]); // pwm on
@@ -23,7 +23,7 @@ int64_t lra_l_timer_callback(alarm_id_t id, void *user_data) {
 }
 
 int64_t lra_r_timer_callback(alarm_id_t id, void *user_data) {
-  if(lra->lra_dulation_us[1] > 0) {
+  if(lra->lra_enabled && lra->lra_dulation_us[1] > 0) {
     output_level_r = !output_level_r;
     if(output_level_r) {
       pwm_set_chan_level(lra->slice_num[1], lra->lra_pwm_ch[1], lra->lra_power[1]); // pwm on
@@ -52,10 +52,11 @@ void vibrationLRA::init(void) {
     lra_pwm_ch[i] = pwm_gpio_to_channel(lra_pin[i]);
 
     gpio_set_function(lra_pin[i], GPIO_FUNC_PWM);
+    float div = SYS_CLK_MHZ / ((float)LRA_PWM_FREQ_HZ * (LRA_PWM_TOP + 1));
 
-    pwm_set_chan_level(slice_num[i], lra_pwm_ch[i], 1000);
-    pwm_set_clkdiv(slice_num[i], SYS_CLK_MHZ / 1000000); // 1 tick = 1 us
-    pwm_set_wrap(slice_num[i], 1000000 / 65535); // 65.535 kHz
+    pwm_set_chan_level(slice_num[i], lra_pwm_ch[i], 0);
+    pwm_set_clkdiv(slice_num[i], div);
+    pwm_set_wrap(slice_num[i], LRA_PWM_TOP);
     pwm_set_enabled(slice_num[i], false);
     lra_power[i] = 0;
     lra_dulation_us[i] = 0;
