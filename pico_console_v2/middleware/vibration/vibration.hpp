@@ -4,8 +4,8 @@
 #include "system_time.h"
 
 enum vibration_channel {
-  VIBRATION_CH1 = 0,
-  VIBRATION_CH2
+  VIBRATION_L = 0,
+  VIBRATION_R
 };
 
 class vibration {

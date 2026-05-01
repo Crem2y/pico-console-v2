@@ -747,14 +747,39 @@ void menu_vibration_test(void) {
   Lcd.setCursor(0,0);
   Lcd.print_5x8("Vibration test");
 
+  uint16_t freq_l = 200, freq_r = 200;
+  uint8_t power_l = 20, power_r = 20;
+
   while(1) {
     sleep_ms(100);
+    char string_buf[32];
+
+    sprintf(string_buf, "LRA(L) : freq: % 5d, power: % 3d", freq_l, power_l);
+    Lcd.setCursor(0,16);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "LRA(R) : freq: % 5d, power: % 3d", freq_r, power_r);
+    Lcd.setCursor(0,32);
+    Lcd.print_5x8(string_buf);
+
+    if(Gamepad.is_btn_pressed(BTN_S1_UP)) {
+      if(freq_l < 1000) freq_l += 10;
+    }
+    if(Gamepad.is_btn_pressed(BTN_S1_DOWN)) {
+      if(freq_l > 10) freq_l -= 10;
+    }
+    if(Gamepad.is_btn_pressed(BTN_S1_LEFT)) {
+      if(power_l > 0) power_l -= 1;
+    }
+    if(Gamepad.is_btn_pressed(BTN_S1_RIGHT)) {
+      if(power_l < 100) power_l += 1;
+    }
+
     if(Gamepad.is_btn_pressed(BTN_START)) { //test
-      Vibration.set_vibration(VIBRATION_CH1, 200, 20);
-      Vibration.set_vibration(VIBRATION_CH2, 200, 20);
+      Vibration.set_vibration(VIBRATION_L, freq_l, power_l);
+      Vibration.set_vibration(VIBRATION_R, freq_l, power_l);//test
     } else {
-      Vibration.set_vibration(VIBRATION_CH1, 0, 0);
-      Vibration.set_vibration(VIBRATION_CH2, 0, 0);
+      Vibration.set_vibration(VIBRATION_L, 0, 0);
+      Vibration.set_vibration(VIBRATION_R, 0, 0);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
