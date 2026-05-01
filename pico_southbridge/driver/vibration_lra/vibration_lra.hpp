@@ -22,8 +22,6 @@ class vibrationLRA {
     void enable(void);
     void disable(void);
 
-    void update_from_bridge(uint8_t* data, uint8_t len);
-
     int lra_pin[LRA_NUM];
     uint slice_num[LRA_NUM];
 

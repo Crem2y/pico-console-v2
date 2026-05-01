@@ -22,3 +22,4 @@
 #include "audio_system.hpp"
 #include "gamepad.hpp"
 #include "temperature.hpp"
+#include "vibration.hpp"

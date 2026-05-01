@@ -96,17 +96,3 @@ void vibrationLRA::disable(void) {
     pwm_set_enabled(slice_num[i], false);
   }
 }
-
-void vibrationLRA::update_from_bridge(uint8_t* data, uint8_t len) {
-  if (len < 6) return; // Not enough data
-
-  uint32_t l_freq = data[0] | (data[1] << 8);
-  uint8_t l_power = data[2];
-  uint32_t r_freq = data[3] | (data[4] << 8);
-  uint8_t r_power = data[5];
-
-  set_freq(0, l_freq);
-  set_power(0, l_power);
-  set_freq(1, r_freq);
-  set_power(1, r_power);
-}
