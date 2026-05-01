@@ -754,10 +754,10 @@ void menu_vibration_test(void) {
     sleep_ms(100);
     char string_buf[32];
 
-    sprintf(string_buf, "LRA(L) : freq: % 5d, power: % 3d", freq_l, power_l);
+    sprintf(string_buf, "LRA(L) : freq: % 5d, power: % 4d", freq_l, power_l);
     Lcd.setCursor(0,16);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "LRA(R) : freq: % 5d, power: % 3d", freq_r, power_r);
+    sprintf(string_buf, "LRA(R) : freq: % 5d, power: % 4d", freq_r, power_r);
     Lcd.setCursor(0,32);
     Lcd.print_5x8(string_buf);
 
