@@ -30,5 +30,5 @@ class vibrationLRA {
     bool lra_enabled;
     uint8_t lra_power[LRA_NUM];
     int lra_pwm_ch[LRA_NUM];
-    int lra_dulation_us[LRA_NUM];
+    int lra_half_period_us[LRA_NUM];
 };
