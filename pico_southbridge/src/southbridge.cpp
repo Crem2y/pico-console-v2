@@ -6,18 +6,21 @@
 // irRemote Ir = irRemote(21);
 btn_matrix BtnMatrix = btn_matrix(28);
 joystick Joy1 = joystick(26, 27, 0, 1);
-vibrationLRA Vibration = vibrationLRA(10, 11);
+vibrationLRA Lra = vibrationLRA(10, 11);
+mpu6050 Mpu = mpu6050(i2c0, 16, 17, -1);
 
 // // middleware lib init
 gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, NULL);
 audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
+vibration Vibration = vibration(&Lra);
 
 void core1_entry(void);
 void bridge_do_cmd(bridge_protocol_t* cmd);
 
 time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
+time_ms_t imu_timer;
 
 //////// function ////////
 
@@ -29,9 +32,12 @@ int main() {
 
   audio_init(6, 7);
   Audio.init();
+  // Audio.enable();
   Gamepad.init();
   Temperature.init();
   Vibration.init();
+  Vibration.enable(true); 
+  Mpu.init();
 
   sleep_ms(100);
 
@@ -66,6 +72,15 @@ int main() {
         bridge_cmd_queue_push(response_cmd);
       }
     }
+    if(system_time_elapsed_ms(now_time, imu_timer) > 100) { //placeholder
+      imu_timer = now_time;
+      Mpu.read_raw_accel_data();
+      Mpu.read_raw_gyro_data();
+      Mpu.read_raw_temp_data();
+
+      printf("Accel: X=%6d Y=%6d Z=%6d | Gyro: X=%6d Y=%6d Z=%6d | ", Mpu.accel_raw.x, Mpu.accel_raw.y, Mpu.accel_raw.z, Mpu.gyro_raw.x, Mpu.gyro_raw.y, Mpu.gyro_raw.z);
+      printf("Temp. = % 3.1fC\n", (Mpu.temp_raw / 340.0) + 36.53f); // temperature formula from pico-examples/i2c/mpu6050_i2c/mpu6050_i2c.c
+    }
     // Bat.get_level();
   }
 
@@ -96,13 +111,13 @@ void bridge_do_cmd(bridge_protocol_t* cmd) {
     // Audio.disable();
     break;
   case CMD_VIBRATION_ENABLE:
-    Vibration.enable();
+    Vibration.enable(true);
     break;
   case CMD_VIBRATION_DATA:
     Vibration.update_from_bridge(cmd->payload, cmd->payload_size);
     break;
   case CMD_VIBRATION_DISABLE:
-    Vibration.disable();
+    Vibration.enable(false);
     break;
   default:
     break;

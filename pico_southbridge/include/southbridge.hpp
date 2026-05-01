@@ -17,6 +17,7 @@
 #include "system_time.h"
 #include "temp_builtin.h"
 #include "vibration_lra.hpp"
+#include "mpu6050.hpp"
 
 // middlewares
 #include "audio_system.hpp"

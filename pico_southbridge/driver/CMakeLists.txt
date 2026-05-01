@@ -6,6 +6,7 @@ add_subdirectory(i2s_pcm)
 add_subdirectory(btn_matrix)
 add_subdirectory(joystick)
 add_subdirectory(li_battery)
+add_subdirectory(mpu6050)
 add_subdirectory(ir_remote)
 add_subdirectory(system_time)
 add_subdirectory(temp_builtin)
@@ -20,6 +21,7 @@ target_link_libraries(driver INTERFACE
   btn_matrix
   joystick
   li_battery
+  mpu6050
   ir_remote
   system_time
   temp_builtin
