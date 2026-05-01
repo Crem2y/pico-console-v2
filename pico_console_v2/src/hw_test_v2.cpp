@@ -11,6 +11,7 @@ ledControl LedCtrl = ledControl(&Led);
 gamepad Gamepad = gamepad();
 audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
+vibration Vibration = vibration();
 
 void core1_entry();
 void bridge_do_cmd(bridge_protocol_t* cmd);
@@ -18,6 +19,7 @@ void bridge_do_cmd(bridge_protocol_t* cmd);
 time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
 time_ms_t audio_timer;
+time_ms_t vibration_timer;
 
 //////// function ////////
 
@@ -148,6 +150,14 @@ int main() { // uses core 0 to sub core
         bridge_cmd_queue_push(response_cmd);
       }
     }
+    if(system_time_elapsed_ms(now_time, vibration_timer) > 10) {
+      vibration_timer = now_time;
+      payload_size = Vibration.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
+      if(payload_size > 0) {
+        response_cmd = bridge_protocol_create(CMD_VIBRATION_DATA, payload_size, temp_payload);
+        bridge_cmd_queue_push(response_cmd);
+      }
+    }
     //Bat.get_level();
     LedCtrl.update();
   }
@@ -198,12 +208,14 @@ main_menu_loop:
     Lcd.setCursor(16,64);
     Lcd.print_5x8("Audio test");
     Lcd.setCursor(16,80);
-    Lcd.print_5x8("Battery test");
+    Lcd.print_5x8("Vibration test");
     Lcd.setCursor(16,96);
-    Lcd.print_5x8("Temperature test");
+    Lcd.print_5x8("Battery test");
     Lcd.setCursor(16,112);
-    Lcd.print_5x8("IR LED test");
+    Lcd.print_5x8("Temperature test");
     Lcd.setCursor(16,128);
+    Lcd.print_5x8("IR LED test");
+    Lcd.setCursor(16,144);
     Lcd.print_5x8("SD card test");
 
     Lcd.setTextSize(1);
@@ -256,6 +268,9 @@ main_menu_loop:
           break;
         case MAIN_AUDIO_TEST:
           menu_audio_test();
+          break;
+        case MAIN_VIBRATION_TEST:
+          menu_vibration_test();
           break;
         /*
         case MAIN_BAT_TEST:
@@ -716,6 +731,30 @@ void menu_audio_test(void) {
     //if(Gamepad.is_btn_pressed(BTN_A)) {
     if(Gamepad.is_btn_pressed(BTN_START)) { //test
       Audio.play_music(&test_music);
+    }
+
+    if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
+      return;
+    }
+  }
+}
+
+void menu_vibration_test(void) {
+  Lcd.setTextSize(1);
+  Lcd.setCursor(0,320-8);
+  Lcd.print_5x8("press SELECT & START to exit menu");
+  Lcd.setTextSize(2);
+  Lcd.setCursor(0,0);
+  Lcd.print_5x8("Vibration test");
+
+  while(1) {
+    sleep_ms(100);
+    if(Gamepad.is_btn_pressed(BTN_START)) { //test
+      Vibration.set_vibration(VIBRATION_CH1, 200, 20);
+      Vibration.set_vibration(VIBRATION_CH2, 200, 20);
+    } else {
+      Vibration.set_vibration(VIBRATION_CH1, 0, 0);
+      Vibration.set_vibration(VIBRATION_CH2, 0, 0);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {

@@ -21,7 +21,7 @@ target_link_libraries(middleware INTERFACE
   audio_system
   temperature
 #  ui_system
-#  vibration
+  vibration
 )
 
 message(STATUS "building middlewares completed!")

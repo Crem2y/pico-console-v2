@@ -22,6 +22,7 @@
 #include "audio_system.hpp"
 #include "led_control.hpp"
 #include "temperature.hpp"
+#include "vibration.hpp"
 
 enum menu_main {
   MAIN_BTN_TEST,
@@ -29,6 +30,7 @@ enum menu_main {
   MAIN_LED_TEST,
   MAIN_LCD_TEST,
   MAIN_AUDIO_TEST,
+  MAIN_VIBRATION_TEST,
   MAIN_BAT_TEST,
   MAIN_TEMP_TEST,
   MAIN_IR_TEST,
@@ -40,6 +42,7 @@ void menu_joystick_test();
 void menu_led_test();
 void menu_lcd_test();
 void menu_audio_test();
+void menu_vibration_test();
 void menu_bat_test();
 void menu_temp_test();
 void menu_ir_test();
