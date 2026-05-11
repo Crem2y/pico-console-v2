@@ -4,10 +4,10 @@
 // // hw lib init
 // liBattery Bat = liBattery(28, ((float)1/2));
 // irRemote Ir = irRemote(21);
-btn_matrix BtnMatrix = btn_matrix(28);
-joystick Joy1 = joystick(26, 27, 0, 1);
-vibrationLRA Lra = vibrationLRA(10, 11);
-mpu6050 Mpu = mpu6050(i2c0, 16, 17, -1);
+btn_matrix BtnMatrix = btn_matrix(26);
+joystick Joy1 = joystick(40, 41, 0, 1);
+vibrationLRA Lra = vibrationLRA(8, 9);
+mpu6050 Mpu = mpu6050(i2c0, 22, 23, -1);
 
 // // middleware lib init
 gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, NULL);
@@ -30,14 +30,14 @@ int main() {
   uart_bridge_init(uart1, 4, 5, 921600);
   set_bridge_do_cmd(bridge_do_cmd);
 
-  audio_init(6, 7);
+  audio_init(36, 37);
   Audio.init();
   // Audio.enable();
   Gamepad.init();
   Temperature.init();
   Vibration.init();
   Vibration.enable(true); 
-  Mpu.init();
+  // Mpu.init();
 
   sleep_ms(100);
 
@@ -72,15 +72,15 @@ int main() {
         bridge_cmd_queue_push(response_cmd);
       }
     }
-    if(system_time_elapsed_ms(now_time, imu_timer) > 100) { //placeholder
-      imu_timer = now_time;
-      Mpu.read_raw_accel_data();
-      Mpu.read_raw_gyro_data();
-      Mpu.read_raw_temp_data();
+    // if(system_time_elapsed_ms(now_time, imu_timer) > 100) { //placeholder
+    //   imu_timer = now_time;
+    //   Mpu.read_raw_accel_data();
+    //   Mpu.read_raw_gyro_data();
+    //   Mpu.read_raw_temp_data();
 
-      printf("Accel: X=%6d Y=%6d Z=%6d | Gyro: X=%6d Y=%6d Z=%6d | ", Mpu.accel_raw.x, Mpu.accel_raw.y, Mpu.accel_raw.z, Mpu.gyro_raw.x, Mpu.gyro_raw.y, Mpu.gyro_raw.z);
-      printf("Temp. = % 3.1fC\n", (Mpu.temp_raw / 340.0) + 36.53f); // temperature formula from pico-examples/i2c/mpu6050_i2c/mpu6050_i2c.c
-    }
+    //   printf("Accel: X=%6d Y=%6d Z=%6d | Gyro: X=%6d Y=%6d Z=%6d | ", Mpu.accel_raw.x, Mpu.accel_raw.y, Mpu.accel_raw.z, Mpu.gyro_raw.x, Mpu.gyro_raw.y, Mpu.gyro_raw.z);
+    //   printf("Temp. = % 3.1fC\n", (Mpu.temp_raw / 340.0) + 36.53f); // temperature formula from pico-examples/i2c/mpu6050_i2c/mpu6050_i2c.c
+    // }
     // Bat.get_level();
   }
 
