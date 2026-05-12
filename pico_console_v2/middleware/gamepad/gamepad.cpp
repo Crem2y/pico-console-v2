@@ -11,7 +11,7 @@ void gamepad::init(void) {
 void gamepad::update(void) {
   current_time_ms = get_system_time_ms();
 
-  for(int i=0; i<16; i++) {
+  for(int i=0; i<GP_BTN_NUM; i++) {
     int is_pressed = (key_data & (0x00000001 << i)) ? 1 : 0;
     if(is_pressed && !btn_state[i]) { // button just pressed
       btn_state[i] = 1;
@@ -112,14 +112,14 @@ void gamepad::update(void) {
 }
 
 void gamepad::update_from_bridge(uint8_t* data, uint8_t len) {
-  if(len < 6) return;
+  if(len < 7) return;
 
-  key_data = (data[0] << 8) | (data[1]);
+  key_data = (data[0] << 16) | (data[1] << 8) | data[2];
 
-  joystick_x[0] = data[2];
-  joystick_y[0] = data[3];
-  joystick_x[1] = data[4];
-  joystick_y[1] = data[5];
+  joystick_x[0] = data[3];
+  joystick_y[0] = data[4];
+  joystick_x[1] = data[5];
+  joystick_y[1] = data[6];
 }
 
 int gamepad::is_btn_pressed(enum btn_code btn) {

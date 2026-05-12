@@ -4,7 +4,7 @@
 //#include "pca9554.hpp"
 #include "system_time.h"
 
-#define GP_BTN_NUM 24
+#define GP_BTN_NUM 26 // 18 buttons + 8 directional inputs from joysticks
 
 #define GP_JOYSTICK_NUM 2
 #define GP_JOYSTICK_DEADZONE 10
@@ -27,6 +27,8 @@ enum btn_code {
   BTN_ZR,
   BTN_START,
   BTN_SELECT,
+  BTN_SUB1,
+  BTN_SUB2,
   BTN_S1_CENTER,
   BTN_S2_CENTER,
 

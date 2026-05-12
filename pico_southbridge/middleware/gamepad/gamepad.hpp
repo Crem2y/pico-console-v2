@@ -4,7 +4,7 @@
 #include "btn_matrix.hpp"
 #include "joystick.hpp"
 
-#define GP_BTN_NUM 16
+#define GP_BTN_NUM 18
 
 #define GP_JOYSTICK_NUM 2
 #define GP_JOYSTICK_MAX 127
@@ -25,6 +25,8 @@ enum btn_code {
   BTN_ZR,
   BTN_START,
   BTN_SELECT,
+  BTN_SUB1,
+  BTN_SUB2,
   BTN_S1_CENTER,
   BTN_S2_CENTER,
   BTN_NONE = 0xff
@@ -41,6 +43,7 @@ class gamepad {
 
   private:
     btn_matrix* btns;
+    uint32_t btn_data;
     joystick* joy1;
     joystick* joy2;
     int8_t joystick_x[GP_JOYSTICK_NUM] = {0,};
