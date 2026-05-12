@@ -51,7 +51,7 @@ int main() { // uses core 0 to sub core
   LOG_PRINTF("LED ok\n");
   Lcd.begin();
   Lcd.fillScreen(LCD_BLACK);
-  Lcd.set_bright(750);
+  Lcd.set_bright(100);
   Lcd.setTextColor(LCD_WHITE, LCD_BLACK);
   Lcd.setTextSize(1);
   LOG_PRINTF("LCD ok\n");
@@ -76,8 +76,7 @@ int main() { // uses core 0 to sub core
   // boot animation
   Lcd.setTextSize(2);
   for(int i=0; i<160; i+=5) {
-    Lcd.setCursor(140,i-5);
-    Lcd.print_5x8("               ");
+    Lcd.fillRect(140, i-5, 800, 5, LCD_BLACK);
     Lcd.setCursor(140,i);
     Lcd.print_5x8("PICO CONSOLE V2");
     sleep_ms(50);
