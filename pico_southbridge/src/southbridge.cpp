@@ -4,7 +4,7 @@
 // // hw lib init
 // liBattery Bat = liBattery(28, ((float)1/2));
 // irRemote Ir = irRemote(21);
-btn_matrix BtnMatrix = btn_matrix(26);
+btn_matrix BtnMatrix = btn_matrix(33, 30, 35, 32, 29, 34, 31, 28);
 joystick Joy1 = joystick(40, 41, false, false, 26);
 joystick Joy2 = joystick(42, 43, true,  true,  27);
 vibrationLRA Lra = vibrationLRA(8, 9);
