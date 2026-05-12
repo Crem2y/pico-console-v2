@@ -239,7 +239,7 @@ void bridge_protocol_parse(uint8_t* data, size_t data_size) {
         break;
       case SEQ_WAIT_TAIL:
         if (byte == BRIDGE_TAIL) {
-          printf("Bridge protocol OK! (cmd: 0x%02X, size: %d)\n", cmd.cmd, cmd.payload_size);
+          // printf("Bridge protocol OK! (cmd: 0x%02X, size: %d)\n", cmd.cmd, cmd.payload_size);
           if(do_cmd_function) {
             do_cmd_function(&cmd);
           }
