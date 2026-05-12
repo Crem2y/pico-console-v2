@@ -1,6 +1,7 @@
 #include "joystick.hpp"
 
-joystick::joystick(int stick_x_pin, int stick_y_pin, bool invert_x, bool invert_y) {
+joystick::joystick(int stick_x_pin, int stick_y_pin, bool invert_x, bool invert_y, int stick_btn_pin) {
+  _stick_btn_pin = stick_btn_pin;
   _stick_x_pin = stick_x_pin;
   _stick_y_pin = stick_y_pin;
   _ch_x = _stick_x_pin - ADC_BASE_PIN;
@@ -13,9 +14,19 @@ void joystick::init(void) {
   adc_init();
   adc_gpio_init(_stick_x_pin);
   adc_gpio_init(_stick_y_pin);
+  gpio_init(_stick_btn_pin);
+  gpio_set_dir(_stick_btn_pin, GPIO_IN);
+  gpio_pull_up(_stick_btn_pin);
+
+  stick_btn_state = 0;
+  x = 0;
+  y = 0;
 }
 
 void joystick::update(void) {
+  if(_stick_btn_pin > 0) {
+    stick_btn_state = !gpio_get(_stick_btn_pin);
+  }
   adc_select_input(_ch_x);
   uint16_t stick_x_raw = adc_read();
   adc_select_input(_ch_y);

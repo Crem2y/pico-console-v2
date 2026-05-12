@@ -5,8 +5,8 @@
 // liBattery Bat = liBattery(28, ((float)1/2));
 // irRemote Ir = irRemote(21);
 btn_matrix BtnMatrix = btn_matrix(26);
-joystick Joy1 = joystick(40, 41, false, false);
-joystick Joy2 = joystick(42, 43, true, true);
+joystick Joy1 = joystick(40, 41, false, false, 26);
+joystick Joy2 = joystick(42, 43, true,  true,  27);
 vibrationLRA Lra = vibrationLRA(8, 9);
 mpu6050 Mpu = mpu6050(i2c0, 22, 23, -1);
 
