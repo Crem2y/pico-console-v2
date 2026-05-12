@@ -8,6 +8,7 @@ btn_matrix BtnMatrix = btn_matrix(33, 30, 35, 32, 29, 34, 31, 28);
 joystick Joy1 = joystick(40, 41, false, false, 26);
 joystick Joy2 = joystick(42, 43, true,  true,  27);
 vibrationLRA Lra = vibrationLRA(8, 9);
+bq25619 Charger = bq25619(i2c1, 22, 23, -1);
 mpu6050 Mpu = mpu6050(i2c1, 22, 23, -1);
 
 // // middleware lib init
@@ -22,6 +23,7 @@ void bridge_do_cmd(bridge_protocol_t* cmd);
 time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
 time_ms_t imu_timer;
+time_ms_t battery_timer;
 
 //////// function ////////
 
@@ -40,7 +42,8 @@ int main() {
   Gamepad.init();
   Temperature.init();
   Vibration.init();
-  Vibration.enable(true); 
+  Vibration.enable(true);
+  Charger.init();
   Mpu.init();
 
   sleep_ms(100);
@@ -49,6 +52,11 @@ int main() {
   uart_bridge_enable_irq();
 
   // boot sequence end
+  Charger.set_ignore_ts(true); //test
+  Charger.read_all_regs();
+  for(int i=0; i<13; i++) { //test
+    printf("bq25619 reg 0x%02X : 0x%02X\n", i, Charger.reg_raw[i]);
+  }
 
   while (true) {
     time_ms_t now_time = get_system_time_ms();
@@ -82,10 +90,14 @@ int main() {
       Mpu.read_raw_gyro_data();
       Mpu.read_raw_temp_data();
 
-      printf("Accel: X=%6d Y=%6d Z=%6d | Gyro: X=%6d Y=%6d Z=%6d | ", Mpu.accel_raw.x, Mpu.accel_raw.y, Mpu.accel_raw.z, Mpu.gyro_raw.x, Mpu.gyro_raw.y, Mpu.gyro_raw.z);
-      printf("Temp. = % 3.1fC\n", (Mpu.temp_raw / 340.0) + 36.53f); // temperature formula from pico-examples/i2c/mpu6050_i2c/mpu6050_i2c.c
+      // printf("Accel: X=%6d Y=%6d Z=%6d | Gyro: X=%6d Y=%6d Z=%6d | ", Mpu.accel_raw.x, Mpu.accel_raw.y, Mpu.accel_raw.z, Mpu.gyro_raw.x, Mpu.gyro_raw.y, Mpu.gyro_raw.z);
+      // printf("Temp. = % 3.1fC\n", (Mpu.temp_raw / 340.0) + 36.53f); // temperature formula from pico-examples/i2c/mpu6050_i2c/mpu6050_i2c.c
     }
-    // Bat.get_level();
+    if(system_time_elapsed_ms(now_time, battery_timer) > 1000) {
+      battery_timer = now_time;
+      Charger.update();
+      printf("Charging: %s(0x%02X) | Fault: 0x%02X\n", Charger.charging ? "Yes" : "No", Charger.chrg_stat, Charger.fault); //test
+    }
   }
 
   return 0;
