@@ -513,6 +513,26 @@ void menu_btn_test(void) {
       Lcd.fillRect(275,95,14,14,LCD_BLACK);
       Lcd.drawRect(274,94,16,16,LCD_WHITE);
     }
+        if(Gamepad.is_btn_pressed(BTN_SUB1)) {
+      if(Gamepad.get_btn_pressed_duration(BTN_SUB1) > 1000) {
+        Lcd.fillRect(100,194,16,16,LCD_YELLOW);
+      } else {
+        Lcd.fillRect(100,194,16,16,LCD_WHITE);
+      }
+    } else {
+      Lcd.fillRect(101,195,14,14,LCD_BLACK);
+      Lcd.drawRect(100,194,16,16,LCD_WHITE);
+    }
+    if(Gamepad.is_btn_pressed(BTN_SUB2)) {
+      if(Gamepad.get_btn_pressed_duration(BTN_SUB2) > 1000) {
+        Lcd.fillRect(205,194,16,16,LCD_YELLOW);
+      } else {
+        Lcd.fillRect(205,194,16,16,LCD_WHITE);
+      }
+    } else {
+      Lcd.fillRect(206,195,14,14,LCD_BLACK);
+      Lcd.drawRect(205,194,16,16,LCD_WHITE);
+    }
 
     if(Gamepad.is_btn_pressed(BTN_S2_UP)) {
       if(Gamepad.get_btn_pressed_duration(BTN_S2_UP) > 1000) {
@@ -694,9 +714,9 @@ void menu_lcd_test(void) {
     count++;
     if(count > 4) count = 0;
 
-    // if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
-    //   return;
-    // }
+    if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
+      return;
+    }
   }
 }
 
@@ -727,8 +747,7 @@ void menu_audio_test(void) {
   while(1) {
     sleep_ms(100);
 
-    //if(Gamepad.is_btn_pressed(BTN_A)) {
-    if(Gamepad.is_btn_pressed(BTN_START)) { //test
+    if(Gamepad.is_btn_pressed(BTN_A)) {
       Audio.play_music(&test_music);
     }
 
@@ -773,15 +792,34 @@ void menu_vibration_test(void) {
       if(power_l < 100) power_l += 1;
     }
 
-    if(Gamepad.is_btn_pressed(BTN_START)) { //test
+    if(Gamepad.is_btn_pressed(BTN_S2_UP)) {
+      if(freq_r < 1000) freq_r += 10;
+    }
+    if(Gamepad.is_btn_pressed(BTN_S2_DOWN)) {
+      if(freq_r > 10) freq_r -= 10;
+    }
+    if(Gamepad.is_btn_pressed(BTN_S2_LEFT)) {
+      if(power_r > 0) power_r -= 1;
+    }
+    if(Gamepad.is_btn_pressed(BTN_S2_RIGHT)) {
+      if(power_r < 100) power_r += 1;
+    }
+
+    if(Gamepad.is_btn_pressed(BTN_S1_CENTER)) {
       Vibration.set_vibration(VIBRATION_L, freq_l, power_l);
-      Vibration.set_vibration(VIBRATION_R, freq_l, power_l);//test
     } else {
       Vibration.set_vibration(VIBRATION_L, 0, 0);
+    }
+
+    if(Gamepad.is_btn_pressed(BTN_S2_CENTER)) {
+      Vibration.set_vibration(VIBRATION_R, freq_r, power_r);
+    } else {
       Vibration.set_vibration(VIBRATION_R, 0, 0);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
+      Vibration.set_vibration(VIBRATION_L, 0, 0);
+      Vibration.set_vibration(VIBRATION_R, 0, 0);
       return;
     }
   }
