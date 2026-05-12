@@ -5,12 +5,13 @@
 // liBattery Bat = liBattery(28, ((float)1/2));
 // irRemote Ir = irRemote(21);
 btn_matrix BtnMatrix = btn_matrix(26);
-joystick Joy1 = joystick(40, 41, 0, 1);
+joystick Joy1 = joystick(40, 41, false, false);
+joystick Joy2 = joystick(42, 43, true, true);
 vibrationLRA Lra = vibrationLRA(8, 9);
 mpu6050 Mpu = mpu6050(i2c0, 22, 23, -1);
 
 // // middleware lib init
-gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, NULL);
+gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, &Joy2);
 audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
 vibration Vibration = vibration(&Lra);
@@ -33,6 +34,9 @@ int main() {
   audio_init(36, 37);
   Audio.init();
   // Audio.enable();
+  gpio_init(39); //placeholder for dac enable pin
+  gpio_set_dir(39, GPIO_OUT);
+  gpio_put(39, 1);
   Gamepad.init();
   Temperature.init();
   Vibration.init();
