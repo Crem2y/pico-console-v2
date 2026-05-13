@@ -1,17 +1,15 @@
 // headers
 #include "southbridge.hpp"
 
-// // hw lib init
-// liBattery Bat = liBattery(28, ((float)1/2));
-// irRemote Ir = irRemote(21);
-btn_matrix BtnMatrix = btn_matrix(33, 30, 35, 32, 29, 34, 31, 28);
-joystick Joy1 = joystick(40, 41, false, false, 26);
-joystick Joy2 = joystick(42, 43, true,  true,  27);
-vibrationLRA Lra = vibrationLRA(8, 9);
-bq25619 Charger = bq25619(i2c1, 22, 23, -1);
-mpu6050 Mpu = mpu6050(i2c1, 22, 23, -1);
+// hw lib init
+btn_matrix BtnMatrix = btn_matrix(PIN_BTN_H1, PIN_BTN_H2, PIN_BTN_H3, PIN_BTN_H4, PIN_BTN_V1, PIN_BTN_V2, PIN_BTN_V3, PIN_BTN_V4);
+joystick Joy1 = joystick(PIN_JOY1_X, PIN_JOY1_Y, false, false, PIN_JOY1_BTN);
+joystick Joy2 = joystick(PIN_JOY2_X, PIN_JOY2_Y, true,  true,  PIN_JOY2_BTN);
+vibrationLRA Lra = vibrationLRA(PIN_LRA_L, PIN_LRA_R);
+bq25619 Charger = bq25619(i2c1, PIN_I2C_SDA, PIN_I2C_SCL, PIN_BAT_INT);
+mpu6050 Mpu = mpu6050(i2c1, PIN_I2C_SDA, PIN_I2C_SCL, PIN_IMU_INT);
 
-// // middleware lib init
+// middleware lib init
 gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, &Joy2);
 audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
@@ -30,15 +28,15 @@ time_ms_t battery_timer;
 int main() {
 //  uartLog_init(uart0, 0, 1, 115200);
   stdio_init_all();
-  uart_bridge_init(uart1, 4, 5, 921600);
+  uart_bridge_init(uart1, PIN_BRIDGE_TX, PIN_BRIDGE_RX, 921600);
   set_bridge_do_cmd(bridge_do_cmd);
 
-  audio_init(36, 37);
+  audio_init(PIN_I2S_DATA, PIN_I2S_SCK);
   Audio.init();
   // Audio.enable();
-  gpio_init(39); //placeholder for dac enable pin
-  gpio_set_dir(39, GPIO_OUT);
-  gpio_put(39, 1);
+  gpio_init(PIN_DAC_MUTE); //placeholder for dac mute pin
+  gpio_set_dir(PIN_DAC_MUTE, GPIO_OUT);
+  gpio_put(PIN_DAC_MUTE, 1);
   Gamepad.init();
   Temperature.init();
   Vibration.init();
@@ -52,7 +50,7 @@ int main() {
   uart_bridge_enable_irq();
 
   // boot sequence end
-  Charger.set_ignore_ts(true); //test
+  // Charger.set_ignore_ts(true); //test
   Charger.read_all_regs();
   for(int i=0; i<13; i++) { //test
     printf("bq25619 reg 0x%02X : 0x%02X\n", i, Charger.reg_raw[i]);

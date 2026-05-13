@@ -2,9 +2,9 @@
 #include "hw_test.hpp"
 
 // hw lib init
-ledStatus Led = ledStatus(26,27,28,29);
-ili9488_40 Lcd = ili9488_40(17,16,14,15, 18,19);
-xpt2046 Touch = xpt2046(spi0, 23,20,22,21, 24);
+ledStatus Led = ledStatus(PIN_LED_WL_1,PIN_LED_WL_2,PIN_LED_WL_3,PIN_LED_WL_4);
+ili9488_40 Lcd = ili9488_40(PIN_DP_MOSI,PIN_DP_SCK,PIN_DP_CS,PIN_DP_DC, PIN_DP_RST,PIN_DP_BL);
+xpt2046 Touch = xpt2046(spi0, PIN_TOUCH_MOSI,PIN_TOUCH_SCK,PIN_TOUCH_MISO,PIN_TOUCH_CS, PIN_TOUCH_IRQ);
 
 // middleware lib init
 ledControl LedCtrl = ledControl(&Led);
@@ -25,8 +25,7 @@ time_ms_t vibration_timer;
 
 int main() { // uses core 0 to sub core
   // uartLog_init(uart0, 0, 1, 115200);
-  //uart_bridge_init(uart1, 24, 25, 921600);
-  uart_bridge_init(uart0, 12, 13, 921600);
+  uart_bridge_init(uart0, PIN_BRIDGE_TX, PIN_BRIDGE_RX, 921600);
   set_bridge_do_cmd(bridge_do_cmd);
   LedCtrl.init();
 
