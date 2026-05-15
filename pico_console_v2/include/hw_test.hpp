@@ -22,6 +22,7 @@
 #include "audio_system.hpp"
 #include "led_control.hpp"
 #include "temperature.hpp"
+#include "touchscreen.hpp"
 #include "vibration.hpp"
 
 enum menu_main {

@@ -6,6 +6,7 @@ add_subdirectory(ir_communication)
 add_subdirectory(led_control)
 add_subdirectory(audio_system)
 add_subdirectory(temperature)
+add_subdirectory(touchscreen)
 add_subdirectory(ui_system)
 add_subdirectory(vibration)
 
@@ -20,6 +21,7 @@ target_link_libraries(middleware INTERFACE
   led_control
   audio_system
   temperature
+  touchscreen
 #  ui_system
   vibration
 )

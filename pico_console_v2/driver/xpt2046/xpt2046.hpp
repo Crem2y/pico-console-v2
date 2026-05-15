@@ -4,6 +4,8 @@
 #include "hardware/spi.h"
 
 #define XPT2046_SPI_SPEED (1*1000*1000)
+#define XPT2046_MAX_X 4095
+#define XPT2046_MAX_Y 4095
 
 #define XPT2046_ADDR_X    0xD0
 #define XPT2046_ADDR_Y    0x90

@@ -2,9 +2,9 @@
 #include "hw_test.hpp"
 
 // hw lib init
-ledStatus Led = ledStatus(PIN_LED_WL_1,PIN_LED_WL_2,PIN_LED_WL_3,PIN_LED_WL_4);
-ili9488_40 Lcd = ili9488_40(PIN_DP_MOSI,PIN_DP_SCK,PIN_DP_CS,PIN_DP_DC, PIN_DP_RST,PIN_DP_BL);
-xpt2046 Touch = xpt2046(spi0, PIN_TOUCH_MOSI,PIN_TOUCH_SCK,PIN_TOUCH_MISO,PIN_TOUCH_CS, PIN_TOUCH_IRQ);
+ledStatus Led = ledStatus(PIN_LED_WL_1, PIN_LED_WL_2, PIN_LED_WL_3, PIN_LED_WL_4);
+ili9488_40 Lcd = ili9488_40(PIN_DP_MOSI, PIN_DP_SCK, PIN_DP_CS, PIN_DP_DC, PIN_DP_RST, PIN_DP_BL);
+xpt2046 Touch = xpt2046(spi0, PIN_TOUCH_MOSI, PIN_TOUCH_SCK, PIN_TOUCH_MISO, PIN_TOUCH_CS, PIN_TOUCH_IRQ);
 
 // middleware lib init
 ledControl LedCtrl = ledControl(&Led);
@@ -12,6 +12,7 @@ gamepad Gamepad = gamepad();
 audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
 vibration Vibration = vibration();
+touchscreen Touchscreen = touchscreen(&Touch);
 
 void core1_entry();
 void bridge_do_cmd(bridge_protocol_t* cmd);
@@ -57,7 +58,9 @@ int main() { // uses core 0 to sub core
   LOG_PRINTF("LCD ok\n");
   Lcd.setCursor(0,0);
   Lcd.print_5x8("Touch init...");
-  Touch.init();
+  Touchscreen.init();
+  Touchscreen.set_screen_size(480, 320);
+  Touchscreen.set_rotation(0);
   LOG_PRINTF("Touch ok\n");
   Lcd.setCursor(0,0);
   Lcd.print_5x8("Gamepad init...");
@@ -131,8 +134,8 @@ int main() { // uses core 0 to sub core
     }
     if(system_time_elapsed_ms(now_time, touch_timer) > 100) {
       touch_timer = now_time;
-      Touch.get_touch_data();
-      // LOG_PRINTF("x: %d, y: %d, z1: %d, z2: %d\n", Touch.touch_data.x, Touch.touch_data.y, Touch.touch_data.z1, Touch.touch_data.z2);
+      Touchscreen.update();
+      // LOG_PRINTF("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
     }
     //Bat.get_level();
     LedCtrl.update();
@@ -149,6 +152,7 @@ void core1_entry() { // uses core 1 to main core
   bool display_text = false;
   while(true) {
     if(Gamepad.is_btn_pressed(BTN_START)) break;
+    if(Touchscreen.is_touched()) break;
 
     if(system_time_elapsed_ms(get_system_time_ms(), display_time_ms) > 1000) {
       display_time_ms = get_system_time_ms();
@@ -160,7 +164,6 @@ void core1_entry() { // uses core 1 to main core
       }
       display_text = !display_text;
     }
-    if(Touch.touch_data.z1 > 50) break;
   }
 
   LedCtrl.set_mode(LED_CONTROL_1, LED_DARKER);
