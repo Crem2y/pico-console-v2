@@ -20,6 +20,7 @@ time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
 time_ms_t audio_timer;
 time_ms_t vibration_timer;
+time_ms_t touch_timer;
 
 //////// function ////////
 
@@ -91,34 +92,6 @@ int main() { // uses core 0 to sub core
 
   uart_bridge_enable_irq();
 
-  time_ms_t touch_time_ms = 0; //placeholder
-  time_ms_t display_time_ms = 0;
-  bool display_text = false;
-  while(true) {
-    bridge_handle();
-    Gamepad.update();
-    if(Gamepad.is_btn_pressed(BTN_START)) break;
-
-    if(system_time_elapsed_ms(get_system_time_ms(), display_time_ms) > 1000) {
-      display_time_ms = get_system_time_ms();
-      if(display_text) {
-        Lcd.fillRect(190,200,66,8,LCD_BLACK);
-      } else {
-        Lcd.setCursor(190,200);
-        Lcd.print_5x8("press START");
-      }
-      display_text = !display_text;
-    }
-
-    // touch test
-    if(system_time_elapsed_ms(get_system_time_ms(), touch_time_ms) > 100) {
-      touch_time_ms = get_system_time_ms();
-      Touch.get_touch_data();
-      // LOG_PRINTF("x: %d, y: %d, z1: %d, z2: %d\n", Touch.touch_data.x, Touch.touch_data.y, Touch.touch_data.z1, Touch.touch_data.z2);
-    }
-    if(Touch.touch_data.z1 > 50) break;
-  }
-
   LOG_PRINTF("go to main loop\n");
   multicore_fifo_push_blocking(1);
   // boot sequence end
@@ -156,6 +129,11 @@ int main() { // uses core 0 to sub core
         bridge_cmd_queue_push(response_cmd);
       }
     }
+    if(system_time_elapsed_ms(now_time, touch_timer) > 100) {
+      touch_timer = now_time;
+      Touch.get_touch_data();
+      // LOG_PRINTF("x: %d, y: %d, z1: %d, z2: %d\n", Touch.touch_data.x, Touch.touch_data.y, Touch.touch_data.z1, Touch.touch_data.z2);
+    }
     //Bat.get_level();
     LedCtrl.update();
   }
@@ -166,6 +144,24 @@ int main() { // uses core 0 to sub core
 void core1_entry() { // uses core 1 to main core
 
   multicore_fifo_pop_blocking(); // wait until boot process is done
+
+  time_ms_t display_time_ms = 0;
+  bool display_text = false;
+  while(true) {
+    if(Gamepad.is_btn_pressed(BTN_START)) break;
+
+    if(system_time_elapsed_ms(get_system_time_ms(), display_time_ms) > 1000) {
+      display_time_ms = get_system_time_ms();
+      if(display_text) {
+        Lcd.fillRect(190,200,66,8,LCD_BLACK);
+      } else {
+        Lcd.setCursor(190,200);
+        Lcd.print_5x8("press START");
+      }
+      display_text = !display_text;
+    }
+    if(Touch.touch_data.z1 > 50) break;
+  }
 
   LedCtrl.set_mode(LED_CONTROL_1, LED_DARKER);
   LedCtrl.set_mode(LED_CONTROL_2, LED_DARKER);
