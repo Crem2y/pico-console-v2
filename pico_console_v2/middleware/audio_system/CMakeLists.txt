@@ -10,7 +10,6 @@ target_include_directories(${OUTPUT_STATIC_LIB} PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
 target_link_libraries(${OUTPUT_STATIC_LIB}
-  pico_stdlib
   system_time
 )
 

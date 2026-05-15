@@ -35,7 +35,7 @@ typedef struct _axles_int16 {
 
 class mpu6050 {
   public:
-    mpu6050(i2c_inst_t* i2c, int pin_sda, int pin_scl, int pin_int, uint8_t address = 0x68);
+    mpu6050(i2c_inst_t* i2c, int pin_sda, int pin_scl, int pin_int, uint8_t address = MPU6050_DEFAULT_ADDRESS);
     void init();
     void read_raw_accel_data(void);
     void read_raw_gyro_data(void);
