@@ -132,7 +132,7 @@ int main() { // uses core 0 to sub core
         bridge_cmd_queue_push(response_cmd);
       }
     }
-    if(system_time_elapsed_ms(now_time, touch_timer) > 100) {
+    if(system_time_elapsed_ms(now_time, touch_timer) > 10) {
       touch_timer = now_time;
       Touchscreen.update();
       // LOG_PRINTF("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
@@ -203,16 +203,18 @@ main_menu_loop:
     Lcd.setCursor(16,48);
     Lcd.print_5x8("LCD test");
     Lcd.setCursor(16,64);
-    Lcd.print_5x8("Audio test");
+    Lcd.print_5x8("Touch test");
     Lcd.setCursor(16,80);
-    Lcd.print_5x8("Vibration test");
+    Lcd.print_5x8("Audio test");
     Lcd.setCursor(16,96);
-    Lcd.print_5x8("Battery test");
+    Lcd.print_5x8("Vibration test");
     Lcd.setCursor(16,112);
-    Lcd.print_5x8("Temperature test");
+    Lcd.print_5x8("Battery test");
     Lcd.setCursor(16,128);
-    Lcd.print_5x8("IR LED test");
+    Lcd.print_5x8("Temperature test");
     Lcd.setCursor(16,144);
+    Lcd.print_5x8("IR LED test");
+    Lcd.setCursor(16,160);
     Lcd.print_5x8("SD card test");
 
     Lcd.setTextSize(1);
@@ -262,6 +264,9 @@ main_menu_loop:
           break;
         case MAIN_LCD_TEST:
           menu_lcd_test();
+          break;
+        case MAIN_TOUCH_TEST:
+          menu_touch_test();
           break;
         case MAIN_AUDIO_TEST:
           menu_audio_test();
@@ -718,6 +723,33 @@ void menu_lcd_test(void) {
   }
 }
 
+void menu_touch_test(void) {
+  Lcd.setTextSize(1);
+  Lcd.setCursor(0,320-8);
+  Lcd.print_5x8("press SELECT & START to exit menu");
+  Lcd.setTextSize(2);
+  Lcd.setCursor(0,0);
+  Lcd.print_5x8("Touch test");
+
+  while(1) {
+    sleep_ms(10);
+
+    if(Touchscreen.is_touched()) {
+      uint16_t x = Touchscreen.touch_data.x;
+      uint16_t y = Touchscreen.touch_data.y;
+      char string_buf[32];
+      sprintf(string_buf, "x: % 4d, y: % 4d", x, y);
+      Lcd.setCursor(0,16);
+      Lcd.print_5x8(string_buf);
+      Lcd.fillCircle(x, y, 5, LCD_WHITE);
+    }
+
+    if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
+      return;
+    }
+  }
+}
+
 void menu_audio_test(void) {
   Lcd.setTextSize(1);
   Lcd.setCursor(0,320-8);
@@ -803,13 +835,13 @@ void menu_vibration_test(void) {
       if(power_r < 100) power_r += 1;
     }
 
-    if(Gamepad.is_btn_pressed(BTN_S1_CENTER)) {
+    if(Gamepad.is_btn_pressed(BTN_SL)) {
       Vibration.set_vibration(VIBRATION_L, freq_l, power_l);
     } else {
       Vibration.set_vibration(VIBRATION_L, 0, 0);
     }
 
-    if(Gamepad.is_btn_pressed(BTN_S2_CENTER)) {
+    if(Gamepad.is_btn_pressed(BTN_SR)) {
       Vibration.set_vibration(VIBRATION_R, freq_r, power_r);
     } else {
       Vibration.set_vibration(VIBRATION_R, 0, 0);

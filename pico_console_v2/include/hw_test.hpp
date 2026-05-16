@@ -30,6 +30,7 @@ enum menu_main {
   MAIN_JOYSTICK_TEST,
   MAIN_LED_TEST,
   MAIN_LCD_TEST,
+  MAIN_TOUCH_TEST,
   MAIN_AUDIO_TEST,
   MAIN_VIBRATION_TEST,
   MAIN_BAT_TEST,
@@ -42,6 +43,7 @@ void menu_btn_test();
 void menu_joystick_test();
 void menu_led_test();
 void menu_lcd_test();
+void menu_touch_test();
 void menu_audio_test();
 void menu_vibration_test();
 void menu_bat_test();
