@@ -87,5 +87,5 @@ void touchscreen::set_rotation(uint8_t rotation) {
 }
 
 bool touchscreen::is_touched(void) {
-  return touch_data.z1 > 50;
+  return touch_data.z1 > 100;
 }
