@@ -2,6 +2,7 @@
 
 #include "pico/stdlib.h"
 #include "hardware/uart.h"
+#include "hardware/irq.h"
 
 #include <string.h>
 #include "bridge_commands.h"
