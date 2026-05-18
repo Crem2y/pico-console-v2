@@ -68,6 +68,36 @@ uint16_t xpt2046::get_z2(void) {
   return ((xpt2046_rx_buf[0] << 8) | xpt2046_rx_buf[1]) >> 3;
 }
 
+uint16_t xpt2046::get_temp(void) {
+  xpt2046_tx_buf[0] = XPT2046_ADDR_TEMP;
+  gpio_put(_pin_cs, 0);
+  spi_write_blocking(_spi, xpt2046_tx_buf, 1);
+  sleep_us(1);
+  spi_read_blocking(_spi, 0, xpt2046_rx_buf, 2);
+  gpio_put(_pin_cs, 1);
+  return ((xpt2046_rx_buf[0] << 8) | xpt2046_rx_buf[1]) >> 3;
+}
+
+uint16_t xpt2046::get_vbat(void) {
+  xpt2046_tx_buf[0] = XPT2046_ADDR_VBAT;
+  gpio_put(_pin_cs, 0);
+  spi_write_blocking(_spi, xpt2046_tx_buf, 1);
+  sleep_us(1);
+  spi_read_blocking(_spi, 0, xpt2046_rx_buf, 2);
+  gpio_put(_pin_cs, 1);
+  return ((xpt2046_rx_buf[0] << 8) | xpt2046_rx_buf[1]) >> 3;
+}
+
+uint16_t xpt2046::get_aux(void) {
+  xpt2046_tx_buf[0] = XPT2046_ADDR_AUX;
+  gpio_put(_pin_cs, 0);
+  spi_write_blocking(_spi, xpt2046_tx_buf, 1);
+  sleep_us(1);
+  spi_read_blocking(_spi, 0, xpt2046_rx_buf, 2);
+  gpio_put(_pin_cs, 1);
+  return ((xpt2046_rx_buf[0] << 8) | xpt2046_rx_buf[1]) >> 3;
+}
+
 void xpt2046::get_touch_data(void) {
   touch_data.x = get_x();
   touch_data.y = get_y();
