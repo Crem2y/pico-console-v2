@@ -17,6 +17,7 @@ touchscreen Touchscreen = touchscreen(&Touch);
 void core1_entry();
 void bridge_do_cmd(bridge_protocol_t* cmd);
 
+time_ms_t last_bridge_cmd_time;
 time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
 time_ms_t audio_timer;
@@ -29,6 +30,7 @@ int main() { // uses core 0 to sub core
   // uartLog_init(uart0, 0, 1, 115200);
   uart_bridge_init(uart0, PIN_BRIDGE_TX, PIN_BRIDGE_RX, 921600);
   set_bridge_do_cmd(bridge_do_cmd);
+  last_bridge_cmd_time = 0;
   LedCtrl.init();
 
   sleep_ms(100);
@@ -75,23 +77,6 @@ int main() { // uses core 0 to sub core
   LOG_PRINTF("all HWs ok!\n");
   LOG_PRINTF("core freq = %ld hz\n", SYS_CLK_KHZ * 1000);
   // hardware initalized
-
-  // boot animation
-  Lcd.setTextSize(2);
-  for(int i=0; i<160; i+=5) {
-    Lcd.fillRect(140, i-5, 800, 5, LCD_BLACK);
-    Lcd.setCursor(140,i);
-    Lcd.print_5x8("PICO CONSOLE V2");
-    sleep_ms(50);
-  }
-
-  Lcd.setCursor(480-(12*9),320-(16));
-  Lcd.print_5x8("by Crem2y");
-  Lcd.setTextSize(1);
-  Lcd.setCursor(190,200);
-  Lcd.print_5x8("press START");
-  Lcd.setCursor(170,210);
-  Lcd.print_5x8("or touch the screen");
 
   uart_bridge_enable_irq();
 
@@ -148,8 +133,26 @@ void core1_entry() { // uses core 1 to main core
 
   multicore_fifo_pop_blocking(); // wait until boot process is done
 
+  // boot animation
+  Lcd.setTextSize(2);
+  for(int i=0; i<160; i+=5) {
+    Lcd.fillRect(140, i-5, 800, 5, LCD_BLACK);
+    Lcd.setCursor(140,i);
+    Lcd.print_5x8("PICO CONSOLE V2");
+    sleep_ms(50);
+  }
+
+  Lcd.setCursor(480-(12*9),320-(16));
+  Lcd.print_5x8("by Crem2y");
+  Lcd.setTextSize(1);
+  Lcd.setCursor(190,200);
+  Lcd.print_5x8("press START");
+  Lcd.setCursor(170,210);
+  Lcd.print_5x8("or touch the screen");
+
   time_ms_t display_time_ms = 0;
   bool display_text = false;
+  bool display_bridge_status = false;
   while(true) {
     if(Gamepad.is_btn_pressed(BTN_START)) break;
     if(Touchscreen.is_touched()) break;
@@ -163,6 +166,19 @@ void core1_entry() { // uses core 1 to main core
         Lcd.print_5x8("press START");
       }
       display_text = !display_text;
+    }
+
+    if(system_time_elapsed_ms(get_system_time_ms(), last_bridge_cmd_time) > 500) {
+      if(!display_bridge_status) {
+        Lcd.setCursor(150,240);
+        Lcd.print_5x8("southbridge disconnected!");
+        display_bridge_status = true;
+      }
+    } else {
+      if(display_bridge_status) {
+        Lcd.fillRect(150,240,(26*6),8,LCD_BLACK);
+        display_bridge_status = false;
+      }
     }
   }
 
@@ -983,6 +999,8 @@ void menu_sd_test(void) {
 
 void bridge_do_cmd(bridge_protocol_t* cmd) {
   enum bridge_cmd command = cmd->cmd;
+  last_bridge_cmd_time = get_system_time_ms();
+
   switch (command)
   {
   case CMD_TEMPERATURE_DATA:
