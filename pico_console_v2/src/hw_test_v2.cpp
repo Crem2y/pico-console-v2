@@ -851,7 +851,7 @@ void menu_vibration_test(void) {
     Lcd.print_5x8(string_buf);
 
     if(Gamepad.is_btn_pressed(BTN_S1_UP)) {
-      if(freq_l < 1000) freq_l += 10;
+      if(freq_l < 4000) freq_l += 10;
     }
     if(Gamepad.is_btn_pressed(BTN_S1_DOWN)) {
       if(freq_l > 10) freq_l -= 10;
@@ -864,7 +864,7 @@ void menu_vibration_test(void) {
     }
 
     if(Gamepad.is_btn_pressed(BTN_S2_UP)) {
-      if(freq_r < 1000) freq_r += 10;
+      if(freq_r < 4000) freq_r += 10;
     }
     if(Gamepad.is_btn_pressed(BTN_S2_DOWN)) {
       if(freq_r > 10) freq_r -= 10;
