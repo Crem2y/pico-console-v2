@@ -16,7 +16,7 @@ touchscreen Touchscreen = touchscreen(&Touch);
 imu Imu = imu();
 
 void core1_entry();
-void bridge_do_cmd(const bridge_protocol_t* cmd);
+void bridge_do_cmd(const bridge_msg_t* packet);
 
 time_ms_t last_bridge_cmd_time;
 time_ms_t gamepad_timer;
@@ -88,7 +88,7 @@ int main() { // uses core 0 to sub core
 
   while (true) {
     time_ms_t now_time = get_system_time_ms();
-    bridge_protocol_t response_cmd; 
+    bridge_msg_t msg;
     uint8_t temp_payload[PAYLOAD_MAX_SIZE];
     int payload_size = 0;
 
@@ -108,16 +108,16 @@ int main() { // uses core 0 to sub core
       Audio.update();
       payload_size = Audio.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        response_cmd = bridge_protocol_create(CMD_AUDIO_PCM_DATA, payload_size, temp_payload);
-        bridge_packet_tx_queue_push(response_cmd);
+        msg = bridge_msg_create(CMD_AUDIO_PCM_DATA, payload_size, temp_payload);
+        bridge_msg_tx_queue_push(msg);
       }
     }
     if(system_time_elapsed_ms(now_time, vibration_timer) > 10) {
       vibration_timer = now_time;
       payload_size = Vibration.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        response_cmd = bridge_protocol_create(CMD_VIBRATION_DATA, payload_size, temp_payload);
-        bridge_packet_tx_queue_push(response_cmd);
+        msg = bridge_msg_create(CMD_VIBRATION_DATA, payload_size, temp_payload);
+        bridge_msg_tx_queue_push(msg);
       }
     }
     if(system_time_elapsed_ms(now_time, touch_timer) > 10) {
@@ -1061,20 +1061,20 @@ void menu_sd_test(void) {
   }
 }
 
-void bridge_do_cmd(const bridge_protocol_t* cmd) {
-  enum bridge_cmd command = (enum bridge_cmd)cmd->cmd;
+void bridge_do_cmd(const bridge_msg_t* msg) {
+  enum bridge_cmd command = (enum bridge_cmd)msg->cmd;
   last_bridge_cmd_time = get_system_time_ms();
 
   switch (command)
   {
   case CMD_TEMPERATURE_DATA:
-    Temperature.update_from_bridge(cmd->payload, cmd->payload_size);
+    Temperature.update_from_bridge(msg->payload, msg->payload_size);
     break;
   case CMD_GAMEPAD_DATA:
-    Gamepad.update_from_bridge(cmd->payload, cmd->payload_size);
+    Gamepad.update_from_bridge(msg->payload, msg->payload_size);
     break;
   case CMD_IMU_DATA:
-    Imu.update_from_bridge(cmd->payload, cmd->payload_size);
+    Imu.update_from_bridge(msg->payload, msg->payload_size);
     break;
   default:
     break;

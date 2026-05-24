@@ -18,7 +18,7 @@ vibration Vibration = vibration(&Lra);
 imu Imu = imu(&Mpu);
 
 void core1_entry(void);
-void bridge_do_cmd(const bridge_protocol_t* cmd);
+void bridge_do_cmd(const bridge_msg_t* msg);
 
 time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
@@ -60,7 +60,7 @@ int main() {
 
   while (true) {
     time_ms_t now_time = get_system_time_ms();
-    bridge_protocol_t response_cmd; 
+    bridge_msg_t msg;
     uint8_t temp_payload[PAYLOAD_MAX_SIZE];
     int payload_size = 0;
 
@@ -72,8 +72,8 @@ int main() {
       Gamepad.update();
       payload_size = Gamepad.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        response_cmd = bridge_protocol_create(CMD_GAMEPAD_DATA, payload_size, temp_payload);
-        bridge_packet_tx_queue_push(response_cmd);
+        msg = bridge_msg_create(CMD_GAMEPAD_DATA, payload_size, temp_payload);
+        bridge_msg_tx_queue_push(msg);
       }
     }
     if(system_time_elapsed_ms(now_time, temperature_timer) > 1000) {
@@ -81,8 +81,8 @@ int main() {
       Temperature.update();
       payload_size = Temperature.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        response_cmd = bridge_protocol_create(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
-        bridge_packet_tx_queue_push(response_cmd);
+        msg = bridge_msg_create(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
+        bridge_msg_tx_queue_push(msg);
       }
 
       printf("voltage : % 3.1fV\n", TempSensor.read()); //test
@@ -93,8 +93,8 @@ int main() {
       // printf("Accel: X=%6d Y=%6d Z=%6d | Gyro: X=%6d Y=%6d Z=%6d | ", Mpu.accel_raw.x, Mpu.accel_raw.y, Mpu.accel_raw.z, Mpu.gyro_raw.x, Mpu.gyro_raw.y, Mpu.gyro_raw.z);
       payload_size = Imu.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        response_cmd = bridge_protocol_create(CMD_IMU_DATA, payload_size, temp_payload);
-        bridge_packet_tx_queue_push(response_cmd);
+        msg = bridge_msg_create(CMD_IMU_DATA, payload_size, temp_payload);
+        bridge_msg_tx_queue_push(msg);
       }
     }
     if(system_time_elapsed_ms(now_time, battery_timer) > 1000) {
@@ -117,15 +117,15 @@ void core1_entry(void) {
   }
 }
 
-void bridge_do_cmd(const bridge_protocol_t* cmd) {
-  enum bridge_cmd command = (enum bridge_cmd)cmd->cmd;
+void bridge_do_cmd(const bridge_msg_t* msg) {
+  enum bridge_cmd command = (enum bridge_cmd)msg->cmd;
   switch (command)
   {
   case CMD_AUDIO_ENABLE:
     // Audio.enable();
     break;
   case CMD_AUDIO_PCM_DATA:
-    Audio.update_from_bridge(cmd->payload, cmd->payload_size);
+    Audio.update_from_bridge(msg->payload, msg->payload_size);
     break;
   case CMD_AUDIO_DISABLE:
     // Audio.disable();
@@ -134,7 +134,7 @@ void bridge_do_cmd(const bridge_protocol_t* cmd) {
     Vibration.enable(true);
     break;
   case CMD_VIBRATION_DATA:
-    Vibration.update_from_bridge(cmd->payload, cmd->payload_size);
+    Vibration.update_from_bridge(msg->payload, msg->payload_size);
     break;
   case CMD_VIBRATION_DISABLE:
     Vibration.enable(false);

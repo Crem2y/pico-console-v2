@@ -42,6 +42,12 @@ int uart_bridge_receive(size_t buf_size, uint8_t* data);
 #define BRIDGE_HEADER 0xAA
 #define BRIDGE_TAIL 0x55
 
+typedef struct _bridge_msg_t {
+  uint8_t cmd;                        // command code
+  uint8_t payload_size;               // max 16
+  uint8_t payload[PAYLOAD_MAX_SIZE];  // max payload size is 16 bytes
+} bridge_msg_t;
+
 typedef struct _bridge_protocol_t {
   uint8_t header;                     // 0xAA
   uint8_t cmd;                        // command code
@@ -64,19 +70,21 @@ typedef enum {
 extern "C" {
 #endif
 
-bridge_protocol_t bridge_protocol_create(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload);
-int bridge_packet_tx_queue_push(bridge_protocol_t packet);
-int bridge_packet_tx_queue_pop(bridge_protocol_t* packet);
+bridge_msg_t bridge_msg_create(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload);
 
-int bridge_packet_rx_queue_push(bridge_protocol_t packet);
-int bridge_packet_rx_queue_pop(bridge_protocol_t* packet);
+int bridge_msg_tx_queue_push(bridge_msg_t msg);
+int bridge_msg_tx_queue_pop(bridge_msg_t* msg);
+
+int bridge_msg_rx_queue_push(bridge_msg_t msg);
+int bridge_msg_rx_queue_pop(bridge_msg_t* msg);
 
 void bridge_protocol_parse(const uint8_t* data, size_t data_size);
 void bridge_protocol_execute_cmd(void);
 inline void bridge_protocol_error_print(ProtocolSequence error_seq, uint8_t data);
 
-void set_bridge_do_cmd(void (*do_cmd)(const bridge_protocol_t*));
+void set_bridge_do_cmd(void (*do_cmd)(const bridge_msg_t*));
 
+bridge_protocol_t bridge_protocol_create(const bridge_msg_t* msg);
 void bridge_handle(void);
 
 #ifdef __cplusplus

@@ -12,8 +12,6 @@ volatile bridge_queue_t rx_queue;
 volatile char bridge_tx_buf[UART_BRIDGE_BUF_SIZE];
 volatile char bridge_rx_buf[UART_BRIDGE_BUF_SIZE];
 
-void (*do_cmd_function)(const bridge_protocol_t*);
-
 void uart_irq_tx(void) {
   while (uart_is_writable(_uart) && tx_queue.head != tx_queue.tail) {
     uart_putc(_uart, tx_queue.buf[tx_queue.head]);
@@ -136,78 +134,74 @@ int uart_bridge_receive(size_t buf_size, uint8_t* data) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bridge_protocol_t bridge_tx_queue[BRIDGE_CMD_QUEUE_SIZE];
+void (*do_cmd_function)(const bridge_msg_t*);
+
+bridge_msg_t bridge_tx_queue[BRIDGE_CMD_QUEUE_SIZE];
 size_t bridge_tx_queue_head = 0;
 size_t bridge_tx_queue_tail = 0;
 
-bridge_protocol_t bridge_rx_queue[BRIDGE_CMD_QUEUE_SIZE];
+bridge_msg_t bridge_rx_queue[BRIDGE_CMD_QUEUE_SIZE];
 size_t bridge_rx_queue_head = 0;
 size_t bridge_rx_queue_tail = 0;
 
-bridge_protocol_t bridge_protocol_create(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload) {
-  bridge_protocol_t protocol;
-  protocol.header = BRIDGE_HEADER;
-  protocol.cmd = (uint8_t)cmd;
-  memset(protocol.payload, 0, PAYLOAD_MAX_SIZE);
+bridge_msg_t bridge_msg_create(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload) {
+  bridge_msg_t msg;
+  msg.cmd = (uint8_t)cmd;
+  memset(msg.payload, 0, PAYLOAD_MAX_SIZE);
   if (payload_size > PAYLOAD_MAX_SIZE) {
     payload_size = PAYLOAD_MAX_SIZE;
   }
   if(payload != NULL) {
-    memcpy(protocol.payload, payload, payload_size);
+    memcpy(msg.payload, payload, payload_size);
   } else {
     payload_size = 0;
   }
-  protocol.payload_size = payload_size;
-  protocol.checksum = cmd;
-  protocol.checksum ^= payload_size;
-  for (size_t i = 0; i < payload_size; i++) {
-    protocol.checksum ^= payload[i];
-  }
-  protocol.tail = BRIDGE_TAIL;
+  msg.payload_size = payload_size;
 
-  return protocol;
+  return msg;
 }
 
-int bridge_packet_tx_queue_push(bridge_protocol_t packet) {
+int bridge_msg_tx_queue_push(bridge_msg_t msg) {
   size_t next_tail = (bridge_tx_queue_tail + 1) % BRIDGE_CMD_QUEUE_SIZE;
   if (next_tail == bridge_tx_queue_head) {
     return -1; // Queue is full
   }
-  bridge_tx_queue[bridge_tx_queue_tail] = packet;
+  bridge_tx_queue[bridge_tx_queue_tail] = msg;
   bridge_tx_queue_tail = next_tail;
   return 1; // Success
 }
 
-int bridge_packet_tx_queue_pop(bridge_protocol_t* packet) {
+int bridge_msg_tx_queue_pop(bridge_msg_t* msg) {
   if (bridge_tx_queue_head == bridge_tx_queue_tail) {
     return -1; // Queue is empty
   }
-  *packet = bridge_tx_queue[bridge_tx_queue_head];
+  *msg = bridge_tx_queue[bridge_tx_queue_head];
   bridge_tx_queue_head = (bridge_tx_queue_head + 1) % BRIDGE_CMD_QUEUE_SIZE;
   return 1; // Success
 }
 
-int bridge_packet_rx_queue_push(bridge_protocol_t packet) {
+int bridge_msg_rx_queue_push(bridge_msg_t msg) {
   size_t next_tail = (bridge_rx_queue_tail + 1) % BRIDGE_CMD_QUEUE_SIZE;
   if (next_tail == bridge_rx_queue_head) {
     return -1; // Queue is full
   }
-  bridge_rx_queue[bridge_rx_queue_tail] = packet;
+  bridge_rx_queue[bridge_rx_queue_tail] = msg;
   bridge_rx_queue_tail = next_tail;
   return 1; // Success
 }
 
-int bridge_packet_rx_queue_pop(bridge_protocol_t* packet) {
+int bridge_msg_rx_queue_pop(bridge_msg_t* msg) {
   if (bridge_rx_queue_head == bridge_rx_queue_tail) {
     return -1; // Queue is empty
   }
-  *packet = bridge_rx_queue[bridge_rx_queue_head];
+  *msg = bridge_rx_queue[bridge_rx_queue_head];
   bridge_rx_queue_head = (bridge_rx_queue_head + 1) % BRIDGE_CMD_QUEUE_SIZE;
   return 1; // Success
 }
 
 void bridge_protocol_parse(const uint8_t* data, size_t data_size) {
   static ProtocolSequence seq = SEQ_WAIT_HEADER;
+  static bridge_msg_t msg;
   static bridge_protocol_t cmd;
   static size_t payload_index = 0;
   static uint8_t checksum = 0;
@@ -224,18 +218,18 @@ void bridge_protocol_parse(const uint8_t* data, size_t data_size) {
         }
         break;
       case SEQ_WAIT_COMMAND:
-        cmd.cmd = byte;
+        msg.cmd = byte;
         checksum = byte;
         seq = SEQ_WAIT_LENGTH;
         break;
       case SEQ_WAIT_LENGTH:
-        cmd.payload_size = byte;
+        msg.payload_size = byte;
         checksum ^= byte;
-        if (cmd.payload_size > PAYLOAD_MAX_SIZE) {
+        if (msg.payload_size > PAYLOAD_MAX_SIZE) {
           // Invalid payload size, reset state
           bridge_protocol_error_print(seq, byte);
           seq = SEQ_WAIT_HEADER;
-        } else if (cmd.payload_size == 0) {
+        } else if (msg.payload_size == 0) {
           seq = SEQ_WAIT_INTEGRITY; // No payload, skip to integrity check
         } else {
           payload_index = 0;
@@ -243,19 +237,19 @@ void bridge_protocol_parse(const uint8_t* data, size_t data_size) {
         }
         break;
       case SEQ_WAIT_PAYLOAD:
-        cmd.payload[payload_index++] = byte;
+        msg.payload[payload_index++] = byte;
         checksum ^= byte;
-        if (payload_index >= cmd.payload_size) {
+        if (payload_index >= msg.payload_size) {
           seq = SEQ_WAIT_INTEGRITY;
         }
         break;
       case SEQ_WAIT_INTEGRITY:
-        cmd.checksum = byte;
-        if (checksum == cmd.checksum) {
+        uint8_t packet_checksum = byte;
+        if (checksum == packet_checksum) {
           seq = SEQ_WAIT_TAIL;
         } else {
           // Invalid checksum, reset state
-          printf("Bridge protocol error: expected 0x%02X, got 0x%02X\n", checksum, cmd.checksum);
+          printf("Bridge protocol error: expected 0x%02X, got 0x%02X\n", checksum, packet_checksum);
           //bridge_protocol_error_handle(seq, byte);
           seq = SEQ_WAIT_HEADER;
         }
@@ -263,7 +257,7 @@ void bridge_protocol_parse(const uint8_t* data, size_t data_size) {
       case SEQ_WAIT_TAIL:
         if (byte == BRIDGE_TAIL) {
           //printf("Bridge protocol OK! (cmd: 0x%02X, size: %d)\n", cmd.cmd, cmd.payload_size);
-          bridge_packet_rx_queue_push(cmd);
+          bridge_msg_rx_queue_push(msg);
         } else {
           // Invalid tail
           bridge_protocol_error_print(seq, byte);
@@ -276,10 +270,10 @@ void bridge_protocol_parse(const uint8_t* data, size_t data_size) {
 }
 
 void bridge_protocol_execute_cmd(void) {
-  bridge_protocol_t cmd;
-  while(bridge_packet_rx_queue_pop(&cmd) > 0) {
+  bridge_msg_t msg;
+  while(bridge_msg_rx_queue_pop(&msg) > 0) {
     if(do_cmd_function) {
-      do_cmd_function(&cmd);
+      do_cmd_function(&msg);
     }
   }
 }
@@ -309,8 +303,34 @@ inline void bridge_protocol_error_print(ProtocolSequence error_seq, uint8_t data
   }
 }
 
-void set_bridge_do_cmd(void (*do_cmd)(const bridge_protocol_t*)) {
+void set_bridge_do_cmd(void (*do_cmd)(const bridge_msg_t*)) {
   do_cmd_function = do_cmd;
+}
+
+bridge_protocol_t bridge_protocol_create(const bridge_msg_t* msg) {
+  bridge_protocol_t packet;
+  size_t payload_size = msg->payload_size;
+
+  packet.header = BRIDGE_HEADER;
+  packet.cmd = (uint8_t)msg->cmd;
+  memset(packet.payload, 0, PAYLOAD_MAX_SIZE);
+  if (payload_size > PAYLOAD_MAX_SIZE) {
+    payload_size = PAYLOAD_MAX_SIZE;
+  }
+  if(msg->payload != NULL) {
+    memcpy(packet.payload, msg->payload, payload_size);
+  } else {
+    payload_size = 0;
+  }
+  packet.payload_size = payload_size;
+  packet.checksum = packet.cmd;
+  packet.checksum ^= packet.payload_size;
+  for (size_t i = 0; i < packet.payload_size; i++) {
+    packet.checksum ^= packet.payload[i];
+  }
+  packet.tail = BRIDGE_TAIL;
+
+  return packet;
 }
 
 void bridge_handle(void) {
@@ -324,16 +344,18 @@ void bridge_handle(void) {
     bridge_protocol_parse(data, rx_data_size);
   }
 
-  bridge_protocol_t cmd;
-  if(bridge_packet_tx_queue_pop(&cmd) > 0) {
+  bridge_msg_t msg;
+  bridge_protocol_t packet;
+  if(bridge_msg_tx_queue_pop(&msg) > 0) {
     // Send cmd via UART
+    packet = bridge_protocol_create(&msg);
     uint8_t buffer[sizeof(bridge_protocol_t)];
-    buffer[0] = cmd.header;
-    buffer[1] = cmd.cmd;
-    buffer[2] = cmd.payload_size;
-    memcpy(&buffer[3], cmd.payload, cmd.payload_size);
-    buffer[3 + cmd.payload_size] = cmd.checksum;
-    buffer[4 + cmd.payload_size] = cmd.tail;
-    uart_bridge_send(5 + cmd.payload_size, buffer);
+    buffer[0] = packet.header;
+    buffer[1] = packet.cmd;
+    buffer[2] = packet.payload_size;
+    memcpy(&buffer[3], packet.payload, packet.payload_size);
+    buffer[3 + packet.payload_size] = packet.checksum;
+    buffer[4 + packet.payload_size] = packet.tail;
+    uart_bridge_send(5 + packet.payload_size, buffer);
   }
 }
