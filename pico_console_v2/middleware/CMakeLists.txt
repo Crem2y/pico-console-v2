@@ -16,7 +16,7 @@ add_library(middleware INTERFACE)
 target_link_libraries(middleware INTERFACE
   driver
   gamepad
-#  imu
+  imu
 #  ir_communication
   led_control
   audio_system

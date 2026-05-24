@@ -16,8 +16,8 @@ enum bridge_cmd {
   CMD_IR_TX_DATA        = 0x41, // [format][data1][data2]...
   CMD_IR_TX_DISABLE     = 0x4F,
 
-  CMD_IMU_ENABLE        = 0x50,
-  CMD_IMU_DATA          = 0x51, // [ax][ay][az][gx][gy][gz][mx][my][mz]
+  CMD_IMU_ENABLE        = 0x50, // [flags]
+  CMD_IMU_DATA          = 0x51, // [ax][ay][az][gx][gy][gz]
   CMD_IMU_ACCEL_DATA    = 0x52,
   CMD_IMU_GYRO_DATA     = 0x53,
   CMD_IMU_MAG_DATA      = 0x54,
