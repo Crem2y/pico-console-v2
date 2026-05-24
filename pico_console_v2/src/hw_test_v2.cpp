@@ -93,6 +93,7 @@ int main() { // uses core 0 to sub core
     int payload_size = 0;
 
     bridge_handle();
+    bridge_protocol_execute_cmd();
 
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
@@ -108,7 +109,7 @@ int main() { // uses core 0 to sub core
       payload_size = Audio.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
         response_cmd = bridge_protocol_create(CMD_AUDIO_PCM_DATA, payload_size, temp_payload);
-        bridge_cmd_queue_push(response_cmd);
+        bridge_packet_tx_queue_push(response_cmd);
       }
     }
     if(system_time_elapsed_ms(now_time, vibration_timer) > 10) {
@@ -116,7 +117,7 @@ int main() { // uses core 0 to sub core
       payload_size = Vibration.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
         response_cmd = bridge_protocol_create(CMD_VIBRATION_DATA, payload_size, temp_payload);
-        bridge_cmd_queue_push(response_cmd);
+        bridge_packet_tx_queue_push(response_cmd);
       }
     }
     if(system_time_elapsed_ms(now_time, touch_timer) > 10) {

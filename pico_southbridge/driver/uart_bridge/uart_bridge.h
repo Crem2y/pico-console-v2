@@ -65,10 +65,14 @@ extern "C" {
 #endif
 
 bridge_protocol_t bridge_protocol_create(enum bridge_cmd cmd, size_t payload_size, uint8_t* payload);
-int bridge_cmd_queue_push(bridge_protocol_t cmd);
-int bridge_cmd_queue_pop(bridge_protocol_t* cmd);
+int bridge_packet_tx_queue_push(bridge_protocol_t packet);
+int bridge_packet_tx_queue_pop(bridge_protocol_t* packet);
+
+int bridge_packet_rx_queue_push(bridge_protocol_t packet);
+int bridge_packet_rx_queue_pop(bridge_protocol_t* packet);
 
 void bridge_protocol_parse(uint8_t* data, size_t data_size);
+void bridge_protocol_execute_cmd(void);
 inline void bridge_protocol_error_print(ProtocolSequence error_seq, uint8_t data);
 
 void set_bridge_do_cmd(void (*do_cmd)(bridge_protocol_t*));

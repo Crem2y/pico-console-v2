@@ -65,6 +65,7 @@ int main() {
     int payload_size = 0;
 
     bridge_handle();
+    bridge_protocol_execute_cmd();
 
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
@@ -72,7 +73,7 @@ int main() {
       payload_size = Gamepad.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
         response_cmd = bridge_protocol_create(CMD_GAMEPAD_DATA, payload_size, temp_payload);
-        bridge_cmd_queue_push(response_cmd);
+        bridge_packet_tx_queue_push(response_cmd);
       }
     }
     if(system_time_elapsed_ms(now_time, temperature_timer) > 1000) {
@@ -81,7 +82,7 @@ int main() {
       payload_size = Temperature.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
         response_cmd = bridge_protocol_create(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
-        bridge_cmd_queue_push(response_cmd);
+        bridge_packet_tx_queue_push(response_cmd);
       }
 
       printf("voltage : % 3.1fV\n", TempSensor.read()); //test
@@ -93,7 +94,7 @@ int main() {
       payload_size = Imu.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
         response_cmd = bridge_protocol_create(CMD_IMU_DATA, payload_size, temp_payload);
-        bridge_cmd_queue_push(response_cmd);
+        bridge_packet_tx_queue_push(response_cmd);
       }
     }
     if(system_time_elapsed_ms(now_time, battery_timer) > 1000) {

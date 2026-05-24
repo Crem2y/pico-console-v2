@@ -136,9 +136,13 @@ int uart_bridge_receive(size_t buf_size, uint8_t* data) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bridge_protocol_t bridge_queue[BRIDGE_CMD_QUEUE_SIZE];
-size_t bridge_queue_head = 0;
-size_t bridge_queue_tail = 0;
+bridge_protocol_t bridge_tx_queue[BRIDGE_CMD_QUEUE_SIZE];
+size_t bridge_tx_queue_head = 0;
+size_t bridge_tx_queue_tail = 0;
+
+bridge_protocol_t bridge_rx_queue[BRIDGE_CMD_QUEUE_SIZE];
+size_t bridge_rx_queue_head = 0;
+size_t bridge_rx_queue_tail = 0;
 
 bridge_protocol_t bridge_protocol_create(enum bridge_cmd cmd, size_t payload_size, uint8_t* payload) {
   bridge_protocol_t protocol;
@@ -164,22 +168,41 @@ bridge_protocol_t bridge_protocol_create(enum bridge_cmd cmd, size_t payload_siz
   return protocol;
 }
 
-int bridge_cmd_queue_push(bridge_protocol_t cmd) {
-  size_t next_tail = (bridge_queue_tail + 1) % BRIDGE_CMD_QUEUE_SIZE;
-  if (next_tail == bridge_queue_head) {
+int bridge_packet_tx_queue_push(bridge_protocol_t packet) {
+  size_t next_tail = (bridge_tx_queue_tail + 1) % BRIDGE_CMD_QUEUE_SIZE;
+  if (next_tail == bridge_tx_queue_head) {
     return -1; // Queue is full
   }
-  bridge_queue[bridge_queue_tail] = cmd;
-  bridge_queue_tail = next_tail;
+  bridge_tx_queue[bridge_tx_queue_tail] = packet;
+  bridge_tx_queue_tail = next_tail;
   return 1; // Success
 }
 
-int bridge_cmd_queue_pop(bridge_protocol_t* cmd) {
-  if (bridge_queue_head == bridge_queue_tail) {
+int bridge_packet_tx_queue_pop(bridge_protocol_t* packet) {
+  if (bridge_tx_queue_head == bridge_tx_queue_tail) {
     return -1; // Queue is empty
   }
-  *cmd = bridge_queue[bridge_queue_head];
-  bridge_queue_head = (bridge_queue_head + 1) % BRIDGE_CMD_QUEUE_SIZE;
+  *packet = bridge_tx_queue[bridge_tx_queue_head];
+  bridge_tx_queue_head = (bridge_tx_queue_head + 1) % BRIDGE_CMD_QUEUE_SIZE;
+  return 1; // Success
+}
+
+int bridge_packet_rx_queue_push(bridge_protocol_t packet) {
+  size_t next_tail = (bridge_rx_queue_tail + 1) % BRIDGE_CMD_QUEUE_SIZE;
+  if (next_tail == bridge_rx_queue_head) {
+    return -1; // Queue is full
+  }
+  bridge_rx_queue[bridge_rx_queue_tail] = packet;
+  bridge_rx_queue_tail = next_tail;
+  return 1; // Success
+}
+
+int bridge_packet_rx_queue_pop(bridge_protocol_t* packet) {
+  if (bridge_rx_queue_head == bridge_rx_queue_tail) {
+    return -1; // Queue is empty
+  }
+  *packet = bridge_rx_queue[bridge_rx_queue_head];
+  bridge_rx_queue_head = (bridge_rx_queue_head + 1) % BRIDGE_CMD_QUEUE_SIZE;
   return 1; // Success
 }
 
@@ -240,9 +263,7 @@ void bridge_protocol_parse(uint8_t* data, size_t data_size) {
       case SEQ_WAIT_TAIL:
         if (byte == BRIDGE_TAIL) {
           //printf("Bridge protocol OK! (cmd: 0x%02X, size: %d)\n", cmd.cmd, cmd.payload_size);
-          if(do_cmd_function) {
-            do_cmd_function(&cmd);
-          }
+          bridge_packet_rx_queue_push(cmd);
         } else {
           // Invalid tail
           bridge_protocol_error_print(seq, byte);
@@ -250,6 +271,15 @@ void bridge_protocol_parse(uint8_t* data, size_t data_size) {
         // Reset state for next command
         seq = SEQ_WAIT_HEADER;
         break;
+    }
+  }
+}
+
+void bridge_protocol_execute_cmd(void) {
+  bridge_protocol_t cmd;
+  while(bridge_packet_rx_queue_pop(&cmd) > 0) {
+    if(do_cmd_function) {
+      do_cmd_function(&cmd);
     }
   }
 }
@@ -295,7 +325,7 @@ void bridge_handle(void) {
   }
 
   bridge_protocol_t cmd;
-  if(bridge_cmd_queue_pop(&cmd) > 0) {
+  if(bridge_packet_tx_queue_pop(&cmd) > 0) {
     // Send cmd via UART
     uint8_t buffer[sizeof(bridge_protocol_t)];
     buffer[0] = cmd.header;
