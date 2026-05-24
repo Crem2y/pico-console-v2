@@ -26,7 +26,7 @@
 #include "gamepad.hpp"
 #include "temperature.hpp"
 #include "vibration.hpp"
-
+#include "imu.hpp"
 
 // pin definitions
 #define PIN_LOG_TX      0

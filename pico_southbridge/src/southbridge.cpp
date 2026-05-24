@@ -15,6 +15,7 @@ gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, &Joy2);
 audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
 vibration Vibration = vibration(&Lra);
+imu Imu = imu(&Mpu);
 
 void core1_entry(void);
 void bridge_do_cmd(bridge_protocol_t* cmd);
@@ -87,12 +88,13 @@ int main() {
     }
     if(system_time_elapsed_ms(now_time, imu_timer) > 100) { //placeholder
       imu_timer = now_time;
-      Mpu.read_raw_accel_data();
-      Mpu.read_raw_gyro_data();
-      Mpu.read_raw_temp_data();
-
+      Imu.update();
       // printf("Accel: X=%6d Y=%6d Z=%6d | Gyro: X=%6d Y=%6d Z=%6d | ", Mpu.accel_raw.x, Mpu.accel_raw.y, Mpu.accel_raw.z, Mpu.gyro_raw.x, Mpu.gyro_raw.y, Mpu.gyro_raw.z);
-      // printf("Temp. = % 3.1fC\n", (Mpu.temp_raw / 340.0) + 36.53f); // temperature formula from pico-examples/i2c/mpu6050_i2c/mpu6050_i2c.c
+      payload_size = Imu.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
+      if(payload_size > 0) {
+        response_cmd = bridge_protocol_create(CMD_IMU_DATA, payload_size, temp_payload);
+        bridge_cmd_queue_push(response_cmd);
+      }
     }
     if(system_time_elapsed_ms(now_time, battery_timer) > 1000) {
       battery_timer = now_time;
