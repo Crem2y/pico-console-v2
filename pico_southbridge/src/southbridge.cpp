@@ -61,7 +61,6 @@ int main() {
 
   while (true) {
     time_ms_t now_time = get_system_time_ms();
-    bridge_msg_t msg;
     uint8_t temp_payload[PAYLOAD_MAX_SIZE];
     int payload_size = 0;
 
@@ -73,8 +72,7 @@ int main() {
       Gamepad.update();
       payload_size = Gamepad.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        msg = Bridge.bridge_msg_create(CMD_GAMEPAD_DATA, payload_size, temp_payload);
-        Bridge.bridge_msg_tx_queue_push(msg);
+        Bridge.bridge_msg_push(CMD_GAMEPAD_DATA, payload_size, temp_payload);
       }
     }
     if(system_time_elapsed_ms(now_time, temperature_timer) > 1000) {
@@ -82,8 +80,7 @@ int main() {
       Temperature.update();
       payload_size = Temperature.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        msg = Bridge.bridge_msg_create(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
-        Bridge.bridge_msg_tx_queue_push(msg);
+        Bridge.bridge_msg_push(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
       }
 
       printf("voltage : % 3.1fV\n", TempSensor.read()); //test
@@ -94,8 +91,7 @@ int main() {
       // printf("Accel: X=%6d Y=%6d Z=%6d | Gyro: X=%6d Y=%6d Z=%6d | ", Mpu.accel_raw.x, Mpu.accel_raw.y, Mpu.accel_raw.z, Mpu.gyro_raw.x, Mpu.gyro_raw.y, Mpu.gyro_raw.z);
       payload_size = Imu.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        msg = Bridge.bridge_msg_create(CMD_IMU_DATA, payload_size, temp_payload);
-        Bridge.bridge_msg_tx_queue_push(msg);
+        Bridge.bridge_msg_push(CMD_IMU_DATA, payload_size, temp_payload);
       }
     }
     if(system_time_elapsed_ms(now_time, battery_timer) > 1000) {

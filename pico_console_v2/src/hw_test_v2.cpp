@@ -89,7 +89,6 @@ int main() { // uses core 0 to sub core
 
   while (true) {
     time_ms_t now_time = get_system_time_ms();
-    bridge_msg_t msg;
     uint8_t temp_payload[PAYLOAD_MAX_SIZE];
     int payload_size = 0;
 
@@ -109,16 +108,14 @@ int main() { // uses core 0 to sub core
       Audio.update();
       payload_size = Audio.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        msg = Bridge.bridge_msg_create(CMD_AUDIO_PCM_DATA, payload_size, temp_payload);
-        Bridge.bridge_msg_tx_queue_push(msg);
+        Bridge.bridge_msg_push(CMD_AUDIO_PCM_DATA, payload_size, temp_payload);
       }
     }
     if(system_time_elapsed_ms(now_time, vibration_timer) > 10) {
       vibration_timer = now_time;
       payload_size = Vibration.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        msg = Bridge.bridge_msg_create(CMD_VIBRATION_DATA, payload_size, temp_payload);
-        Bridge.bridge_msg_tx_queue_push(msg);
+        Bridge.bridge_msg_push(CMD_VIBRATION_DATA, payload_size, temp_payload);
       }
     }
     if(system_time_elapsed_ms(now_time, touch_timer) > 10) {

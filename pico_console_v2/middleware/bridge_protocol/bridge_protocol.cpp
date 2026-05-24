@@ -5,7 +5,15 @@ bridgeProtocol::bridgeProtocol(void) {
 }
 
 void bridgeProtocol::init(void) {
+  do_cmd_function = NULL;
 
+  parse_seq = SEQ_WAIT_HEADER;
+  parse_payload_index = 0;
+  parse_checksum = 0;
+}
+
+int bridgeProtocol::bridge_msg_push(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload) {
+  return bridge_msg_tx_queue_push(bridge_msg_create(cmd, payload_size, payload));
 }
 
 bridge_msg_t bridgeProtocol::bridge_msg_create(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload) {
@@ -26,7 +34,7 @@ bridge_msg_t bridgeProtocol::bridge_msg_create(enum bridge_cmd cmd, size_t paylo
 }
 
 int bridgeProtocol::bridge_msg_tx_queue_push(bridge_msg_t msg) {
-  size_t next_tail = (bridge_tx_queue_tail + 1) % BRIDGE_CMD_QUEUE_SIZE;
+  size_t next_tail = (bridge_tx_queue_tail + 1) % BRIDGE_MSG_QUEUE_SIZE;
   if (next_tail == bridge_tx_queue_head) {
     return -1; // Queue is full
   }
@@ -40,12 +48,12 @@ int bridgeProtocol::bridge_msg_tx_queue_pop(bridge_msg_t* msg) {
     return -1; // Queue is empty
   }
   *msg = bridge_tx_queue[bridge_tx_queue_head];
-  bridge_tx_queue_head = (bridge_tx_queue_head + 1) % BRIDGE_CMD_QUEUE_SIZE;
+  bridge_tx_queue_head = (bridge_tx_queue_head + 1) % BRIDGE_MSG_QUEUE_SIZE;
   return 1; // Success
 }
 
 int bridgeProtocol::bridge_msg_rx_queue_push(bridge_msg_t msg) {
-  size_t next_tail = (bridge_rx_queue_tail + 1) % BRIDGE_CMD_QUEUE_SIZE;
+  size_t next_tail = (bridge_rx_queue_tail + 1) % BRIDGE_MSG_QUEUE_SIZE;
   if (next_tail == bridge_rx_queue_head) {
     return -1; // Queue is full
   }
@@ -59,76 +67,70 @@ int bridgeProtocol::bridge_msg_rx_queue_pop(bridge_msg_t* msg) {
     return -1; // Queue is empty
   }
   *msg = bridge_rx_queue[bridge_rx_queue_head];
-  bridge_rx_queue_head = (bridge_rx_queue_head + 1) % BRIDGE_CMD_QUEUE_SIZE;
+  bridge_rx_queue_head = (bridge_rx_queue_head + 1) % BRIDGE_MSG_QUEUE_SIZE;
   return 1; // Success
 }
 
 void bridgeProtocol::bridge_protocol_parse(const uint8_t* data, size_t data_size) {
-  static ProtocolSequence seq = SEQ_WAIT_HEADER;
-  static bridge_msg_t msg;
-  static bridge_protocol_t cmd;
-  static size_t payload_index = 0;
-  static uint8_t checksum = 0;
-
   for (size_t i = 0; i < data_size; i++) {
     uint8_t byte = data[i];
-    switch (seq) {
+    switch (parse_seq) {
       case SEQ_WAIT_HEADER:
         if (byte == BRIDGE_HEADER) {
-          seq = SEQ_WAIT_COMMAND;
+          parse_seq = SEQ_WAIT_COMMAND;
         } else {
           // Invalid header
-          bridge_protocol_error_print(seq, byte);
+          bridge_protocol_error_print(parse_seq, byte);
         }
         break;
       case SEQ_WAIT_COMMAND:
-        msg.cmd = byte;
-        checksum = byte;
-        seq = SEQ_WAIT_LENGTH;
+        parse_msg.cmd = byte;
+        parse_checksum = byte;
+        parse_seq = SEQ_WAIT_LENGTH;
         break;
       case SEQ_WAIT_LENGTH:
-        msg.payload_size = byte;
-        checksum ^= byte;
-        if (msg.payload_size > PAYLOAD_MAX_SIZE) {
+        parse_msg.payload_size = byte;
+        parse_checksum ^= byte;
+        if (parse_msg.payload_size > PAYLOAD_MAX_SIZE) {
           // Invalid payload size, reset state
-          bridge_protocol_error_print(seq, byte);
-          seq = SEQ_WAIT_HEADER;
-        } else if (msg.payload_size == 0) {
-          seq = SEQ_WAIT_INTEGRITY; // No payload, skip to integrity check
+          bridge_protocol_error_print(parse_seq, byte);
+          parse_seq = SEQ_WAIT_HEADER;
+        } else if (parse_msg.payload_size == 0) {
+          parse_seq = SEQ_WAIT_INTEGRITY; // No payload, skip to integrity check
         } else {
-          payload_index = 0;
-          seq = SEQ_WAIT_PAYLOAD;
+          parse_payload_index = 0;
+          parse_seq = SEQ_WAIT_PAYLOAD;
         }
         break;
       case SEQ_WAIT_PAYLOAD:
-        msg.payload[payload_index++] = byte;
-        checksum ^= byte;
-        if (payload_index >= msg.payload_size) {
-          seq = SEQ_WAIT_INTEGRITY;
+        parse_msg.payload[parse_payload_index++] = byte;
+        parse_checksum ^= byte;
+        if (parse_payload_index >= parse_msg.payload_size) {
+          parse_seq = SEQ_WAIT_INTEGRITY;
         }
         break;
       case SEQ_WAIT_INTEGRITY: {
         uint8_t packet_checksum = byte;
-        if (checksum == packet_checksum) {
-          seq = SEQ_WAIT_TAIL;
+        if (parse_checksum == packet_checksum) {
+          parse_seq = SEQ_WAIT_TAIL;
         } else {
           // Invalid checksum, reset state
           //printf("Bridge protocol error: expected 0x%02X, got 0x%02X\n", checksum, packet_checksum);
           //bridge_protocol_error_handle(seq, byte);
-          seq = SEQ_WAIT_HEADER;
+          parse_seq = SEQ_WAIT_HEADER;
         }
         break;
       }
       case SEQ_WAIT_TAIL:
         if (byte == BRIDGE_TAIL) {
           //printf("Bridge protocol OK! (cmd: 0x%02X, size: %d)\n", cmd.cmd, cmd.payload_size);
-          bridge_msg_rx_queue_push(msg);
+          bridge_msg_rx_queue_push(parse_msg);
         } else {
           // Invalid tail
-          bridge_protocol_error_print(seq, byte);
+          bridge_protocol_error_print(parse_seq, byte);
         }
         // Reset state for next command
-        seq = SEQ_WAIT_HEADER;
+        parse_seq = SEQ_WAIT_HEADER;
         break;
     }
   }
