@@ -16,7 +16,7 @@ void vibration::enable(bool enable) {
   }
 }
 
-void vibration::update_from_bridge(uint8_t* data, uint8_t len) {
+void vibration::update_from_bridge(const uint8_t* data, uint8_t len) {
   //placeholder
   if (len < 6) return; // Not enough data
 

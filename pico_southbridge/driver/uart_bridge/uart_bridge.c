@@ -12,7 +12,7 @@ volatile bridge_queue_t rx_queue;
 volatile char bridge_tx_buf[UART_BRIDGE_BUF_SIZE];
 volatile char bridge_rx_buf[UART_BRIDGE_BUF_SIZE];
 
-void (*do_cmd_function)(bridge_protocol_t*);
+void (*do_cmd_function)(const bridge_protocol_t*);
 
 void uart_irq_tx(void) {
   while (uart_is_writable(_uart) && tx_queue.head != tx_queue.tail) {
@@ -144,7 +144,7 @@ bridge_protocol_t bridge_rx_queue[BRIDGE_CMD_QUEUE_SIZE];
 size_t bridge_rx_queue_head = 0;
 size_t bridge_rx_queue_tail = 0;
 
-bridge_protocol_t bridge_protocol_create(enum bridge_cmd cmd, size_t payload_size, uint8_t* payload) {
+bridge_protocol_t bridge_protocol_create(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload) {
   bridge_protocol_t protocol;
   protocol.header = BRIDGE_HEADER;
   protocol.cmd = (uint8_t)cmd;
@@ -206,7 +206,7 @@ int bridge_packet_rx_queue_pop(bridge_protocol_t* packet) {
   return 1; // Success
 }
 
-void bridge_protocol_parse(uint8_t* data, size_t data_size) {
+void bridge_protocol_parse(const uint8_t* data, size_t data_size) {
   static ProtocolSequence seq = SEQ_WAIT_HEADER;
   static bridge_protocol_t cmd;
   static size_t payload_index = 0;
@@ -309,7 +309,7 @@ inline void bridge_protocol_error_print(ProtocolSequence error_seq, uint8_t data
   }
 }
 
-void set_bridge_do_cmd(void (*do_cmd)(bridge_protocol_t*)) {
+void set_bridge_do_cmd(void (*do_cmd)(const bridge_protocol_t*)) {
   do_cmd_function = do_cmd;
 }
 

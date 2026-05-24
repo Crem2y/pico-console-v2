@@ -17,7 +17,7 @@ class temperature {
 
     void init(void);
     void update(void);
-    void update_from_bridge(uint8_t* data, uint8_t len);
+    void update_from_bridge(const uint8_t* data, uint8_t len);
 
     temp_t get_temp(temp_ch ch);
 

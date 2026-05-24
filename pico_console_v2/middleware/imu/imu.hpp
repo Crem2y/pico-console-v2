@@ -11,7 +11,7 @@ class imu {
 
     void init(void);
     void update(void);
-    void update_from_bridge(uint8_t* data, uint8_t len);
+    void update_from_bridge(const uint8_t* data, uint8_t len);
 
     float get_accel_x();
     float get_accel_y();

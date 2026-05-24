@@ -18,7 +18,7 @@ vibration Vibration = vibration(&Lra);
 imu Imu = imu(&Mpu);
 
 void core1_entry(void);
-void bridge_do_cmd(bridge_protocol_t* cmd);
+void bridge_do_cmd(const bridge_protocol_t* cmd);
 
 time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
@@ -117,7 +117,7 @@ void core1_entry(void) {
   }
 }
 
-void bridge_do_cmd(bridge_protocol_t* cmd) {
+void bridge_do_cmd(const bridge_protocol_t* cmd) {
   enum bridge_cmd command = (enum bridge_cmd)cmd->cmd;
   switch (command)
   {

@@ -14,7 +14,7 @@ void temperature::update(void) {
   temp[TEMP_BUILTIN] = (int32_t)(built_in_temp_read() * 100);
 }
 
-void temperature::update_from_bridge(uint8_t* data, uint8_t len) {
+void temperature::update_from_bridge(const uint8_t* data, uint8_t len) {
   if(len < (TEMP_CH_NUM-1) * 2) return; // each temp is 2 bytes (int16_t)
 
   for(int i=0; i<TEMP_CH_NUM-1; i++) {

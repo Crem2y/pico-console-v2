@@ -16,7 +16,7 @@ touchscreen Touchscreen = touchscreen(&Touch);
 imu Imu = imu();
 
 void core1_entry();
-void bridge_do_cmd(bridge_protocol_t* cmd);
+void bridge_do_cmd(const bridge_protocol_t* cmd);
 
 time_ms_t last_bridge_cmd_time;
 time_ms_t gamepad_timer;
@@ -1061,7 +1061,7 @@ void menu_sd_test(void) {
   }
 }
 
-void bridge_do_cmd(bridge_protocol_t* cmd) {
+void bridge_do_cmd(const bridge_protocol_t* cmd) {
   enum bridge_cmd command = (enum bridge_cmd)cmd->cmd;
   last_bridge_cmd_time = get_system_time_ms();
 

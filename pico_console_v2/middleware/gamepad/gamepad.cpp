@@ -111,7 +111,7 @@ void gamepad::update(void) {
   }
 }
 
-void gamepad::update_from_bridge(uint8_t* data, uint8_t len) {
+void gamepad::update_from_bridge(const uint8_t* data, uint8_t len) {
   if(len < 7) return;
 
   key_data = (data[0] << 16) | (data[1] << 8) | data[2];

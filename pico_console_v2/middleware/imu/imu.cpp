@@ -12,7 +12,7 @@ void imu::update(void) {
 
 }
 
-void imu::update_from_bridge(uint8_t* data, uint8_t len) {
+void imu::update_from_bridge(const uint8_t* data, uint8_t len) {
   if(len < 12) return;
 
   accel_raw[0] = (data[0] << 8) | data[1];
