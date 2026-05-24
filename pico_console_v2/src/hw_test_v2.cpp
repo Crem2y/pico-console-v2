@@ -747,13 +747,19 @@ void menu_touch_test(void) {
   Lcd.setCursor(0,0);
   Lcd.print_5x8("Touch test");
 
+  time_ms_t touch_timer;
+  char string_buf[32];
+
+  sprintf(string_buf, "x:    0, y:    0");
+  Lcd.setCursor(0,16);
+  Lcd.print_5x8(string_buf);
+
   while(1) {
     sleep_ms(10);
 
     if(Touchscreen.is_touched()) {
       uint16_t x = Touchscreen.touch_data.x;
       uint16_t y = Touchscreen.touch_data.y;
-      char string_buf[32];
       sprintf(string_buf, "x: % 4d, y: % 4d", x, y);
       Lcd.setCursor(0,16);
       Lcd.print_5x8(string_buf);
