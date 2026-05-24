@@ -1061,7 +1061,7 @@ void menu_sd_test(void) {
 }
 
 void bridge_do_cmd(bridge_protocol_t* cmd) {
-  enum bridge_cmd command = cmd->cmd;
+  enum bridge_cmd command = (enum bridge_cmd)cmd->cmd;
   last_bridge_cmd_time = get_system_time_ms();
 
   switch (command)

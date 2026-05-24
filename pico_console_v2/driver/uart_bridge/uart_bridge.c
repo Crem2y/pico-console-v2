@@ -143,7 +143,7 @@ size_t bridge_queue_tail = 0;
 bridge_protocol_t bridge_protocol_create(enum bridge_cmd cmd, size_t payload_size, uint8_t* payload) {
   bridge_protocol_t protocol;
   protocol.header = BRIDGE_HEADER;
-  protocol.cmd = cmd;
+  protocol.cmd = (uint8_t)cmd;
   memset(protocol.payload, 0, PAYLOAD_MAX_SIZE);
   if (payload_size > PAYLOAD_MAX_SIZE) {
     payload_size = PAYLOAD_MAX_SIZE;

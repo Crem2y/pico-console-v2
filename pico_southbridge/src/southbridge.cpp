@@ -117,7 +117,7 @@ void core1_entry(void) {
 }
 
 void bridge_do_cmd(bridge_protocol_t* cmd) {
-  enum bridge_cmd command = cmd->cmd;
+  enum bridge_cmd command = (enum bridge_cmd)cmd->cmd;
   switch (command)
   {
   case CMD_AUDIO_ENABLE:

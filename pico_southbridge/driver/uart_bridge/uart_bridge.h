@@ -2,6 +2,7 @@
 
 #include "pico/stdlib.h"
 #include "hardware/uart.h"
+#include "hardware/irq.h"
 
 #include <string.h>
 #include "bridge_commands.h"
@@ -43,7 +44,7 @@ int uart_bridge_receive(size_t buf_size, uint8_t* data);
 
 typedef struct _bridge_protocol_t {
   uint8_t header;                     // 0xAA
-  enum bridge_cmd cmd;                // command code
+  uint8_t cmd;                        // command code
   uint8_t payload_size;               // max 16
   uint8_t payload[PAYLOAD_MAX_SIZE];  // max payload size is 16 bytes
   uint8_t checksum;                   // XOR of cmd and payload

@@ -143,7 +143,7 @@ size_t bridge_queue_tail = 0;
 bridge_protocol_t bridge_protocol_create(enum bridge_cmd cmd, size_t payload_size, uint8_t* payload) {
   bridge_protocol_t protocol;
   protocol.header = BRIDGE_HEADER;
-  protocol.cmd = cmd;
+  protocol.cmd = (uint8_t)cmd;
   memset(protocol.payload, 0, PAYLOAD_MAX_SIZE);
   if (payload_size > PAYLOAD_MAX_SIZE) {
     payload_size = PAYLOAD_MAX_SIZE;
@@ -239,7 +239,7 @@ void bridge_protocol_parse(uint8_t* data, size_t data_size) {
         break;
       case SEQ_WAIT_TAIL:
         if (byte == BRIDGE_TAIL) {
-          // printf("Bridge protocol OK! (cmd: 0x%02X, size: %d)\n", cmd.cmd, cmd.payload_size);
+          //printf("Bridge protocol OK! (cmd: 0x%02X, size: %d)\n", cmd.cmd, cmd.payload_size);
           if(do_cmd_function) {
             do_cmd_function(&cmd);
           }
