@@ -7,6 +7,7 @@ ili9488_40 Lcd = ili9488_40(PIN_DP_MOSI, PIN_DP_SCK, PIN_DP_CS, PIN_DP_DC, PIN_D
 xpt2046 Touch = xpt2046(spi0, PIN_TOUCH_MOSI, PIN_TOUCH_SCK, PIN_TOUCH_MISO, PIN_TOUCH_CS, PIN_TOUCH_IRQ);
 
 // middleware lib init
+bridgeProtocol Bridge = bridgeProtocol();
 ledControl LedCtrl = ledControl(&Led);
 gamepad Gamepad = gamepad();
 audioSystem Audio = audioSystem();
@@ -30,7 +31,7 @@ time_ms_t touch_timer;
 int main() { // uses core 0 to sub core
   // uartLog_init(uart0, 0, 1, 115200);
   uart_bridge_init(uart0, PIN_BRIDGE_TX, PIN_BRIDGE_RX, 921600);
-  set_bridge_do_cmd(bridge_do_cmd);
+  Bridge.set_bridge_do_cmd(bridge_do_cmd);
   last_bridge_cmd_time = 0;
   LedCtrl.init();
 
@@ -92,8 +93,8 @@ int main() { // uses core 0 to sub core
     uint8_t temp_payload[PAYLOAD_MAX_SIZE];
     int payload_size = 0;
 
-    bridge_handle();
-    bridge_protocol_execute_cmd();
+    Bridge.bridge_handle();
+    Bridge.bridge_protocol_execute_cmd();
 
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
@@ -108,16 +109,16 @@ int main() { // uses core 0 to sub core
       Audio.update();
       payload_size = Audio.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        msg = bridge_msg_create(CMD_AUDIO_PCM_DATA, payload_size, temp_payload);
-        bridge_msg_tx_queue_push(msg);
+        msg = Bridge.bridge_msg_create(CMD_AUDIO_PCM_DATA, payload_size, temp_payload);
+        Bridge.bridge_msg_tx_queue_push(msg);
       }
     }
     if(system_time_elapsed_ms(now_time, vibration_timer) > 10) {
       vibration_timer = now_time;
       payload_size = Vibration.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        msg = bridge_msg_create(CMD_VIBRATION_DATA, payload_size, temp_payload);
-        bridge_msg_tx_queue_push(msg);
+        msg = Bridge.bridge_msg_create(CMD_VIBRATION_DATA, payload_size, temp_payload);
+        Bridge.bridge_msg_tx_queue_push(msg);
       }
     }
     if(system_time_elapsed_ms(now_time, touch_timer) > 10) {

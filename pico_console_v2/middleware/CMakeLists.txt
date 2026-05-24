@@ -1,5 +1,6 @@
 message(STATUS "building middlewares...")
 
+add_subdirectory(bridge_protocol)
 add_subdirectory(gamepad)
 add_subdirectory(imu)
 add_subdirectory(ir_communication)
@@ -15,6 +16,7 @@ add_library(middleware INTERFACE)
 
 target_link_libraries(middleware INTERFACE
   driver
+  bridge_protocol
   gamepad
   imu
 #  ir_communication

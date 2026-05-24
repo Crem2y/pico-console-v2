@@ -22,6 +22,7 @@
 #include "mpu6050.hpp"
 
 // middlewares
+#include "bridge_protocol.hpp"
 #include "audio_system.hpp"
 #include "gamepad.hpp"
 #include "temperature.hpp"

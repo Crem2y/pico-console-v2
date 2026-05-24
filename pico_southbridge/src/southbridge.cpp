@@ -11,6 +11,7 @@ mpu6050 Mpu = mpu6050(i2c1, PIN_I2C_SDA, PIN_I2C_SCL, PIN_IMU_INT);
 tempNTC TempSensor = tempNTC(PIN_VIN);
 
 // middleware lib init
+bridgeProtocol Bridge = bridgeProtocol();
 gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, &Joy2);
 audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
@@ -31,7 +32,7 @@ int main() {
 //  uartLog_init(uart0, 0, 1, 115200);
   stdio_init_all();
   uart_bridge_init(uart1, PIN_BRIDGE_TX, PIN_BRIDGE_RX, 921600);
-  set_bridge_do_cmd(bridge_do_cmd);
+  Bridge.set_bridge_do_cmd(bridge_do_cmd);
 
   audio_init(PIN_I2S_DATA, PIN_I2S_SCK);
   Audio.init();
@@ -64,16 +65,16 @@ int main() {
     uint8_t temp_payload[PAYLOAD_MAX_SIZE];
     int payload_size = 0;
 
-    bridge_handle();
-    bridge_protocol_execute_cmd();
+    Bridge.bridge_handle();
+    Bridge.bridge_protocol_execute_cmd();
 
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
       Gamepad.update();
       payload_size = Gamepad.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        msg = bridge_msg_create(CMD_GAMEPAD_DATA, payload_size, temp_payload);
-        bridge_msg_tx_queue_push(msg);
+        msg = Bridge.bridge_msg_create(CMD_GAMEPAD_DATA, payload_size, temp_payload);
+        Bridge.bridge_msg_tx_queue_push(msg);
       }
     }
     if(system_time_elapsed_ms(now_time, temperature_timer) > 1000) {
@@ -81,8 +82,8 @@ int main() {
       Temperature.update();
       payload_size = Temperature.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        msg = bridge_msg_create(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
-        bridge_msg_tx_queue_push(msg);
+        msg = Bridge.bridge_msg_create(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
+        Bridge.bridge_msg_tx_queue_push(msg);
       }
 
       printf("voltage : % 3.1fV\n", TempSensor.read()); //test
@@ -93,8 +94,8 @@ int main() {
       // printf("Accel: X=%6d Y=%6d Z=%6d | Gyro: X=%6d Y=%6d Z=%6d | ", Mpu.accel_raw.x, Mpu.accel_raw.y, Mpu.accel_raw.z, Mpu.gyro_raw.x, Mpu.gyro_raw.y, Mpu.gyro_raw.z);
       payload_size = Imu.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        msg = bridge_msg_create(CMD_IMU_DATA, payload_size, temp_payload);
-        bridge_msg_tx_queue_push(msg);
+        msg = Bridge.bridge_msg_create(CMD_IMU_DATA, payload_size, temp_payload);
+        Bridge.bridge_msg_tx_queue_push(msg);
       }
     }
     if(system_time_elapsed_ms(now_time, battery_timer) > 1000) {

@@ -18,6 +18,7 @@
 #include "xpt2046.hpp"
 
 // middlewares
+#include "bridge_protocol.hpp"
 #include "gamepad.hpp"
 #include "audio_system.hpp"
 #include "led_control.hpp"
