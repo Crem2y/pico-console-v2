@@ -11,6 +11,7 @@ add_subdirectory(mpu6050)
 add_subdirectory(ir_remote)
 add_subdirectory(system_time)
 add_subdirectory(temp_builtin)
+add_subdirectory(temp_ntc)
 add_subdirectory(vibration_lra)
 
 add_library(driver INTERFACE)
@@ -27,6 +28,7 @@ target_link_libraries(driver INTERFACE
   ir_remote
   system_time
   temp_builtin
+  temp_ntc
   vibration_lra
 )
 

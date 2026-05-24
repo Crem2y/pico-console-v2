@@ -16,6 +16,7 @@
 // #include "ir_remote.hpp"
 #include "system_time.h"
 #include "temp_builtin.h"
+#include "temp_ntc.hpp"
 #include "vibration_lra.hpp"
 #include "bq25619.hpp"
 #include "mpu6050.hpp"

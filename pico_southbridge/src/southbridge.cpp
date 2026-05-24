@@ -8,6 +8,7 @@ joystick Joy2 = joystick(PIN_JOY2_X, PIN_JOY2_Y, true,  true,  PIN_JOY2_BTN);
 vibrationLRA Lra = vibrationLRA(PIN_LRA_L, PIN_LRA_R);
 bq25619 Charger = bq25619(i2c1, PIN_I2C_SDA, PIN_I2C_SCL, PIN_BAT_INT);
 mpu6050 Mpu = mpu6050(i2c1, PIN_I2C_SDA, PIN_I2C_SCL, PIN_IMU_INT);
+tempNTC TempSensor = tempNTC(PIN_VIN);
 
 // middleware lib init
 gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, &Joy2);
@@ -81,6 +82,8 @@ int main() {
         response_cmd = bridge_protocol_create(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
         bridge_cmd_queue_push(response_cmd);
       }
+
+      printf("voltage : % 3.1fV\n", TempSensor.read()); //test
     }
     if(system_time_elapsed_ms(now_time, imu_timer) > 100) { //placeholder
       imu_timer = now_time;
