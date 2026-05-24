@@ -52,7 +52,8 @@ void vibrationLRA::init(void) {
     lra_pwm_ch[i] = pwm_gpio_to_channel(lra_pin[i]);
 
     gpio_set_function(lra_pin[i], GPIO_FUNC_PWM);
-    float div = SYS_CLK_MHZ / ((float)LRA_PWM_FREQ_HZ * (LRA_PWM_TOP + 1));
+    const uint32_t clk_hz = SYS_CLK_KHZ * 1000;
+    const float div = (float)clk_hz / ((float)LRA_PWM_FREQ_HZ * (LRA_PWM_TOP + 1));
 
     pwm_set_chan_level(slice_num[i], lra_pwm_ch[i], 0);
     pwm_set_clkdiv(slice_num[i], div);

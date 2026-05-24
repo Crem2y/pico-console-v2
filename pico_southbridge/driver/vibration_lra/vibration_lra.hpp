@@ -9,7 +9,7 @@
 #define LRA_PWM_MAX 255
 #define LRA_PWM_MIN 0
 #define LRA_NUM 2
-#define LRA_FREQ_MAX 1000
+#define LRA_FREQ_MAX 4000
 
 class vibrationLRA {
   public:
