@@ -24,6 +24,7 @@
 #include "temperature.hpp"
 #include "touchscreen.hpp"
 #include "vibration.hpp"
+#include "imu.hpp"
 
 enum menu_main {
   MAIN_BTN_TEST,
@@ -36,6 +37,7 @@ enum menu_main {
   MAIN_BAT_TEST,
   MAIN_TEMP_TEST,
   MAIN_IR_TEST,
+  MAIN_IMU_TEST,
   MAIN_SD_TEST,
 };
 
@@ -49,6 +51,7 @@ void menu_vibration_test();
 void menu_bat_test();
 void menu_temp_test();
 void menu_ir_test();
+void menu_imu_test();
 void menu_sd_test();
 
 

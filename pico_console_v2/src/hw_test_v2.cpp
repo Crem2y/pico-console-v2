@@ -13,6 +13,7 @@ audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
 vibration Vibration = vibration();
 touchscreen Touchscreen = touchscreen(&Touch);
+imu Imu = imu();
 
 void core1_entry();
 void bridge_do_cmd(bridge_protocol_t* cmd);
@@ -54,7 +55,7 @@ int main() { // uses core 0 to sub core
   LOG_PRINTF("LED ok\n");
   Lcd.begin();
   Lcd.fillScreen(LCD_BLACK);
-  Lcd.set_bright(100);
+  Lcd.set_bright(250);
   Lcd.setTextColor(LCD_WHITE, LCD_BLACK);
   Lcd.setTextSize(1);
   LOG_PRINTF("LCD ok\n");
@@ -231,6 +232,8 @@ main_menu_loop:
     Lcd.setCursor(16,144);
     Lcd.print_5x8("IR LED test");
     Lcd.setCursor(16,160);
+    Lcd.print_5x8("IMU test");
+    Lcd.setCursor(16,176);
     Lcd.print_5x8("SD card test");
 
     Lcd.setTextSize(1);
@@ -303,6 +306,9 @@ main_menu_loop:
           menu_ir_test();
           break;
         */
+        case MAIN_IMU_TEST:
+          menu_imu_test();
+          break;
         case MAIN_SD_TEST:
           menu_sd_test();
           break;
@@ -973,6 +979,44 @@ void menu_ir_test(void) {
   }
 }
 */
+void menu_imu_test(void) {
+  Lcd.setTextSize(1);
+  Lcd.setCursor(0,320-8);
+  Lcd.print_5x8("press SELECT & START to exit menu");
+  Lcd.setTextSize(2);
+  Lcd.setCursor(0,0);
+  Lcd.print_5x8("IMU test");
+
+  while(1) {
+    sleep_ms(10);
+    char string_buf[32];
+    //test
+    sprintf(string_buf, "accel x: % 6d", (int16_t)Imu.accel_raw[0]);
+    Lcd.setCursor(0,16);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "accel y: % 6d", (int16_t)Imu.accel_raw[1]);
+    Lcd.setCursor(0,32);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "accel z: % 6d", (int16_t)Imu.accel_raw[2]);
+    Lcd.setCursor(0,48);
+    Lcd.print_5x8(string_buf);
+
+    sprintf(string_buf, "gyro x: % 6d", (int16_t)Imu.gyro_raw[0]);
+    Lcd.setCursor(0,64);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "gyro y: % 6d", (int16_t)Imu.gyro_raw[1]);
+    Lcd.setCursor(0,80);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "gyro z: % 6d", (int16_t)Imu.gyro_raw[2]);
+    Lcd.setCursor(0,96);
+    Lcd.print_5x8(string_buf);
+
+    if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
+      return;
+    }
+  }
+}
+
 void menu_sd_test(void) {
   Lcd.setTextSize(1);
   Lcd.setCursor(0,320-8);
@@ -1014,6 +1058,9 @@ void bridge_do_cmd(bridge_protocol_t* cmd) {
     break;
   case CMD_GAMEPAD_DATA:
     Gamepad.update_from_bridge(cmd->payload, cmd->payload_size);
+    break;
+  case CMD_IMU_DATA:
+    Imu.update_from_bridge(cmd->payload, cmd->payload_size);
     break;
   default:
     break;

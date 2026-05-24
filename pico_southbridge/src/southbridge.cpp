@@ -86,7 +86,7 @@ int main() {
 
       printf("voltage : % 3.1fV\n", TempSensor.read()); //test
     }
-    if(system_time_elapsed_ms(now_time, imu_timer) > 100) { //placeholder
+    if(system_time_elapsed_ms(now_time, imu_timer) > 10) {
       imu_timer = now_time;
       Imu.update();
       // printf("Accel: X=%6d Y=%6d Z=%6d | Gyro: X=%6d Y=%6d Z=%6d | ", Mpu.accel_raw.x, Mpu.accel_raw.y, Mpu.accel_raw.z, Mpu.gyro_raw.x, Mpu.gyro_raw.y, Mpu.gyro_raw.z);
