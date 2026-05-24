@@ -63,6 +63,7 @@ int main() { // uses core 0 to sub core
   Lcd.print_5x8("Touch init...");
   Touchscreen.init();
   Touchscreen.set_screen_size(480, 320);
+  Touchscreen.set_calibration(200, 3800, 200, 3800); //placeholder
   Touchscreen.set_rotation(0);
   LOG_PRINTF("Touch ok\n");
   Lcd.setCursor(0,0);
@@ -121,7 +122,7 @@ int main() { // uses core 0 to sub core
     if(system_time_elapsed_ms(now_time, touch_timer) > 10) {
       touch_timer = now_time;
       Touchscreen.update();
-      // LOG_PRINTF("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
+      //LOG_PRINTF("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
     }
     //Bat.get_level();
     LedCtrl.update();
@@ -760,16 +761,28 @@ void menu_touch_test(void) {
   Lcd.setCursor(0,16);
   Lcd.print_5x8(string_buf);
 
+  int16_t x, y;
+  int16_t prev_x = -1, prev_y = -1;
+
   while(1) {
     sleep_ms(10);
 
     if(Touchscreen.is_touched()) {
-      uint16_t x = Touchscreen.touch_data.x;
-      uint16_t y = Touchscreen.touch_data.y;
+      int16_t x = Touchscreen.touch_data.x;
+      int16_t y = Touchscreen.touch_data.y;
       sprintf(string_buf, "x: % 4d, y: % 4d", x, y);
       Lcd.setCursor(0,16);
       Lcd.print_5x8(string_buf);
-      Lcd.fillCircle(x, y, 5, LCD_WHITE);
+      if(prev_x != -1 && prev_y != -1) {
+        Lcd.drawLine(prev_x, prev_y, x, y, LCD_WHITE);
+      } else {
+        Lcd.fillCircle(x, y, 1, LCD_WHITE);
+      }
+      prev_x = x;
+      prev_y = y;
+    } else {
+      prev_x = -1;
+      prev_y = -1;
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
