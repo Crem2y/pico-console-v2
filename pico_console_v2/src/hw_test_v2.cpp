@@ -679,21 +679,54 @@ void menu_led_test(void) {
   Lcd.setCursor(0,0);
   Lcd.print_5x8("LED test");
 
+  int now_mode = LED_OFF;
+  const char* led_mode_string[] = {
+    "LED_OFF             ",
+    "LED_ON              ",
+    "LED_BLINK_ONCE      ",
+    "LED_BLINK_REPEAT    ",
+    "LED_BRIGHTER        ",
+    "LED_DARKER          ",
+    "LED_BREATHING_ONCE  ",
+    "LED_BREATHING_REPEAT",
+  };
+
   LedCtrl.set_brightness(LED_CONTROL_1, 255);
-  LedCtrl.set_breathing_step(LED_CONTROL_1, 5);
-  LedCtrl.set_mode(LED_CONTROL_1, LED_BREATHING_REPEAT);
   LedCtrl.set_brightness(LED_CONTROL_2, 255);
-  LedCtrl.set_breathing_step(LED_CONTROL_2, 5);
-  LedCtrl.set_mode(LED_CONTROL_2, LED_BREATHING_REPEAT);
   LedCtrl.set_brightness(LED_CONTROL_3, 255);
-  LedCtrl.set_breathing_step(LED_CONTROL_3, 5);
-  LedCtrl.set_mode(LED_CONTROL_3, LED_BREATHING_REPEAT);
   LedCtrl.set_brightness(LED_CONTROL_4, 255);
+  LedCtrl.set_breathing_step(LED_CONTROL_1, 5);
+  LedCtrl.set_breathing_step(LED_CONTROL_2, 5);
+  LedCtrl.set_breathing_step(LED_CONTROL_3, 5);
   LedCtrl.set_breathing_step(LED_CONTROL_4, 5);
-  LedCtrl.set_mode(LED_CONTROL_4, LED_BREATHING_REPEAT);
+  LedCtrl.set_blink_interval(LED_CONTROL_1, 500);
+  LedCtrl.set_blink_interval(LED_CONTROL_2, 500);
+  LedCtrl.set_blink_interval(LED_CONTROL_3, 500);
+  LedCtrl.set_blink_interval(LED_CONTROL_4, 500);
+
+  LedCtrl.set_mode(LED_CONTROL_1, (enum led_ctrl_mode)now_mode);
+  LedCtrl.set_mode(LED_CONTROL_2, (enum led_ctrl_mode)now_mode);
+  LedCtrl.set_mode(LED_CONTROL_3, (enum led_ctrl_mode)now_mode);
+  LedCtrl.set_mode(LED_CONTROL_4, (enum led_ctrl_mode)now_mode);
 
   while(1) {
     sleep_ms(100);
+
+    char string_buf[32];
+
+    if(Gamepad.get_btn_released_duration(BTN_START) && Gamepad.get_btn_released_duration(BTN_START) < 100) {
+      now_mode++;
+      if(now_mode > LED_BREATHING_REPEAT) now_mode = (int)LED_OFF;
+
+      LedCtrl.set_mode(LED_CONTROL_1, (enum led_ctrl_mode)now_mode);
+      LedCtrl.set_mode(LED_CONTROL_2, (enum led_ctrl_mode)now_mode);
+      LedCtrl.set_mode(LED_CONTROL_3, (enum led_ctrl_mode)now_mode);
+      LedCtrl.set_mode(LED_CONTROL_4, (enum led_ctrl_mode)now_mode);
+    }
+
+    sprintf(string_buf, "LED mode : %s", led_mode_string[now_mode]);
+    Lcd.setCursor(0,16);
+    Lcd.print_5x8(string_buf);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       LedCtrl.set_mode(LED_CONTROL_1, LED_OFF);

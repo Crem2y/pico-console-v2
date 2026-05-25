@@ -4,7 +4,9 @@
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
 
-#define LED_PWM_MAX 1000
+#define LED_PWM_FREQ_HZ 65000
+#define LED_PWM_TOP 255
+#define LED_PWM_MAX 255
 #define LED_PWM_MIN 0
 #define LED_NUM 4
 
@@ -14,7 +16,6 @@ class ledStatus {
 
     void init(void);
     void set_bright(uint32_t num, uint32_t bright);
-    void set_bright_float(uint32_t num, float bright);
     void set_bright_all(uint32_t* bright_arr);
     uint32_t get_bright(uint32_t num);
 

@@ -13,32 +13,24 @@ void ledStatus::init(void) {
     led_pwm_ch[i] = pwm_gpio_to_channel(led_pin[i]);
 
     gpio_set_function(led_pin[i], GPIO_FUNC_PWM);
+    const uint32_t clk_hz = SYS_CLK_KHZ * 1000;
+    const float div = (float)clk_hz / ((float)LED_PWM_FREQ_HZ * (LED_PWM_TOP + 1));
 
-    pwm_set_chan_level(slice_num[i], led_pwm_ch[i], 1000);
-    pwm_set_clkdiv(slice_num[i], SYS_CLK_KHZ * 1000/LED_PWM_MAX);
-    pwm_set_wrap(slice_num[i], 1000);
+    pwm_set_chan_level(slice_num[i], led_pwm_ch[i], 0);
+    pwm_set_clkdiv(slice_num[i], div);
+    pwm_set_wrap(slice_num[i], LED_PWM_TOP);
     pwm_set_enabled(slice_num[i], true);
   }
 }
 
 void ledStatus::set_bright(uint32_t num, uint32_t bright) {
-  led_bright[num-1] = LED_PWM_MAX - bright;
-  pwm_set_chan_level(slice_num[num-1], led_pwm_ch[num-1], 1000-bright);
-}
-
-void ledStatus::set_bright_float(uint32_t num, float bright) {
-  if (bright < 0) return;
-
-  uint32_t bright_int;
-  bright_int = (uint32_t)((1 - bright) * LED_PWM_MAX);
-
-  led_bright[num-1] = bright_int;
-  pwm_set_chan_level(slice_num[num-1], led_pwm_ch[num-1], bright_int);
+  led_bright[num-1] = bright;
+  pwm_set_chan_level(slice_num[num-1], led_pwm_ch[num-1], bright);
 }
 
 void ledStatus::set_bright_all(uint32_t* bright_arr) {
   for(int i=0; i<LED_NUM; i++) {
-    led_bright[i] = LED_PWM_MAX - bright_arr[i];
+    led_bright[i] = bright_arr[i];
     pwm_set_chan_level(slice_num[i], led_pwm_ch[i], bright_arr[i]);
   }
 }
