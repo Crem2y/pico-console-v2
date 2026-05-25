@@ -2,11 +2,17 @@
 
 enum bridge_cmd {
   CMD_NONE              = 0x00,
+  CMD_HW_INFO_REQ       = 0x01,
+  CMD_HW_INFO_RES       = 0x02, // [version_L][version_H][support_flag1][support_flag2] ...
+  CMD_PING              = 0x0F,
 
   CMD_TEMPERATURE_DATA  = 0x11, // [temp1_L][temp1_H][temp2_L][temp2_H]...
-  CMD_POWER_STATUS      = 0x12,
+  CMD_POWER_STATUS      = 0x12, // [mv1_L][mv1_H][mv2_L][mv2_H] ...
+  CMD_BATTERY_STATUS    = 0x13, // [flag1][flag2] ...
 
-  CMD_GAMEPAD_DATA      = 0x21, // [btn1][btn2][joyLx][joyLy][joyRx][joyRy]
+  CMD_GAMEPAD_DATA      = 0x21, // [btn_l][btn_m][btn_h][joyLx][joyLy][joyRx][joyRy]
+  CMD_GAMEPAD_RAW_DATA  = 0x22, // [channel][data_L][data_H][channel][data_L][data_H] ...
+  CMD_GAMEPAD_CALI_DATA = 0x23, // [channel][data_L][data_H][channel][data_L][data_H] ...
 
   CMD_IR_RX_ENABLE      = 0x30, // [format]
   CMD_IR_RX_DATA        = 0x31, // [format][data1][data2]...
@@ -17,10 +23,10 @@ enum bridge_cmd {
   CMD_IR_TX_DISABLE     = 0x4F,
 
   CMD_IMU_ENABLE        = 0x50, // [flags]
-  CMD_IMU_DATA          = 0x51, // [ax][ay][az][gx][gy][gz]
-  CMD_IMU_ACCEL_DATA    = 0x52,
-  CMD_IMU_GYRO_DATA     = 0x53,
-  CMD_IMU_MAG_DATA      = 0x54,
+  CMD_IMU_DATA          = 0x51,
+  CMD_IMU_ACCEL_DATA    = 0x52, // [ax][ay][az]
+  CMD_IMU_GYRO_DATA     = 0x53, // [gx][gy][gz]
+  CMD_IMU_MAG_DATA      = 0x54, // [mx][my][mz]
   CMD_IMU_DISABLE       = 0x5F,
 
   CMD_AUDIO_ENABLE      = 0x60,

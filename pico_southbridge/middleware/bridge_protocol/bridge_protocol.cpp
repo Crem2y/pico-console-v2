@@ -10,6 +10,12 @@ void bridgeProtocol::init(void) {
   parse_seq = SEQ_WAIT_HEADER;
   parse_payload_index = 0;
   parse_checksum = 0;
+
+  tx_msg_queue.head = 0;
+  tx_msg_queue.tail = 0;
+
+  rx_msg_queue.head = 0;
+  rx_msg_queue.tail = 0;
 }
 
 int bridgeProtocol::bridge_msg_push(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload) {
@@ -34,40 +40,40 @@ bridge_msg_t bridgeProtocol::bridge_msg_create(enum bridge_cmd cmd, size_t paylo
 }
 
 int bridgeProtocol::bridge_msg_tx_queue_push(bridge_msg_t msg) {
-  size_t next_tail = (bridge_tx_queue_tail + 1) % BRIDGE_MSG_QUEUE_SIZE;
-  if (next_tail == bridge_tx_queue_head) {
+  size_t next_tail = (tx_msg_queue.tail + 1) % BRIDGE_MSG_QUEUE_SIZE;
+  if (next_tail == tx_msg_queue.head) {
     return -1; // Queue is full
   }
-  bridge_tx_queue[bridge_tx_queue_tail] = msg;
-  bridge_tx_queue_tail = next_tail;
+  tx_msg_queue.queue[tx_msg_queue.tail] = msg;
+  tx_msg_queue.tail = next_tail;
   return 1; // Success
 }
 
 int bridgeProtocol::bridge_msg_tx_queue_pop(bridge_msg_t* msg) {
-  if (bridge_tx_queue_head == bridge_tx_queue_tail) {
+  if (tx_msg_queue.head == tx_msg_queue.tail) {
     return -1; // Queue is empty
   }
-  *msg = bridge_tx_queue[bridge_tx_queue_head];
-  bridge_tx_queue_head = (bridge_tx_queue_head + 1) % BRIDGE_MSG_QUEUE_SIZE;
+  *msg = tx_msg_queue.queue[tx_msg_queue.head];
+  tx_msg_queue.head = (tx_msg_queue.head + 1) % BRIDGE_MSG_QUEUE_SIZE;
   return 1; // Success
 }
 
 int bridgeProtocol::bridge_msg_rx_queue_push(bridge_msg_t msg) {
-  size_t next_tail = (bridge_rx_queue_tail + 1) % BRIDGE_MSG_QUEUE_SIZE;
-  if (next_tail == bridge_rx_queue_head) {
+  size_t next_tail = (rx_msg_queue.tail + 1) % BRIDGE_MSG_QUEUE_SIZE;
+  if (next_tail == rx_msg_queue.head) {
     return -1; // Queue is full
   }
-  bridge_rx_queue[bridge_rx_queue_tail] = msg;
-  bridge_rx_queue_tail = next_tail;
+  rx_msg_queue.queue[rx_msg_queue.tail] = msg;
+  rx_msg_queue.tail = next_tail;
   return 1; // Success
 }
 
 int bridgeProtocol::bridge_msg_rx_queue_pop(bridge_msg_t* msg) {
-  if (bridge_rx_queue_head == bridge_rx_queue_tail) {
+  if (rx_msg_queue.head == rx_msg_queue.tail) {
     return -1; // Queue is empty
   }
-  *msg = bridge_rx_queue[bridge_rx_queue_head];
-  bridge_rx_queue_head = (bridge_rx_queue_head + 1) % BRIDGE_MSG_QUEUE_SIZE;
+  *msg = rx_msg_queue.queue[rx_msg_queue.head];
+  rx_msg_queue.head = (rx_msg_queue.head + 1) % BRIDGE_MSG_QUEUE_SIZE;
   return 1; // Success
 }
 

@@ -15,6 +15,12 @@ typedef struct _bridge_msg_t {
   uint8_t payload[PAYLOAD_MAX_SIZE];  // max payload size is 16 bytes
 } bridge_msg_t;
 
+typedef struct _bridge_msg_queue_t {
+  bridge_msg_t queue[BRIDGE_MSG_QUEUE_SIZE];
+  size_t head;
+  size_t tail;
+} bridge_msg_queue_t;
+
 typedef struct _bridge_protocol_t {
   uint8_t header;                     // 0xAA
   uint8_t cmd;                        // command code
@@ -52,13 +58,8 @@ class bridgeProtocol {
     size_t parse_payload_index;
     uint8_t parse_checksum;
 
-    bridge_msg_t bridge_tx_queue[BRIDGE_MSG_QUEUE_SIZE];
-    size_t bridge_tx_queue_head = 0;
-    size_t bridge_tx_queue_tail = 0;
-
-    bridge_msg_t bridge_rx_queue[BRIDGE_MSG_QUEUE_SIZE];
-    size_t bridge_rx_queue_head = 0;
-    size_t bridge_rx_queue_tail = 0;
+    bridge_msg_queue_t tx_msg_queue;
+    bridge_msg_queue_t rx_msg_queue;
 
     void bridge_protocol_parse(const uint8_t* data, size_t data_size);
 
