@@ -1071,8 +1071,11 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   case CMD_GAMEPAD_DATA:
     Gamepad.update_from_bridge(msg->payload, msg->payload_size);
     break;
-  case CMD_IMU_DATA:
-    Imu.update_from_bridge(msg->payload, msg->payload_size);
+  case CMD_IMU_ACCEL_DATA:
+    Imu.update_accel(msg->payload, msg->payload_size);
+    break;
+  case CMD_IMU_GYRO_DATA:
+    Imu.update_gyro(msg->payload, msg->payload_size);
     break;
   default:
     break;

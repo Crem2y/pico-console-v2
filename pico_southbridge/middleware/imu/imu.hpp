@@ -7,7 +7,6 @@ class imu {
     imu(mpu6050* mpu);
     void init(void);
     void update(void);
-    int make_bridge_payload(uint8_t* payload_buf, uint8_t buf_size);
 
   private:
     mpu6050* Mpu6050;

@@ -88,11 +88,6 @@ int main() {
     if(system_time_elapsed_ms(now_time, imu_timer) > 10) {
       imu_timer = now_time;
       Imu.update();
-      // printf("Accel: X=%6d Y=%6d Z=%6d | Gyro: X=%6d Y=%6d Z=%6d | ", Mpu.accel_raw.x, Mpu.accel_raw.y, Mpu.accel_raw.z, Mpu.gyro_raw.x, Mpu.gyro_raw.y, Mpu.gyro_raw.z);
-      payload_size = Imu.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
-      if(payload_size > 0) {
-        Bridge.bridge_msg_push(CMD_IMU_DATA, payload_size, temp_payload);
-      }
     }
     if(system_time_elapsed_ms(now_time, battery_timer) > 1000) {
       battery_timer = now_time;

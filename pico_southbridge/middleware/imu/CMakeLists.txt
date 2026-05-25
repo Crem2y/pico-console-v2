@@ -11,6 +11,7 @@ target_include_directories(${OUTPUT_STATIC_LIB} PUBLIC
 )
 target_link_libraries(${OUTPUT_STATIC_LIB}
   mpu6050
+  bridge_protocol
 )
 
 message(STATUS "building lib \"${LIB_NAME}\" completed!")
