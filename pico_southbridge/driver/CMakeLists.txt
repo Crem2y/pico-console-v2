@@ -8,7 +8,8 @@ add_subdirectory(joystick)
 add_subdirectory(li_battery)
 add_subdirectory(bq25619)
 add_subdirectory(mpu6050)
-add_subdirectory(ir_remote)
+add_subdirectory(ir_rx)
+#add_subdirectory(ir_tx)
 add_subdirectory(system_time)
 add_subdirectory(temp_builtin)
 add_subdirectory(temp_ntc)
@@ -25,7 +26,8 @@ target_link_libraries(driver INTERFACE
   li_battery
   bq25619
   mpu6050
-  ir_remote
+  ir_rx
+#  ir_tx
   system_time
   temp_builtin
   temp_ntc

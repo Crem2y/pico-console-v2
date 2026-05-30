@@ -13,7 +13,7 @@
 #include "btn_matrix.hpp"
 #include "joystick.hpp"
 // #include "li_battery.hpp"
-// #include "ir_remote.hpp"
+#include "ir_rx.h"
 #include "system_time.h"
 #include "temp_builtin.h"
 #include "temp_ntc.hpp"

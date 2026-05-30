@@ -1,0 +1,40 @@
+.program ir_pulse_capture
+
+; duration_us = 0xffffffff - raw
+; PIO clk = 2MHz
+;  stable loop 2 instructions = 1us.
+
+.wrap_target
+    jmp pin, start_high
+
+start_low:
+    mov x, ~null
+low_loop:
+    jmp pin, low_done
+    jmp x--, low_loop
+    mov isr, x
+    push block
+    jmp start_low
+
+low_done:
+    mov isr, x
+    push block
+
+start_high:
+    mov x, ~null
+high_loop:
+    jmp pin, high_still
+    jmp high_done
+
+high_still:
+    jmp x--, high_loop
+    mov isr, x
+    push block
+    jmp start_high
+
+high_done:
+    mov isr, x
+    push block
+    jmp start_low
+
+.wrap

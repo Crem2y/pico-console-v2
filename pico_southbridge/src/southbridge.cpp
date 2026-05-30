@@ -18,6 +18,8 @@ temperature Temperature = temperature();
 vibration Vibration = vibration(&Lra);
 imu Imu = imu(&Mpu);
 
+ir_pulse_capture_t ir_cap;
+
 void core1_entry(void);
 void bridge_do_cmd(const bridge_msg_t* msg);
 
@@ -25,6 +27,7 @@ time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
 time_ms_t imu_timer;
 time_ms_t battery_timer;
+time_ms_t ir_timer;
 
 //////// function ////////
 
@@ -46,6 +49,9 @@ int main() {
   Vibration.enable(true);
   Charger.init();
   Mpu.init();
+
+  ir_pulse_capture_init(&ir_cap, pio1, PIN_IR_RX); //placeholder for pio
+  ir_pulse_capture_start(&ir_cap);
 
   sleep_ms(100);
 
@@ -83,7 +89,7 @@ int main() {
         Bridge.bridge_msg_push(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
       }
 
-      printf("voltage : % 3.1fV\n", TempSensor.read()); //test
+      //printf("voltage : % 3.1fV\n", TempSensor.read()); //test
     }
     if(system_time_elapsed_ms(now_time, imu_timer) > 10) {
       imu_timer = now_time;
@@ -92,7 +98,28 @@ int main() {
     if(system_time_elapsed_ms(now_time, battery_timer) > 1000) {
       battery_timer = now_time;
       Charger.update();
-      printf("Charging: %s(0x%02X) | Fault: 0x%02X\n", Charger.charging ? "Yes" : "No", Charger.chrg_stat, Charger.fault); //test
+      //printf("Charging: %s(0x%02X) | Fault: 0x%02X\n", Charger.charging ? "Yes" : "No", Charger.chrg_stat, Charger.fault); //test
+    }
+    if(system_time_elapsed_ms(now_time, ir_timer) > 1) {
+      ir_timer = now_time;
+      static time_ms_t start_time;
+      static ir_pulse_t p[256]; //test
+      static int pulse_count = 0;
+      if (pulse_count == 0) {
+        start_time = now_time;
+      }
+      while(ir_pulse_capture_available(&ir_cap)) {
+        if(pulse_count < 256 && ir_pulse_capture_read(&ir_cap, &p[pulse_count])) {
+          pulse_count++;
+        }
+      }
+      if(system_time_elapsed_ms(now_time, start_time) > 1000 && pulse_count > 0) {
+        printf("Captured %d IR pulses\n", pulse_count);
+        for(int i=0; i<pulse_count; i++) {
+          printf("Pulse %3d: Level=%d, Duration=%dus\n", i, p[i].level, p[i].duration_us);
+        }
+        pulse_count = 0;
+      }
     }
   }
 
