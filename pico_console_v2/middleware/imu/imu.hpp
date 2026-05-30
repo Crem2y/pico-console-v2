@@ -4,8 +4,8 @@
 
 class imu {
   public:
-    uint16_t accel_raw[3];
-    uint16_t gyro_raw[3];
+    int16_t accel_raw[3];
+    int16_t gyro_raw[3];
 
     imu(void);
 
