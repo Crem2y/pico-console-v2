@@ -1,4 +1,7 @@
 #include "vibration.hpp"
+#include "bridge_protocol.hpp"
+
+extern bridgeProtocol Bridge;
 
 vibration::vibration(void) {
 }
@@ -16,8 +19,16 @@ void vibration::set_vibration(enum vibration_channel channel, uint16_t freq, uin
   this->power[channel] = power;
 }
 
-int vibration::make_bridge_payload(uint8_t* payload_buf, uint max_size) {
-  if(max_size < 6) return -1; // need at least 6 bytes for 2 channels of vibration data
+void vibration::update(void) {
+  if(prev_freq[VIBRATION_L] == freq[VIBRATION_L] &&
+     prev_freq[VIBRATION_R] == freq[VIBRATION_R] &&
+     prev_power[VIBRATION_L] == power[VIBRATION_L] &&
+     prev_power[VIBRATION_R] == power[VIBRATION_R]) {
+    return;
+  }
+
+  int payload_size = 6;
+  uint8_t payload_buf[PAYLOAD_MAX_SIZE];
 
   payload_buf[0] = freq[VIBRATION_L] & 0xFF;         // low byte of channel 1 frequency
   payload_buf[1] = (freq[VIBRATION_L] >> 8) & 0xFF;  // high byte of channel 1 frequency
@@ -26,5 +37,10 @@ int vibration::make_bridge_payload(uint8_t* payload_buf, uint max_size) {
   payload_buf[4] = (freq[VIBRATION_R] >> 8) & 0xFF;  // high byte of channel 2 frequency
   payload_buf[5] = power[VIBRATION_R];               // channel 2 power
 
-  return 6; // total payload size
+  Bridge.bridge_msg_push(CMD_VIBRATION_DATA, payload_size, payload_buf);
+
+  prev_freq[VIBRATION_L] = freq[VIBRATION_L];
+  prev_freq[VIBRATION_R] = freq[VIBRATION_R];
+  prev_power[VIBRATION_L] = power[VIBRATION_L];
+  prev_power[VIBRATION_R] = power[VIBRATION_R];
 }
