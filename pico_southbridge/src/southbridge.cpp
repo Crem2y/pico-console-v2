@@ -9,6 +9,7 @@ vibrationLRA Lra = vibrationLRA(PIN_LRA_L, PIN_LRA_R);
 bq25619 Charger = bq25619(i2c1, PIN_I2C_SDA, PIN_I2C_SCL, PIN_BAT_INT);
 mpu6050 Mpu = mpu6050(i2c1, PIN_I2C_SDA, PIN_I2C_SCL, PIN_IMU_INT);
 tempNTC TempSensor = tempNTC(PIN_VIN);
+ir_pulse_capture_t ir_cap;
 
 // middleware lib init
 bridgeProtocol Bridge = bridgeProtocol();
@@ -17,8 +18,7 @@ audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
 vibration Vibration = vibration(&Lra);
 imu Imu = imu(&Mpu);
-
-ir_pulse_capture_t ir_cap;
+irLink Ir = irLink(&ir_cap);
 
 void core1_entry(void);
 void bridge_do_cmd(const bridge_msg_t* msg);
@@ -49,9 +49,9 @@ int main() {
   Vibration.enable(true);
   Charger.init();
   Mpu.init();
-
   ir_pulse_capture_init(&ir_cap, pio1, PIN_IR_RX); //placeholder for pio
   ir_pulse_capture_start(&ir_cap);
+  Ir.init();
 
   sleep_ms(100);
 
@@ -102,24 +102,7 @@ int main() {
     }
     if(system_time_elapsed_ms(now_time, ir_timer) > 1) {
       ir_timer = now_time;
-      static time_ms_t start_time;
-      static ir_pulse_t p[256]; //test
-      static int pulse_count = 0;
-      if (pulse_count == 0) {
-        start_time = now_time;
-      }
-      while(ir_pulse_capture_available(&ir_cap)) {
-        if(pulse_count < 256 && ir_pulse_capture_read(&ir_cap, &p[pulse_count])) {
-          pulse_count++;
-        }
-      }
-      if(system_time_elapsed_ms(now_time, start_time) > 1000 && pulse_count > 0) {
-        printf("Captured %d IR pulses\n", pulse_count);
-        for(int i=0; i<pulse_count; i++) {
-          printf("Pulse %3d: Level=%d, Duration=%dus\n", i, p[i].level, p[i].duration_us);
-        }
-        pulse_count = 0;
-      }
+      Ir.update();
     }
   }
 
@@ -140,6 +123,21 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   enum bridge_cmd command = (enum bridge_cmd)msg->cmd;
   switch (command)
   {
+  case CMD_IR_RX_ENABLE:
+    Ir.get_bridge_enable_rx(msg->payload, msg->payload_size);
+    break;
+  case CMD_IR_RX_DISABLE:
+    Ir.enable_rx(false);
+    break;
+  case CMD_IR_TX_ENABLE:
+    //Ir.get_bridge_enable_tx(msg->payload, msg->payload_size);
+    break;
+  case CMD_IR_TX_DATA:
+    //Ir.update_from_bridge(msg->payload, msg->payload_size);
+    break;
+  case CMD_IR_TX_DISABLE:
+    //Ir.enable_tx(false);
+    break;
   case CMD_AUDIO_ENABLE:
     // Audio.enable();
     break;

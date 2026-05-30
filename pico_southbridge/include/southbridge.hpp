@@ -28,6 +28,7 @@
 #include "temperature.hpp"
 #include "vibration.hpp"
 #include "imu.hpp"
+#include "ir_link.hpp"
 
 // pin definitions
 #define PIN_LOG_TX      0
