@@ -749,19 +749,19 @@ void menu_lcd_test(void) {
 
     switch(count) {
       case 0:
-        Lcd.fillRect(0,16,480,296,LCD_WHITE);
+        Lcd.fillRect(0,16,480,(320-24),LCD_WHITE);
         break;
       case 1:
-        Lcd.fillRect(0,16,480,296,LCD_RED);
+        Lcd.fillRect(0,16,480,(320-24),LCD_RED);
         break;
       case 2:
-        Lcd.fillRect(0,16,480,296,LCD_GREEN);
+        Lcd.fillRect(0,16,480,(320-24),LCD_GREEN);
         break;
       case 3:
-        Lcd.fillRect(0,16,480,296,LCD_BLUE);
+        Lcd.fillRect(0,16,480,(320-24),LCD_BLUE);
         break;
       case 4:
-        Lcd.fillRect(0,16,480,296,LCD_BLACK);
+        Lcd.fillRect(0,16,480,(320-24),LCD_BLACK);
         break;
     }
 
@@ -980,28 +980,48 @@ void menu_ir_test(void) {
   Lcd.setCursor(0,0);
   Lcd.print_5x8("IR comm test");
 
-  // Lcd.setCursor(0,16);
-  // Lcd.print_5x8("press START to change format");
+  Lcd.setCursor(0,16);
+  Lcd.print_5x8("press START to change format");
+
+  Ir.rx_enable(true, IR_FORMAT_MANUAL);
   
   while(1) {
     sleep_ms(100);
     char string_buf[32];
 
-    sprintf(string_buf, "format: %s", Ir.get_rx_format() == IR_FORMAT_NEC ? "NEC" : "RAW");
-    Lcd.setCursor(0,32);
+    sprintf(string_buf, "format setting: %s", Ir.get_rx_format() == IR_FORMAT_NEC ? "NEC" : "RAW");
+    Lcd.setCursor(0,16*2);
     Lcd.print_5x8(string_buf);
-    if(Ir.is_data_ready()) {
-      if(Ir.get_rx_format() == IR_FORMAT_MANUAL) {
-        sprintf(string_buf, "RAW data: %d pulses", Ir.get_raw_data_pulses());
-        Lcd.setCursor(0,48);
+    if(Ir.is_data_ready() && Ir.get_rx_format() == Ir.get_rx_data_format()) {
+      if(Ir.get_rx_data_format() == IR_FORMAT_MANUAL) {
+        sprintf(string_buf, "data: %d pulses", Ir.get_raw_data_pulses());
+        Lcd.setCursor(0,16*3);
         Lcd.print_5x8(string_buf);
-        sprintf(string_buf, "data: {%d, %d, %d, %d ...}", (uint16_t)(Ir.rx_data_buf[0] | (Ir.rx_data_buf[1] << 8)), (uint16_t)(Ir.rx_data_buf[2] | (Ir.rx_data_buf[3] << 8)), (uint16_t)(Ir.rx_data_buf[4] | (Ir.rx_data_buf[5] << 8)), (uint16_t)(Ir.rx_data_buf[6] | (Ir.rx_data_buf[7] << 8)));
-        Lcd.setCursor(0,64);
+        sprintf(string_buf, "%d, %d, %d, %d,  ", ((uint16_t*)Ir.rx_data_buf)[0], ((uint16_t*)Ir.rx_data_buf)[1], ((uint16_t*)Ir.rx_data_buf)[2], ((uint16_t*)Ir.rx_data_buf)[3]);
+        Lcd.setCursor(0,16*4);
+        Lcd.print_5x8(string_buf);
+        sprintf(string_buf, "%d, %d, %d, %d,  ", ((uint16_t*)Ir.rx_data_buf)[4], ((uint16_t*)Ir.rx_data_buf)[5], ((uint16_t*)Ir.rx_data_buf)[6], ((uint16_t*)Ir.rx_data_buf)[7]);
+        Lcd.setCursor(0,16*5);
+        Lcd.print_5x8(string_buf);
+      } else if (Ir.get_rx_data_format() == IR_FORMAT_NEC) {
+        Lcd.setCursor(0,16*3);
+        Lcd.print_5x8("data:");
+        sprintf(string_buf, "%02X %02X %02X %02X", Ir.rx_data_buf[0], Ir.rx_data_buf[1], Ir.rx_data_buf[2], Ir.rx_data_buf[3]);
+        Lcd.setCursor(0,16*4);
         Lcd.print_5x8(string_buf);
       }
     }
 
+    if(Gamepad.is_btn_pressed(BTN_START)) {
+      uint8_t temp = (uint8_t)Ir.get_rx_format();
+      temp++;
+      if(temp > IR_FORMAT_NEC) temp = IR_FORMAT_MANUAL;
+      Ir.rx_enable(true, temp);
+      Lcd.fillRect(0,16*3,480,(320-56),LCD_BLACK);
+    }
+
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
+      Ir.rx_enable(false, IR_FORMAT_MANUAL);
       return;
     }
   }

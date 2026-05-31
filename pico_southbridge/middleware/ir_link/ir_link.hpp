@@ -20,6 +20,8 @@ class irLink {
     void init(void);
     void update(void);
 
+    int parse_nec_data(void);
+
     void enable_tx(bool enable);
     void enable_rx(bool enable);
 
@@ -34,4 +36,5 @@ class irLink {
     enum ir_format current_tx_format, current_rx_format;
     uint16_t tx_timings[IR_LINK_MAX_PULSES];
     uint16_t rx_timings[IR_LINK_MAX_PULSES];
+    uint8_t rx_data[IR_LINK_MAX_DATA_SIZE];
 };

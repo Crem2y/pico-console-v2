@@ -16,7 +16,7 @@ class irLink {
     int tx_data_len;
     uint8_t rx_data_buf[IR_LINK_MAX_DATA_SIZE];
     int rx_data_len;
-    enum ir_format rx_format;
+    enum ir_format rx_format, rx_data_format;
 
     irLink(void);
 
@@ -27,6 +27,7 @@ class irLink {
 
     void rx_enable(bool enable, uint8_t format);
     enum ir_format get_rx_format(void);
+    enum ir_format get_rx_data_format(void);
     bool is_data_ready(void);
     int get_raw_data_pulses(void);
 

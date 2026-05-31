@@ -8,7 +8,8 @@ irLink::irLink(void) {
 }
 
 void irLink::init(void) {
-
+  rx_data_format = IR_FORMAT_UNKNOWN;
+  rx_format = IR_FORMAT_UNKNOWN;
 }
 
 void irLink::tx_enable(bool enable, uint8_t format) {
@@ -45,10 +46,16 @@ void irLink::rx_enable(bool enable, uint8_t format) {
   } else {
     Bridge.bridge_msg_push(CMD_IR_RX_DISABLE, payload_size, payload_buf);
   }
+
+  rx_format = (enum ir_format)format;
 }
 
 enum ir_format irLink::get_rx_format(void) {
   return rx_format;
+}
+
+enum ir_format irLink::get_rx_data_format(void) {
+  return rx_data_format;
 }
 
 bool irLink::is_data_ready(void) {
@@ -69,7 +76,7 @@ void irLink::update_from_bridge(const uint8_t* data, uint8_t len) {
   uint8_t sequence = data[1];
   if(format == IR_FORMAT_MANUAL) {
     // handle manual format data
-    rx_format = IR_FORMAT_MANUAL;
+    rx_data_format = IR_FORMAT_MANUAL;
     uint8_t sequence_length = sequence & 0x0F; // lower 4 bits for sequence length
     uint8_t sequence_index = (sequence >> 4) & 0x0F; // upper 4 bits for sequence index
     if(sequence_index == 0) {
@@ -82,7 +89,12 @@ void irLink::update_from_bridge(const uint8_t* data, uint8_t len) {
     rx_data_len += len - 2;
   } else if(format == IR_FORMAT_NEC) {
     // handle NEC format data
-    rx_format = IR_FORMAT_NEC;
+    rx_data_format = IR_FORMAT_NEC;
+    rx_data_buf[0] = data[2];
+    rx_data_buf[1] = data[3];
+    rx_data_buf[2] = data[4];
+    rx_data_buf[3] = data[5];
+    rx_data_len = 4;
   } else {
     // unknown format
   }

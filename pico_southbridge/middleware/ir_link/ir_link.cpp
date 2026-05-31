@@ -10,7 +10,7 @@ irLink::irLink(ir_pulse_capture_t* ir_cap) {
 
 void irLink::init() {
   current_tx_format = IR_FORMAT_UNKNOWN;
-  current_rx_format = IR_FORMAT_MANUAL; //IR_FORMAT_UNKNOWN; //default to manual for testing
+  current_rx_format = IR_FORMAT_UNKNOWN;
 }
 
 void irLink::update(void) {
@@ -44,9 +44,42 @@ void irLink::update(void) {
     }
     if(current_rx_format == IR_FORMAT_MANUAL) {
       set_bridge_rx_data(IR_FORMAT_MANUAL, (uint8_t*)rx_timings, valid_pulse_count * sizeof(uint16_t));
+    } else if(current_rx_format == IR_FORMAT_NEC) {
+      if(parse_nec_data()) {
+        printf("Captured nec data:\n");
+        printf("%02X %02X %02X %02X\n", rx_data[0], rx_data[1], rx_data[2], rx_data[3]);
+        set_bridge_rx_data(IR_FORMAT_NEC, (uint8_t*)rx_data, 4);
+      }
     }
     pulse_count = 0;
   }
+}
+
+int irLink::parse_nec_data(void) {
+  // check start pulse
+  if(rx_timings[0] < 8500 || rx_timings[0] > 10000) {
+    printf("Invalid start pulse\n");
+    return 0; // invalid start pulse
+  }
+  // check space pulse
+  if(rx_timings[1] < 4000 || rx_timings[1] > 5500) {
+    printf("Invalid space pulse\n");
+    return 0; // invalid space pulse
+  }
+  // parse data pulses
+  for(int i=0; i<32; i++) {
+    if(rx_timings[2 + (i*2)] < 300 || rx_timings[2 + (i*2)] > 700) {
+      printf("Invalid data pulse at index %d: %dus\n", i, rx_timings[2 + (i*2)]);
+      return 0; // invalid data pulse
+    }
+    rx_data[i / 8] <<= 1;
+    if(rx_timings[2 + (i*2)+1] > 1000) {
+      rx_data[i / 8] |= 1; // bit is 1
+    }
+    // else bit is 0, already shifted in
+  }
+
+  return 4; // valid NEC data length (4 bytes)
 }
 
 void irLink::enable_tx(bool enable) {
@@ -105,5 +138,16 @@ void irLink::set_bridge_rx_data(enum ir_format format, uint8_t* data, uint8_t le
       uint8_t payload_size = 2 + send_count * sizeof(uint16_t);
       Bridge.bridge_msg_push(CMD_IR_RX_DATA, payload_size, payload_buf);
     }
+  } else if(format == IR_FORMAT_NEC) {
+    payload_size = 6; // 1 byte format + 1 byte sequencing + 4 bytes NEC data
+    if(len < 4) {
+      return; // Not enough data
+    }
+    payload_buf[0] = (uint8_t)format;
+    payload_buf[1] = 0x00;
+    for(int i=0; i<4; i++) {
+      payload_buf[2 + i] = data[i];
+    }
+    Bridge.bridge_msg_push(CMD_IR_RX_DATA, payload_size, payload_buf);
   }
 }
