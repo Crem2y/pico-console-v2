@@ -26,6 +26,7 @@
 #include "touchscreen.hpp"
 #include "vibration.hpp"
 #include "imu.hpp"
+#include "ir_link.hpp"
 
 enum menu_main {
   MAIN_BTN_TEST,

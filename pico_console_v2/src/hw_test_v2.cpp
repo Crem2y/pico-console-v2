@@ -15,6 +15,7 @@ temperature Temperature = temperature();
 vibration Vibration = vibration();
 touchscreen Touchscreen = touchscreen(&Touch);
 imu Imu = imu();
+irLink Ir = irLink();
 
 void core1_entry();
 void bridge_do_cmd(const bridge_msg_t* packet);
@@ -227,7 +228,7 @@ main_menu_loop:
     Lcd.setCursor(16,128);
     Lcd.print_5x8("Temperature test");
     Lcd.setCursor(16,144);
-    Lcd.print_5x8("IR LED test");
+    Lcd.print_5x8("IR comm test");
     Lcd.setCursor(16,160);
     Lcd.print_5x8("IMU test");
     Lcd.setCursor(16,176);
@@ -298,11 +299,9 @@ main_menu_loop:
         case MAIN_TEMP_TEST:
           menu_temp_test();
           break;
-        /*
         case MAIN_IR_TEST:
           menu_ir_test();
           break;
-        */
         case MAIN_IMU_TEST:
           menu_imu_test();
           break;
@@ -972,55 +971,42 @@ void menu_temp_test(void) {
     }
   }
 }
-/*
+
 void menu_ir_test(void) {
   Lcd.setTextSize(1);
   Lcd.setCursor(0,320-8);
   Lcd.print_5x8("press SELECT & START to exit menu");
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
-  Lcd.print_5x8("IR LED test");
+  Lcd.print_5x8("IR comm test");
 
-  Lcd.setCursor(0,16);
-  Lcd.print_5x8("press A to turn on IR LED");
+  // Lcd.setCursor(0,16);
+  // Lcd.print_5x8("press START to change format");
   
   while(1) {
-    sleep_ms(10);
+    sleep_ms(100);
+    char string_buf[32];
 
-    if(Gamepad.is_btn_pressed(BTN_START)) {
-      Ir.send_nec_format(true, 0x00, 0xff, 0x09); // 전원
-      sleep_ms(500);
-    } else if(Gamepad.is_btn_pressed(BTN_SELECT)) {
-      Ir.send_nec_format(true, 0x00, 0xff, 0x40); // 외부입력
-      sleep_ms(500);
-    } else if(Gamepad.is_btn_pressed(BTN_A)) {
-      Ir.send_nec_format(true, 0x00, 0xff, 0x16); // 선택
-      sleep_ms(500);
-    } else if(Gamepad.is_btn_pressed(BTN_B)) {
-      Ir.send_nec_format(true, 0x00, 0xff, 0x10); // 나가기
-      sleep_ms(500);
-    } else if(Gamepad.is_btn_pressed(BTN_S1_UP)) {
-      Ir.send_nec_format(true, 0x00, 0xff, 0x11); // 상
-      sleep_ms(500);
-    } else if(Gamepad.is_btn_pressed(BTN_S1_DOWN)) {
-      Ir.send_nec_format(true, 0x00, 0xff, 0x04); // 하
-      sleep_ms(500);
-    } else if(Gamepad.is_btn_pressed(BTN_S1_LEFT)) {
-      Ir.send_nec_format(true, 0x00, 0xff, 0x12); // 좌
-      sleep_ms(500);
-    } else if(Gamepad.is_btn_pressed(BTN_S1_RIGHT)) {
-      Ir.send_nec_format(true, 0x00, 0xff, 0x4d); // 우
-      sleep_ms(500);
-    } else {
-      Ir.manual_off();
-    } 
+    sprintf(string_buf, "format: %s", Ir.get_rx_format() == IR_FORMAT_NEC ? "NEC" : "RAW");
+    Lcd.setCursor(0,32);
+    Lcd.print_5x8(string_buf);
+    if(Ir.is_data_ready()) {
+      if(Ir.get_rx_format() == IR_FORMAT_MANUAL) {
+        sprintf(string_buf, "RAW data: %d pulses", Ir.get_raw_data_pulses());
+        Lcd.setCursor(0,48);
+        Lcd.print_5x8(string_buf);
+        sprintf(string_buf, "data: {%d, %d, %d, %d ...}", (uint16_t)(Ir.rx_data_buf[0] | (Ir.rx_data_buf[1] << 8)), (uint16_t)(Ir.rx_data_buf[2] | (Ir.rx_data_buf[3] << 8)), (uint16_t)(Ir.rx_data_buf[4] | (Ir.rx_data_buf[5] << 8)), (uint16_t)(Ir.rx_data_buf[6] | (Ir.rx_data_buf[7] << 8)));
+        Lcd.setCursor(0,64);
+        Lcd.print_5x8(string_buf);
+      }
+    }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       return;
     }
   }
 }
-*/
+
 void menu_imu_test(void) {
   Lcd.setTextSize(1);
   Lcd.setCursor(0,320-8);
@@ -1100,6 +1086,9 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
     break;
   case CMD_GAMEPAD_DATA:
     Gamepad.update_from_bridge(msg->payload, msg->payload_size);
+    break;
+  case CMD_IR_RX_DATA:
+    Ir.update_from_bridge(msg->payload, msg->payload_size);
     break;
   case CMD_IMU_ACCEL_DATA:
     Imu.update_accel(msg->payload, msg->payload_size);
