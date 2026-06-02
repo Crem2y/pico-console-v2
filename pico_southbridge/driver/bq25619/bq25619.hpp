@@ -23,7 +23,7 @@ class bq25619 {
     union bq25619_charger_status_1_reg        reg_status_1;
     union bq25619_charger_status_2_reg        reg_status_2;
     union bq25619_part_info_reg               reg_part_info;
-    union bq25619_charger_ctrl_3_reg          reg_ctrl_3;
+    union bq25619_charger_ctrl_4_reg          reg_ctrl_4;
 
     bool charging;
     uint8_t fault;

@@ -144,7 +144,7 @@ union bq25619_part_info_reg {
   };
 };
 
-union bq25619_charger_ctrl_3_reg {
+union bq25619_charger_ctrl_4_reg {
   uint8_t byte;
   struct {
     uint8_t JEITA_VT3 : 4;

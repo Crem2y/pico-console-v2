@@ -51,8 +51,8 @@ void gamepad::update(void) {
   if(joy2) {
     joy2->update();
     // convert to -128 ~ 127
-    joystick_x[1] = (int16_t)(joy2->x_raw; >> 4) - 128;
-    joystick_y[1] = (int16_t)(joy2->y_raw; >> 4) - 128;
+    joystick_x[1] = (int16_t)(joy2->x_raw >> 4) - 128;
+    joystick_y[1] = (int16_t)(joy2->y_raw >> 4) - 128;
     btn_data |= joy2->stick_btn_state ? 1 << BTN_S2_CENTER : 0;
   }
 }
