@@ -9,7 +9,8 @@ vibrationLRA Lra = vibrationLRA(PIN_LRA_L, PIN_LRA_R);
 bq25619 Charger = bq25619(i2c1, PIN_I2C_SDA, PIN_I2C_SCL, PIN_BAT_INT);
 mpu6050 Mpu = mpu6050(i2c1, PIN_I2C_SDA, PIN_I2C_SCL, PIN_IMU_INT);
 tempNTC TempSensor = tempNTC(PIN_VIN);
-ir_pulse_capture_t ir_cap;
+ir_pulse_capture_t ir_rx;
+ir_tx_t ir_tx;
 
 // middleware lib init
 bridgeProtocol Bridge = bridgeProtocol();
@@ -18,7 +19,7 @@ audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
 vibration Vibration = vibration(&Lra);
 imu Imu = imu(&Mpu);
-irLink Ir = irLink(&ir_cap);
+irLink Ir = irLink(&ir_rx, &ir_tx);
 
 void core1_entry(void);
 void bridge_do_cmd(const bridge_msg_t* msg);
@@ -49,8 +50,9 @@ int main() {
   Vibration.enable(true);
   Charger.init();
   Mpu.init();
-  ir_pulse_capture_init(&ir_cap, pio1, PIN_IR_RX); //placeholder for pio
-  ir_pulse_capture_start(&ir_cap);
+  ir_pulse_capture_init(&ir_rx, pio1, PIN_IR_RX); //placeholder for pio
+  ir_tx_init(&ir_tx, pio2, PIN_IR_TX); //placeholder for pio
+  ir_tx_start(&ir_tx); // test
   Ir.init();
 
   sleep_ms(100);
@@ -98,7 +100,7 @@ int main() {
     if(system_time_elapsed_ms(now_time, battery_timer) > 1000) {
       battery_timer = now_time;
       Charger.update();
-      //printf("Charging: %s(0x%02X) | Fault: 0x%02X\n", Charger.charging ? "Yes" : "No", Charger.chrg_stat, Charger.fault); //test
+      // printf("Charging: %s | Fault: 0x%02X\n", Charger.charging ? "Yes" : "No", Charger.fault); //test
     }
     if(system_time_elapsed_ms(now_time, ir_timer) > 1) {
       ir_timer = now_time;
@@ -130,13 +132,13 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
     Ir.enable_rx(false);
     break;
   case CMD_IR_TX_ENABLE:
-    //Ir.get_bridge_enable_tx(msg->payload, msg->payload_size);
+    Ir.get_bridge_enable_tx(msg->payload, msg->payload_size);
     break;
   case CMD_IR_TX_DATA:
-    //Ir.update_from_bridge(msg->payload, msg->payload_size);
+    Ir.get_bridge_tx_data(msg->payload, msg->payload_size);
     break;
   case CMD_IR_TX_DISABLE:
-    //Ir.enable_tx(false);
+    Ir.enable_tx(false);
     break;
   case CMD_AUDIO_ENABLE:
     // Audio.enable();

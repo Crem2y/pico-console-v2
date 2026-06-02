@@ -984,6 +984,7 @@ void menu_ir_test(void) {
   Lcd.print_5x8("press START to change format");
 
   Ir.rx_enable(true, IR_FORMAT_MANUAL);
+  Ir.tx_enable(true, IR_FORMAT_MANUAL);
   
   while(1) {
     sleep_ms(100);
@@ -997,18 +998,19 @@ void menu_ir_test(void) {
         sprintf(string_buf, "data: %d pulses", Ir.get_raw_data_pulses());
         Lcd.setCursor(0,16*3);
         Lcd.print_5x8(string_buf);
-        sprintf(string_buf, "%d, %d, %d, %d,  ", ((uint16_t*)Ir.rx_data_buf)[0], ((uint16_t*)Ir.rx_data_buf)[1], ((uint16_t*)Ir.rx_data_buf)[2], ((uint16_t*)Ir.rx_data_buf)[3]);
+        sprintf(string_buf, "%d, %d, %d, %d ... ", ((uint16_t*)Ir.rx_data_buf)[0], ((uint16_t*)Ir.rx_data_buf)[1], ((uint16_t*)Ir.rx_data_buf)[2], ((uint16_t*)Ir.rx_data_buf)[3]);
         Lcd.setCursor(0,16*4);
         Lcd.print_5x8(string_buf);
-        sprintf(string_buf, "%d, %d, %d, %d,  ", ((uint16_t*)Ir.rx_data_buf)[4], ((uint16_t*)Ir.rx_data_buf)[5], ((uint16_t*)Ir.rx_data_buf)[6], ((uint16_t*)Ir.rx_data_buf)[7]);
-        Lcd.setCursor(0,16*5);
-        Lcd.print_5x8(string_buf);
+        // Lcd.setCursor(0,16*5);
+        // Lcd.print_5x8("press A to send data");
       } else if (Ir.get_rx_data_format() == IR_FORMAT_NEC) {
         Lcd.setCursor(0,16*3);
         Lcd.print_5x8("data:");
         sprintf(string_buf, "%02X %02X %02X %02X", Ir.rx_data_buf[0], Ir.rx_data_buf[1], Ir.rx_data_buf[2], Ir.rx_data_buf[3]);
         Lcd.setCursor(0,16*4);
         Lcd.print_5x8(string_buf);
+        Lcd.setCursor(0,16*5);
+        Lcd.print_5x8("press A to send data");
       }
     }
 
@@ -1020,8 +1022,16 @@ void menu_ir_test(void) {
       Lcd.fillRect(0,16*3,480,(320-56),LCD_BLACK);
     }
 
+    if(Gamepad.is_btn_pressed(BTN_A)) {
+      if(Ir.is_data_ready() && Ir.get_rx_data_format() == IR_FORMAT_NEC) {
+        Ir.set_tx_data(Ir.get_rx_data_format(), Ir.rx_data_buf, Ir.rx_data_len);
+      }
+      sleep_ms(500);
+    } 
+
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       Ir.rx_enable(false, IR_FORMAT_MANUAL);
+      Ir.tx_enable(false, IR_FORMAT_MANUAL);
       return;
     }
   }
