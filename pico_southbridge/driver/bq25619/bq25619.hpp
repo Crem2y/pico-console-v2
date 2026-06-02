@@ -3,23 +3,10 @@
 #include <stdint.h>
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
+#include "bq25619_reg.h"
 
 #define BQ25619_I2C_SPEED (400*1000)
 #define BQ25619_DEFAULT_ADDRESS 0x6A
-
-#define BQ25619_REG_INPUT_CURRENT_LIMIT     0x00
-#define BQ25619_REG_CHARGER_CONTROL_0       0x01
-#define BQ25619_REG_CHARGE_CURRENT_LIMIT    0x02
-#define BQ25619_REG_PRECHARGE_CURRENT_LIMIT 0x03
-#define BQ25619_REG_BATTERY_VOLTAGE_LIMIT   0x04
-#define BQ25619_REG_CHARGER_CONTROL_1       0x05
-#define BQ25619_REG_CHARGER_CONTROL_2       0x06
-#define BQ25619_REG_CHARGER_CONTROL_3       0x07
-#define BQ25619_REG_CHARGER_STATUS_0        0x08
-#define BQ25619_REG_CHARGER_STATUS_1        0x09
-#define BQ25619_REG_CHARGER_STATUS_2        0x0A
-#define BQ25619_REG_PART_INFORMATION        0x0B
-#define BQ25619_REG_CHARGER_CONTROL_4       0x0C
 
 class bq25619 {
   public:
