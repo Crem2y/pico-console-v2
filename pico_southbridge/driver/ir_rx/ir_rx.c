@@ -29,10 +29,11 @@ bool ir_pulse_capture_init(ir_pulse_capture_t *cap, PIO pio, uint pin) {
 
   sm_config_set_jmp_pin(&c, pin);
 
-  // RX FIFO를 8워드로 확장
+  // RX FIFO length = 8
   sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
 
-  // stable loop가 2 instruction이므로 PIO clock = 2MHz → 1 loop = 1us
+  // stable loop = 2 instruction
+  // PIO clock = 2MHz → 1 loop = 1us
   float div = (float)clock_get_hz(clk_sys) / (float)IR_PULSE_CAPTURE_PIO_CLK_HZ;
   sm_config_set_clkdiv(&c, div);
 
