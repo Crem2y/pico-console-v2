@@ -1,0 +1,33 @@
+.program ir_tx
+
+; TX word format
+; bit0     : 1 = mark(carrier), 0 = space(low)
+; bit31..1 : half-cycle count - 1
+;
+; PIO clock = 38kHz * 8 = 304kHz
+; 1 half-cycle = 4 PIO cycles = 13.157us
+
+.wrap_target
+start:
+    pull block
+    out y, 1          ; y = mark flag
+    out x, 31         ; x = half_cycle_count - 1
+
+    jmp !y, space_loop
+
+mark_high:
+    set pins, 1 [2]   ; 3 cycles
+    jmp x-- mark_low  ; 1 cycle
+    set pins, 0
+    jmp start
+
+mark_low:
+    set pins, 0 [2]   ; 3 cycles
+    jmp x-- mark_high ; 1 cycle
+    jmp start
+
+space_loop:
+    set pins, 0 [2]   ; 3 cycles
+    jmp x-- space_loop; 1 cycle
+    jmp start
+.wrap
