@@ -10,10 +10,23 @@
 
 class bq25619 {
   public:
-    uint8_t reg_raw[16]; //test
+    uint8_t reg_raw[13];
+    union bq25619_input_current_limit_reg     reg_in_cur_lim;
+    union bq25619_charger_ctrl_0_reg          reg_ctrl_0;
+    union bq25619_charge_current_limit_reg    reg_chg_cur_lim;
+    union bq25619_precharge_current_limit_reg reg_pre_cur_lim;
+    union bq25619_battery_voltage_limit_reg   reg_bat_volt_lim;
+    union bq25619_charger_ctrl_1_reg          reg_ctrl_1;
+    union bq25619_charger_ctrl_2_reg          reg_ctrl_2;
+    union bq25619_charger_ctrl_3_reg          reg_ctrl_3;
+    union bq25619_charger_status_0_reg        reg_status_0;
+    union bq25619_charger_status_1_reg        reg_status_1;
+    union bq25619_charger_status_2_reg        reg_status_2;
+    union bq25619_part_info_reg               reg_part_info;
+    union bq25619_charger_ctrl_3_reg          reg_ctrl_3;
+
     bool charging;
     uint8_t fault;
-    uint8_t chrg_stat;
 
     bq25619(i2c_inst_t* i2c, int pin_sda, int pin_scl, int pin_int, uint8_t address = BQ25619_DEFAULT_ADDRESS);
     void init(void);

@@ -27,10 +27,9 @@ void bq25619::update() {
   // read charge status
   addr = BQ25619_REG_CHARGER_STATUS_0;
   i2c_write_blocking(_i2c, _address, &addr, 1, true);
-  i2c_read_blocking(_i2c, _address, buf, 1, false);
+  i2c_read_blocking(_i2c, _address, &reg_status_0.byte, 1, false);
 
-  chrg_stat = (buf[0] & 0x18) >> 3; // bit3-4 for charge status
-  if(chrg_stat == 0x01 || chrg_stat == 0x02) {
+  if(reg_status_0.CHRG_STAT == 0x01 || reg_status_0.CHRG_STAT == 0x02) {
     charging = true;
   } else {
     charging = false;
@@ -39,9 +38,7 @@ void bq25619::update() {
   // read fault status
   addr = BQ25619_REG_CHARGER_STATUS_1;
   i2c_write_blocking(_i2c, _address, &addr, 1, true);
-  i2c_read_blocking(_i2c, _address, buf, 1, false);
-
-  fault = buf[0];
+  i2c_read_blocking(_i2c, _address, &reg_status_1.byte, 1, false);
 }
 
 void bq25619::reset_reg() {
@@ -52,8 +49,8 @@ void bq25619::reset_reg() {
 
   while (true) {
     i2c_write_blocking(_i2c, _address, &addr, 1, true);
-    i2c_read_blocking(_i2c, _address, buf, 1, false);
-    if((buf[0] & 0x80) == 0) break; // wait until reset is done
+    i2c_read_blocking(_i2c, _address, &reg_part_info.byte, 1, false);
+    if(reg_part_info.REG_RST == 0) break; // wait until reset is done
     sleep_ms(10);
   }
 }
@@ -63,6 +60,20 @@ void bq25619::read_all_regs(void) {
 
   i2c_write_blocking(_i2c, _address, &addr, 1, true);
   i2c_read_blocking(_i2c, _address, reg_raw, 13, false);
+
+  reg_in_cur_lim.byte   = reg_raw[0];
+  reg_ctrl_0.byte       = reg_raw[1];
+  reg_chg_cur_lim.byte  = reg_raw[2];
+  reg_pre_cur_lim.byte  = reg_raw[3];
+  reg_bat_volt_lim.byte = reg_raw[4];
+  reg_ctrl_1.byte       = reg_raw[5];
+  reg_ctrl_2.byte       = reg_raw[6];
+  reg_ctrl_3.byte       = reg_raw[7];
+  reg_status_0.byte     = reg_raw[8];
+  reg_status_1.byte     = reg_raw[9];
+  reg_status_2.byte     = reg_raw[10];
+  reg_part_info.byte    = reg_raw[11];
+  reg_ctrl_3.byte       = reg_raw[12];
 }
 
 void bq25619::set_ignore_ts(bool ignore) {
@@ -70,13 +81,10 @@ void bq25619::set_ignore_ts(bool ignore) {
   uint8_t buf[2] = {BQ25619_REG_INPUT_CURRENT_LIMIT, 0x00};
 
   i2c_write_blocking(_i2c, _address, &addr, 1, true);
-  i2c_read_blocking(_i2c, _address, &buf[1], 1, false);
+  i2c_read_blocking(_i2c, _address, &reg_in_cur_lim.byte, 1, false);
 
-  if(ignore) {
-    buf[1] |= 0x40; // set bit6 to ignore TS pin
-  } else {
-    buf[1] &= ~0x40; // clear bit6 to enable TS pin
-  }
+  reg_in_cur_lim.TS_IGNORE = ignore ? 1 : 0;
 
+  buf[1] = reg_in_cur_lim.byte;
   i2c_write_blocking(_i2c, _address, buf, 2, false);
 }
