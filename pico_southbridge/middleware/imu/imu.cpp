@@ -12,8 +12,8 @@ void imu::init(void) {
 }
 
 void imu::update(void) {
-  Mpu6050->read_raw_accel_data();
-  Mpu6050->read_raw_gyro_data();
+  Mpu6050->read_accel_data();
+  Mpu6050->read_gyro_data();
 
   //placeholder
   accel_data_raw[0] = Mpu6050->accel_raw.x;
