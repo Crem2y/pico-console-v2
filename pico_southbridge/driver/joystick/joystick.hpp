@@ -8,8 +8,7 @@
 class joystick {
   public:
   int stick_btn_state;
-  int8_t x;
-  int8_t y;
+  uint16_t x_raw, y_raw;
 
   joystick(int stick_x_pin, int stick_y_pin, bool invert_x = false, bool invert_y = false, int stick_btn_pin = -1);
 

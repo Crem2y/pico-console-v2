@@ -14,27 +14,26 @@ void joystick::init(void) {
   adc_init();
   adc_gpio_init(_stick_x_pin);
   adc_gpio_init(_stick_y_pin);
-  gpio_init(_stick_btn_pin);
-  gpio_set_dir(_stick_btn_pin, GPIO_IN);
-  gpio_pull_up(_stick_btn_pin);
+  if(_stick_btn_pin > -1) {
+    gpio_init(_stick_btn_pin);
+    gpio_set_dir(_stick_btn_pin, GPIO_IN);
+    gpio_pull_up(_stick_btn_pin);
+  }
 
   stick_btn_state = 0;
-  x = 0;
-  y = 0;
+  x_raw = 0;
+  y_raw = 0;
 }
 
 void joystick::update(void) {
-  if(_stick_btn_pin > 0) {
+  if(_stick_btn_pin > -1) {
     stick_btn_state = !gpio_get(_stick_btn_pin);
   }
   adc_select_input(_ch_x);
-  uint16_t stick_x_raw = adc_read();
+  x_raw = adc_read();
   adc_select_input(_ch_y);
-  uint16_t stick_y_raw = adc_read();
+  y_raw = adc_read();
 
-  if(_invert_x) stick_x_raw = 4095 - stick_x_raw;
-  x = (int16_t)(stick_x_raw >> 4) - 128; // convert to -128 ~ 127
-
-  if(_invert_y) stick_y_raw = 4095 - stick_y_raw;
-  y = (int16_t)(stick_y_raw >> 4) - 128; // convert to -128 ~ 127
+  if(_invert_x) x_raw = 4095 - x_raw;
+  if(_invert_y) y_raw = 4095 - y_raw;
 }
