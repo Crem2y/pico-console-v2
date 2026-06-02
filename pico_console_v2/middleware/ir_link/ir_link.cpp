@@ -25,15 +25,15 @@ void irLink::tx_enable(bool enable, uint8_t format) {
 }
 
 void irLink::set_tx_data(uint8_t format, const uint8_t* data, uint8_t len) {
-  if(len + 1 > PAYLOAD_MAX_SIZE) return;
+  if(len + 2 > PAYLOAD_MAX_SIZE) return;
 
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];
   payload_buf[0] = format;
   for(int i = 0; i < len; i++) {
-    payload_buf[i + 1] = data[i];
+    payload_buf[i + 2] = data[i];
   }
 
-  Bridge.bridge_msg_push(CMD_IR_TX_DATA, len + 1, payload_buf);
+  Bridge.bridge_msg_push(CMD_IR_TX_DATA, len + 2, payload_buf);
 }
 
 void irLink::rx_enable(bool enable, uint8_t format) {
@@ -87,6 +87,10 @@ void irLink::update_from_bridge(const uint8_t* data, uint8_t len) {
       rx_data_buf[rx_data_len + i] = data[i + 2];
     }
     rx_data_len += len - 2;
+
+    if(sequence_index == sequence_length) {
+      // all sequences received
+    }
   } else if(format == IR_FORMAT_NEC) {
     // handle NEC format data
     rx_data_format = IR_FORMAT_NEC;

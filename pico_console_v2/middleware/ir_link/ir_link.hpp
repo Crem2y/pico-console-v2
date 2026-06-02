@@ -33,5 +33,5 @@ class irLink {
 
     void update_from_bridge(const uint8_t* data, uint8_t len);
   private:
-
+    bool is_rx_data_ready;
 };

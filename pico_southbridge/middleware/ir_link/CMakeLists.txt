@@ -11,6 +11,7 @@ target_include_directories(${OUTPUT_STATIC_LIB} PUBLIC
 )
 target_link_libraries(${OUTPUT_STATIC_LIB}
   ir_rx
+  ir_tx
   system_time
   bridge_protocol
 )
