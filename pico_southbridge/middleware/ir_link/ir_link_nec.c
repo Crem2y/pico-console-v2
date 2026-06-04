@@ -1,6 +1,6 @@
 #include "ir_link_nec.h"
 
-int irLink::decode_nec(const uint16_t* timing_buf, size_t timing_buf_size, uint8_t* data_buf, size_t data_buf_size) {
+int decode_nec(const uint16_t* timing_buf, size_t timing_buf_size, uint8_t* data_buf, size_t data_buf_size) {
   if(timing_buf_size < 68 || data_buf_size < 4) return 0; // not enough data for NEC
   // check start pulse
   if(timing_buf[0] < 8500 || timing_buf[0] > 10000) {
@@ -29,7 +29,7 @@ int irLink::decode_nec(const uint16_t* timing_buf, size_t timing_buf_size, uint8
   return 4; // valid NEC data length (4 bytes)
 }
 
-int irLink::encode_nec(const uint8_t* data_buf, size_t data_buf_size, uint16_t* timing_buf, size_t timing_buf_size) {
+int encode_nec(const uint8_t* data_buf, size_t data_buf_size, uint16_t* timing_buf, size_t timing_buf_size) {
   if(timing_buf_size < 68 || data_buf_size < 4) return 0; // not enough data for NEC
 
   timing_buf[0] = 9000; // start pulse

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 #include "ir_rx.h"
 #include "ir_tx.h"
 #include "system_time.h"
