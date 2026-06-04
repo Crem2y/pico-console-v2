@@ -57,11 +57,11 @@ int irLink::get_raw_data_pulses(void) {
   return rx_data_len / 2;
 }
 
-void irLink::get_bridge_rx_data(const uint8_t* data, uint8_t len) {
-  if(len < 2) return; // Not enough data
+void irLink::get_bridge_rx_data(const uint8_t* payload, size_t payload_size) {
+  if(payload_size < 2) return; // Not enough data
 
-  rx_data_format = (enum ir_format)data[0];
-  uint8_t sequence_info = data[1];
+  rx_data_format = (enum ir_format)payload[0];
+  uint8_t sequence_info = payload[1];
   size_t sequence_index = (sequence_info >> 4) & 0x0F;
   size_t sequence_length = sequence_info & 0x0F;
 
@@ -69,10 +69,10 @@ void irLink::get_bridge_rx_data(const uint8_t* data, uint8_t len) {
     rx_data_len = 0;  // reset data length for new sequence
   }
 
-  for(int i = 0; i < len - 2; i++) {
-    rx_data_buf[rx_data_len + i] = data[i + 2];
+  for(int i = 0; i < payload_size - 2; i++) {
+    rx_data_buf[rx_data_len + i] = payload[i + 2];
   }
-  rx_data_len += (len - 2);
+  rx_data_len += (payload_size - 2);
 
   if(sequence_index != sequence_length) {
     return; // wait for more sequences

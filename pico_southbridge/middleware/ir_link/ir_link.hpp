@@ -29,9 +29,9 @@ class irLink {
     void enable_tx(bool enable);
     void enable_rx(bool enable);
 
-    void get_bridge_enable_tx(const uint8_t* data, uint8_t len);
-    void get_bridge_enable_rx(const uint8_t* data, uint8_t len);
-    void get_bridge_tx_data(const uint8_t* data, uint8_t len);
+    void get_bridge_enable_tx(const uint8_t* payload, size_t payload_size);
+    void get_bridge_enable_rx(const uint8_t* payload, size_t payload_size);
+    void get_bridge_tx_data(const uint8_t* payload, size_t payload_size);
 
     void set_bridge_rx_data(enum ir_format format, const uint8_t* data, size_t len);
 
