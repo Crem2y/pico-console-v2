@@ -11,7 +11,7 @@ void gamepad::init(void) {
 void gamepad::update(void) {
   current_time_ms = get_system_time_ms();
 
-  for(int i=0; i<GP_BTN_NUM; i++) {
+  for(int i=0; i<BTN_S1_UP; i++) {
     int is_pressed = (key_data & (0x00000001 << i)) ? 1 : 0;
     if(is_pressed && !btn_state[i]) { // button just pressed
       btn_state[i] = 1;
