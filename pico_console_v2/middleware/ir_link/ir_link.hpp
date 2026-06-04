@@ -22,16 +22,17 @@ class irLink {
 
     void init(void);
 
-    void tx_enable(bool enable, uint8_t format);
-    void set_tx_data(uint8_t format, const uint8_t* data, uint8_t len);
-
-    void rx_enable(bool enable, uint8_t format);
     enum ir_format get_rx_format(void);
     enum ir_format get_rx_data_format(void);
     bool is_data_ready(void);
     int get_raw_data_pulses(void);
 
-    void update_from_bridge(const uint8_t* data, uint8_t len);
+    void tx_enable(bool enable, enum ir_format format);
+    void rx_enable(bool enable, enum ir_format format);
+  
+    void get_bridge_rx_data(const uint8_t* data, uint8_t len);
+
+    void set_bridge_tx_data(enum ir_format format, const uint8_t* data, size_t len);
   private:
     bool is_rx_data_ready;
 };

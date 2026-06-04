@@ -21,10 +21,10 @@ class irLink {
     void init(void);
     void update(void);
 
-    int decode_nec(void);
-    int encode_nec(void);
+    int decode_nec(const uint16_t* timing_buf, size_t timing_buf_size, uint8_t* data_buf, size_t data_buf_size);
+    int encode_nec(const uint8_t* data_buf, size_t data_buf_size, uint16_t* timing_buf, size_t timing_buf_size);
 
-    void send_blocking(void);
+    void send_blocking(const uint16_t* data, uint16_t len);
 
     void enable_tx(bool enable);
     void enable_rx(bool enable);
@@ -33,7 +33,7 @@ class irLink {
     void get_bridge_enable_rx(const uint8_t* data, uint8_t len);
     void get_bridge_tx_data(const uint8_t* data, uint8_t len);
 
-    void set_bridge_rx_data(enum ir_format format, uint8_t* data, uint8_t len);
+    void set_bridge_rx_data(enum ir_format format, const uint8_t* data, size_t len);
 
   private:
     ir_pulse_capture_t* _ir_rx;

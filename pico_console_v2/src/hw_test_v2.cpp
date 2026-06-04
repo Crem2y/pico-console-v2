@@ -1018,13 +1018,13 @@ void menu_ir_test(void) {
       uint8_t temp = (uint8_t)Ir.get_rx_format();
       temp++;
       if(temp > IR_FORMAT_NEC) temp = IR_FORMAT_MANUAL;
-      Ir.rx_enable(true, temp);
+      Ir.rx_enable(true, (enum ir_format)temp);
       Lcd.fillRect(0,16*3,480,(320-56),LCD_BLACK);
     }
 
     if(Gamepad.is_btn_pressed(BTN_A)) {
-      if(Ir.is_data_ready() && Ir.get_rx_data_format() == IR_FORMAT_NEC) {
-        Ir.set_tx_data(Ir.get_rx_data_format(), Ir.rx_data_buf, Ir.rx_data_len);
+      if(Ir.is_data_ready()) {
+        Ir.set_bridge_tx_data(Ir.get_rx_data_format(), Ir.rx_data_buf, Ir.rx_data_len);
       }
       sleep_ms(500);
     } 
@@ -1118,7 +1118,7 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
     Gamepad.update_from_bridge(msg->payload, msg->payload_size);
     break;
   case CMD_IR_RX_DATA:
-    Ir.update_from_bridge(msg->payload, msg->payload_size);
+    Ir.get_bridge_rx_data(msg->payload, msg->payload_size);
     break;
   case CMD_IMU_ACCEL_DATA:
     Imu.update_accel(msg->payload, msg->payload_size);
