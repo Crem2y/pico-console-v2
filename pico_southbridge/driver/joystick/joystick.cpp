@@ -34,6 +34,6 @@ void joystick::update(void) {
   adc_select_input(_ch_y);
   y_raw = adc_read();
 
-  if(_invert_x) x_raw = 4095 - x_raw;
-  if(_invert_y) y_raw = 4095 - y_raw;
+  if(_invert_x) x_raw = JOYSTICK_RAW_MAX - x_raw;
+  if(_invert_y) y_raw = JOYSTICK_RAW_MAX - y_raw;
 }

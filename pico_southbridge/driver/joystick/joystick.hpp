@@ -5,6 +5,8 @@
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 
+#define JOYSTICK_RAW_MAX 4095 // 12 bit ADC
+
 class joystick {
   public:
   int stick_btn_state;
