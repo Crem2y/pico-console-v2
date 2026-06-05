@@ -49,10 +49,9 @@ int main() {
   Vibration.init();
   Vibration.enable(true);
   Charger.init();
-  Mpu.init();
+  Imu.init();
   ir_pulse_capture_init(&ir_rx, pio1, PIN_IR_RX); //placeholder for pio
   ir_tx_init(&ir_tx, pio2, PIN_IR_TX); //placeholder for pio
-  ir_tx_start(&ir_tx); // test
   Ir.init();
 
   sleep_ms(100);

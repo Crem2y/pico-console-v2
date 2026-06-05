@@ -34,9 +34,9 @@ int main() { // uses core 0 to sub core
   uart_bridge_init(uart0, PIN_BRIDGE_TX, PIN_BRIDGE_RX, 921600);
   Bridge.set_bridge_do_cmd(bridge_do_cmd);
   last_bridge_cmd_time = 0;
-  LedCtrl.init();
-
   sleep_ms(100);
+
+  LedCtrl.init();
   LedCtrl.set_brightness(LED_CONTROL_BUILT_IN, 255);
   LedCtrl.set_blink_interval(LED_CONTROL_BUILT_IN, 500);
   LedCtrl.set_mode(LED_CONTROL_BUILT_IN, LED_BLINK_REPEAT);
@@ -77,6 +77,18 @@ int main() { // uses core 0 to sub core
   Lcd.print_5x8("TEMP init...");
   Temperature.init();
   LOG_PRINTF("TEMP ok\n");
+  Lcd.setCursor(0,0);
+  Lcd.print_5x8("LRA init...");
+  Vibration.init();
+  LOG_PRINTF("Vibration ok\n");
+  Lcd.setCursor(0,0);
+  Lcd.print_5x8("IMU init...");
+  Imu.init();
+  LOG_PRINTF("IMU ok\n");
+  Lcd.setCursor(0,0);
+  Lcd.print_5x8("IR init...");
+  Ir.init();
+  LOG_PRINTF("IR ok\n");
   Lcd.setCursor(0,0);
   Lcd.print_5x8("               ");
   LOG_PRINTF("all HWs ok!\n");
