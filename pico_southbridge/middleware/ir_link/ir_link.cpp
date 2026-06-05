@@ -133,19 +133,21 @@ void irLink::recv_bridge_tx_data(const uint8_t* payload, size_t payload_size) {
   }
   is_data_ready = true; // all sequences received
 
+  tx_timing_len = 0;
   switch(current_tx_format) {
     case IR_FORMAT_MANUAL:
-      send_ir_blocking(tx_timings, tx_timing_len);
+      memcpy(tx_timings, tx_data, tx_data_len);
+      tx_timing_len = tx_data_len / sizeof(uint16_t);
       break;
     case IR_FORMAT_NEC:
       tx_timing_len = encode_nec(tx_data, tx_data_len, tx_timings, IR_LINK_MAX_PULSES);
-      if(tx_timing_len > 0) {
-        send_ir_blocking(tx_timings, tx_timing_len);
-      }
       break;
     default:
       // unknown format
       return;
+  }
+  if(tx_timing_len > 0) {
+    send_ir_blocking(tx_timings, tx_timing_len);
   }
 }
 
