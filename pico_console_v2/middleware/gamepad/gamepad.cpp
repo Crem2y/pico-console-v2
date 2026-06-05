@@ -111,15 +111,15 @@ void gamepad::update(void) {
   }
 }
 
-void gamepad::update_from_bridge(const uint8_t* data, uint8_t len) {
-  if(len < 7) return;
+void gamepad::recv_bridge_data(const uint8_t* payload, uint8_t payload_size) {
+  if(payload_size < 7) return;
 
-  key_data = (data[0] << 16) | (data[1] << 8) | data[2];
+  key_data = (payload[0] << 16) | (payload[1] << 8) | payload[2];
 
-  joystick_x[0] = data[3];
-  joystick_y[0] = data[4];
-  joystick_x[1] = data[5];
-  joystick_y[1] = data[6];
+  joystick_x[0] = payload[3];
+  joystick_y[0] = payload[4];
+  joystick_x[1] = payload[5];
+  joystick_y[1] = payload[6];
 }
 
 int gamepad::is_btn_pressed(enum btn_code btn) {

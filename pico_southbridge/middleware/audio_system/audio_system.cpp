@@ -8,8 +8,8 @@ void audioSystem::init(void) {
 
 }
 
-void audioSystem::update_from_bridge(const uint8_t* data, uint8_t len) {
-  if(len < 3) return; //placeholder
+void audioSystem::recv_bridge_data(const uint8_t* payload, uint8_t payload_size) {
+  if(payload_size < 3) return; //placeholder
 
-  voice_note_on(data[0], data[1], data[2], g_voices[0].vol_q8);
+  voice_note_on(payload[0], payload[1], payload[2], g_voices[0].vol_q8);
 }

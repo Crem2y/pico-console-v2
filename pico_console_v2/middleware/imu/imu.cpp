@@ -12,24 +12,24 @@ void imu::update(void) {
 
 }
 
-void imu::update_accel(const uint8_t* data, uint8_t len) {
-  if(len < 6) return;
+void imu::recv_bridge_accel_data(const uint8_t* payload, uint8_t payload_size) {
+  if(payload_size < 6) return;
 
-  accel_raw[0] = (data[1] << 8) | data[0];
-  accel_raw[1] = (data[3] << 8) | data[2];
-  accel_raw[2] = (data[5] << 8) | data[4];
+  accel_raw[0] = (payload[1] << 8) | payload[0];
+  accel_raw[1] = (payload[3] << 8) | payload[2];
+  accel_raw[2] = (payload[5] << 8) | payload[4];
 
   accel_x = accel_raw[0];
   accel_y = accel_raw[1];
   accel_z = accel_raw[2];
 }
 
-void imu::update_gyro(const uint8_t* data, uint8_t len) {
-  if(len < 6) return;
+void imu::recv_bridge_gyro_data(const uint8_t* payload, uint8_t payload_size) {
+  if(payload_size < 6) return;
 
-  gyro_raw[0] = (data[1] << 8) | data[0];
-  gyro_raw[1] = (data[3] << 8) | data[2];
-  gyro_raw[2] = (data[5] << 8) | data[4];
+  gyro_raw[0] = (payload[1] << 8) | payload[0];
+  gyro_raw[1] = (payload[3] << 8) | payload[2];
+  gyro_raw[2] = (payload[5] << 8) | payload[4];
 
   gyro_x = gyro_raw[0];
   gyro_y = gyro_raw[1];

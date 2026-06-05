@@ -28,12 +28,11 @@ class irLink {
     bool is_data_ready(void);
     int get_raw_data_pulses(void);
 
-    void tx_enable(bool enable, enum ir_format format);
-    void rx_enable(bool enable, enum ir_format format);
-  
-    void get_bridge_rx_data(const uint8_t* payload, size_t payload_size);
+    void recv_bridge_rx_data(const uint8_t* payload, size_t payload_size);
 
-    void set_bridge_tx_data(enum ir_format format, const uint8_t* data, size_t len);
+    void send_bridge_enable_tx(bool enable, enum ir_format format);
+    void send_bridge_enable_rx(bool enable, enum ir_format format);
+    void send_bridge_tx_data(enum ir_format format, const uint8_t* data, size_t len);
   private:
     bool is_rx_data_ready;
 };

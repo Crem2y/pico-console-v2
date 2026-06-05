@@ -22,16 +22,16 @@ class irLink {
     void init(void);
     void update(void);
 
-    void send_blocking(const uint16_t* data, uint16_t len);
+    void send_ir_blocking(const uint16_t* data, uint16_t len);
 
     void enable_tx(bool enable);
     void enable_rx(bool enable);
 
-    void get_bridge_enable_tx(const uint8_t* payload, size_t payload_size);
-    void get_bridge_enable_rx(const uint8_t* payload, size_t payload_size);
-    void get_bridge_tx_data(const uint8_t* payload, size_t payload_size);
+    void recv_bridge_enable_tx(const uint8_t* payload, size_t payload_size);
+    void recv_bridge_enable_rx(const uint8_t* payload, size_t payload_size);
+    void recv_bridge_tx_data(const uint8_t* payload, size_t payload_size);
 
-    void set_bridge_rx_data(enum ir_format format, const uint8_t* data, size_t len);
+    void send_bridge_rx_data(enum ir_format format, const uint8_t* data, size_t len);
 
   private:
     ir_pulse_capture_t* _ir_rx;

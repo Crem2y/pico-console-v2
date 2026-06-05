@@ -11,8 +11,8 @@ class imu {
 
     void init(void);
     void update(void);
-    void update_accel(const uint8_t* data, uint8_t len);
-    void update_gyro(const uint8_t* data, uint8_t len);
+    void recv_bridge_accel_data(const uint8_t* payload, uint8_t payload_size);
+    void recv_bridge_gyro_data(const uint8_t* payload, uint8_t payload_size);
 
     float get_accel_x();
     float get_accel_y();

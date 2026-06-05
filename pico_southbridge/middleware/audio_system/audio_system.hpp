@@ -8,7 +8,7 @@ class audioSystem {
     audioSystem(void);
 
     void init(void);
-    void update_from_bridge(const uint8_t* data, uint8_t len);
+    void recv_bridge_data(const uint8_t* payload, uint8_t payload_size);
 
   private:
 

@@ -126,16 +126,16 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   switch (command)
   {
   case CMD_IR_RX_ENABLE:
-    Ir.get_bridge_enable_rx(msg->payload, msg->payload_size);
+    Ir.recv_bridge_enable_rx(msg->payload, msg->payload_size);
     break;
   case CMD_IR_RX_DISABLE:
     Ir.enable_rx(false);
     break;
   case CMD_IR_TX_ENABLE:
-    Ir.get_bridge_enable_tx(msg->payload, msg->payload_size);
+    Ir.recv_bridge_enable_tx(msg->payload, msg->payload_size);
     break;
   case CMD_IR_TX_DATA:
-    Ir.get_bridge_tx_data(msg->payload, msg->payload_size);
+    Ir.recv_bridge_tx_data(msg->payload, msg->payload_size);
     break;
   case CMD_IR_TX_DISABLE:
     Ir.enable_tx(false);
@@ -144,7 +144,7 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
     // Audio.enable();
     break;
   case CMD_AUDIO_PCM_DATA:
-    Audio.update_from_bridge(msg->payload, msg->payload_size);
+    Audio.recv_bridge_data(msg->payload, msg->payload_size);
     break;
   case CMD_AUDIO_DISABLE:
     // Audio.disable();
@@ -153,7 +153,7 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
     Vibration.enable(true);
     break;
   case CMD_VIBRATION_DATA:
-    Vibration.update_from_bridge(msg->payload, msg->payload_size);
+    Vibration.recv_bridge_data(msg->payload, msg->payload_size);
     break;
   case CMD_VIBRATION_DISABLE:
     Vibration.enable(false);

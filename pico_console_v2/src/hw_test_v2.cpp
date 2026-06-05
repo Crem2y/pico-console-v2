@@ -983,8 +983,8 @@ void menu_ir_test(void) {
   Lcd.setCursor(0,16);
   Lcd.print_5x8("press START to change format");
 
-  Ir.rx_enable(true, IR_FORMAT_MANUAL);
-  Ir.tx_enable(true, IR_FORMAT_MANUAL);
+  Ir.send_bridge_enable_rx(true, IR_FORMAT_MANUAL);
+  Ir.send_bridge_enable_tx(true, IR_FORMAT_MANUAL);
   
   while(1) {
     sleep_ms(100);
@@ -1018,20 +1018,20 @@ void menu_ir_test(void) {
       uint8_t temp = (uint8_t)Ir.get_rx_format();
       temp++;
       if(temp > IR_FORMAT_NEC) temp = IR_FORMAT_MANUAL;
-      Ir.rx_enable(true, (enum ir_format)temp);
+      Ir.send_bridge_enable_rx(true, (enum ir_format)temp);
       Lcd.fillRect(0,16*3,480,(320-56),LCD_BLACK);
     }
 
     if(Gamepad.is_btn_pressed(BTN_A)) {
       if(Ir.is_data_ready()) {
-        Ir.set_bridge_tx_data(Ir.get_rx_data_format(), Ir.rx_data_buf, Ir.rx_data_len);
+        Ir.send_bridge_tx_data(Ir.get_rx_data_format(), Ir.rx_data_buf, Ir.rx_data_len);
       }
       sleep_ms(500);
     } 
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
-      Ir.rx_enable(false, IR_FORMAT_MANUAL);
-      Ir.tx_enable(false, IR_FORMAT_MANUAL);
+      Ir.send_bridge_enable_rx(false, IR_FORMAT_MANUAL);
+      Ir.send_bridge_enable_tx(false, IR_FORMAT_MANUAL);
       return;
     }
   }
@@ -1112,19 +1112,19 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   switch (command)
   {
   case CMD_TEMPERATURE_DATA:
-    Temperature.update_from_bridge(msg->payload, msg->payload_size);
+    Temperature.recv_bridge_data(msg->payload, msg->payload_size);
     break;
   case CMD_GAMEPAD_DATA:
-    Gamepad.update_from_bridge(msg->payload, msg->payload_size);
+    Gamepad.recv_bridge_data(msg->payload, msg->payload_size);
     break;
   case CMD_IR_RX_DATA:
-    Ir.get_bridge_rx_data(msg->payload, msg->payload_size);
+    Ir.recv_bridge_rx_data(msg->payload, msg->payload_size);
     break;
   case CMD_IMU_ACCEL_DATA:
-    Imu.update_accel(msg->payload, msg->payload_size);
+    Imu.recv_bridge_accel_data(msg->payload, msg->payload_size);
     break;
   case CMD_IMU_GYRO_DATA:
-    Imu.update_gyro(msg->payload, msg->payload_size);
+    Imu.recv_bridge_gyro_data(msg->payload, msg->payload_size);
     break;
   default:
     break;

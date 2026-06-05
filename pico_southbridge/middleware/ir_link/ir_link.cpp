@@ -62,13 +62,13 @@ void irLink::update(void) {
         break;
     }
     if(data_len) {
-      set_bridge_rx_data(current_rx_format, rx_data, data_len);
+      send_bridge_rx_data(current_rx_format, rx_data, data_len);
     }
     pulse_count = 0;
   }
 }
 
-void irLink::send_blocking(const uint16_t* data, uint16_t len) {
+void irLink::send_ir_blocking(const uint16_t* data, uint16_t len) {
   bool mark = true;
   enable_rx(false); // disable RX to avoid self-interference during transmission
   for(int i=0; i<len; i++) {
@@ -98,19 +98,19 @@ void irLink::enable_rx(bool enable) {
   }
 }
 
-void irLink::get_bridge_enable_tx(const uint8_t* payload, size_t payload_size) {
+void irLink::recv_bridge_enable_tx(const uint8_t* payload, size_t payload_size) {
   if (payload_size < 1) return; // Not enough data
   enable_tx(true);
   current_tx_format = (enum ir_format)payload[0];
 }
 
-void irLink::get_bridge_enable_rx(const uint8_t* payload, size_t payload_size) {
+void irLink::recv_bridge_enable_rx(const uint8_t* payload, size_t payload_size) {
   if (payload_size < 1) return; // Not enough data
   enable_rx(true);
   current_rx_format = (enum ir_format)payload[0];
 }
 
-void irLink::get_bridge_tx_data(const uint8_t* payload, size_t payload_size) {
+void irLink::recv_bridge_tx_data(const uint8_t* payload, size_t payload_size) {
   if (payload_size < 2) return; // Not enough data
 
   current_tx_format = (enum ir_format)payload[0];
@@ -135,12 +135,12 @@ void irLink::get_bridge_tx_data(const uint8_t* payload, size_t payload_size) {
 
   switch(current_tx_format) {
     case IR_FORMAT_MANUAL:
-      send_blocking(tx_timings, tx_timing_len);
+      send_ir_blocking(tx_timings, tx_timing_len);
       break;
     case IR_FORMAT_NEC:
       tx_timing_len = encode_nec(tx_data, tx_data_len, tx_timings, IR_LINK_MAX_PULSES);
       if(tx_timing_len > 0) {
-        send_blocking(tx_timings, tx_timing_len);
+        send_ir_blocking(tx_timings, tx_timing_len);
       }
       break;
     default:
@@ -149,7 +149,7 @@ void irLink::get_bridge_tx_data(const uint8_t* payload, size_t payload_size) {
   }
 }
 
-void irLink::set_bridge_rx_data(enum ir_format format, const uint8_t* data, size_t len) {
+void irLink::send_bridge_rx_data(enum ir_format format, const uint8_t* data, size_t len) {
   if(len > IR_LINK_MAX_DATA_SIZE) {
     len = IR_LINK_MAX_DATA_SIZE; // Limit to max data size
   }
