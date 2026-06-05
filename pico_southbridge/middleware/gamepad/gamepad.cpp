@@ -1,4 +1,7 @@
 #include "gamepad.hpp"
+#include "bridge_protocol.hpp"
+
+extern bridgeProtocol Bridge;
 
 gamepad::gamepad(btn_matrix* btn_matrix, joystick* joy_1, joystick* joy_2) {
   btns = btn_matrix;
@@ -15,6 +18,14 @@ void gamepad::init(void) {
   joystick_y[0] = 0;
   joystick_x[1] = 0;
   joystick_y[1] = 0;
+
+  joystick_raw_x[0] = 0;
+  joystick_raw_y[0] = 0;
+  joystick_raw_x[1] = 0;
+  joystick_raw_y[1] = 0;
+
+  enable = true;
+  raw_data_enable = false;
 }
 
 void gamepad::update(void) {
@@ -43,30 +54,73 @@ void gamepad::update(void) {
 
   if(joy1) {
     joy1->update();
-    // convert to -128 ~ 127
-    joystick_x[0] = (int16_t)(joy1->x_raw >> 4) - 128;
-    joystick_y[0] = (int16_t)(joy1->y_raw >> 4) - 128;
+    joystick_raw_x[0] = joy1->x_raw;
+    joystick_raw_y[0] = joy1->y_raw;
     btn_data |= joy1->stick_btn_state ? 1 << BTN_S1_CENTER : 0;
   }
   if(joy2) {
     joy2->update();
-    // convert to -128 ~ 127
-    joystick_x[1] = (int16_t)(joy2->x_raw >> 4) - 128;
-    joystick_y[1] = (int16_t)(joy2->y_raw >> 4) - 128;
+    joystick_raw_x[1] = joy2->x_raw;
+    joystick_raw_y[1] = joy2->y_raw;
     btn_data |= joy2->stick_btn_state ? 1 << BTN_S2_CENTER : 0;
+  }
+
+  // calibration is not implemented yet
+  // just convert to -128 ~ 127
+  joystick_x[0] = (int16_t)(joystick_raw_x[0] >> 4) - 128;
+  joystick_y[0] = (int16_t)(joystick_raw_y[0] >> 4) - 128;
+  joystick_x[1] = (int16_t)(joystick_raw_x[1] >> 4) - 128;
+  joystick_y[1] = (int16_t)(joystick_raw_y[1] >> 4) - 128;
+
+  if(enable) {
+    send_bridge_data();
+  }
+  if (raw_data_enable) {
+    send_bridge_raw_data();
   }
 }
 
-int gamepad::make_bridge_payload(uint8_t* payload_buf, uint max_size) {
-  if(max_size < 7) return -1;
+void gamepad::send_bridge_data(void) {
+  int payload_size = 7;
+  uint8_t payload_buf[PAYLOAD_MAX_SIZE];
 
-  payload_buf[0] = btn_data >> 16 & 0xFF;
-  payload_buf[1] = btn_data >> 8 & 0xFF;
-  payload_buf[2] = btn_data & 0xFF;
+  // little endian
+  payload_buf[0] = btn_data & 0xFF;
+  payload_buf[1] = (btn_data >> 8) & 0xFF;
+  payload_buf[2] = (btn_data >> 16) & 0xFF;
+
   payload_buf[3] = joystick_x[0]; // joyLx
   payload_buf[4] = joystick_y[0]; // joyLy
   payload_buf[5] = joystick_x[1]; // joyRx
   payload_buf[6] = joystick_y[1]; // joyRy
 
-  return 7;
+  Bridge.bridge_msg_push(CMD_GAMEPAD_DATA, payload_size, payload_buf);
+}
+
+void gamepad::send_bridge_raw_data(void) {
+  int payload_size = 8; // 2 data * 4 axis
+  uint8_t payload_buf[PAYLOAD_MAX_SIZE];
+
+  // little endian
+  payload_buf[0] = joystick_raw_x[0] & 0xFF;
+  payload_buf[1] = joystick_raw_x[0] >> 8 & 0xFF;
+  payload_buf[2] = joystick_raw_y[0] & 0xFF;
+  payload_buf[3] = joystick_raw_y[0] >> 8 & 0xFF;
+  payload_buf[4] = joystick_raw_x[1] & 0xFF;
+  payload_buf[5] = joystick_raw_x[1] >> 8 & 0xFF;
+  payload_buf[6] = joystick_raw_y[1] & 0xFF;
+  payload_buf[7] = joystick_raw_y[1] >> 8 & 0xFF;
+
+  Bridge.bridge_msg_push(CMD_GAMEPAD_RAW_DATA, payload_size, payload_buf);
+}
+
+void gamepad::recv_bridge_enable(const uint8_t* payload, uint8_t payload_size) {
+  if(payload_size < 1) return;
+
+  enable = payload[0] & 1 ? true : false;
+  raw_data_enable = payload[0] & 2 ? true : false;
+}
+
+void gamepad::recv_bridge_cali_data(const uint8_t* payload, uint8_t payload_size) {
+  // not implemented
 }

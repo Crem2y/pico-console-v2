@@ -71,6 +71,7 @@ int main() { // uses core 0 to sub core
   Lcd.setCursor(0,0);
   Lcd.print_5x8("Gamepad init...");
   Gamepad.init();
+  Gamepad.send_bridge_enable(true, false);
   LOG_PRINTF("Gamepad ok\n");
   Lcd.setCursor(0,0);
   Lcd.print_5x8("TEMP init...");
@@ -1119,6 +1120,9 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
     break;
   case CMD_GAMEPAD_DATA:
     Gamepad.recv_bridge_data(msg->payload, msg->payload_size);
+    break;
+  case CMD_GAMEPAD_RAW_DATA:
+    Gamepad.recv_bridge_raw_data(msg->payload, msg->payload_size);
     break;
   case CMD_IR_RX_DATA:
     Ir.recv_bridge_rx_data(msg->payload, msg->payload_size);

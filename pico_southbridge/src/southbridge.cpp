@@ -78,10 +78,6 @@ int main() {
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
       Gamepad.update();
-      payload_size = Gamepad.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
-      if(payload_size > 0) {
-        Bridge.bridge_msg_push(CMD_GAMEPAD_DATA, payload_size, temp_payload);
-      }
     }
     if(system_time_elapsed_ms(now_time, temperature_timer) > 1000) {
       temperature_timer = now_time;
@@ -125,6 +121,12 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   enum bridge_cmd command = (enum bridge_cmd)msg->cmd;
   switch (command)
   {
+  case CMD_GAMEPAD_ENABLE:
+    Gamepad.recv_bridge_enable(msg->payload, msg->payload_size);
+    break;
+  case CMD_GAMEPAD_CALI_DATA:
+    Gamepad.recv_bridge_cali_data(msg->payload, msg->payload_size);
+    break;
   case CMD_IR_RX_ENABLE:
     Ir.recv_bridge_enable_rx(msg->payload, msg->payload_size);
     break;

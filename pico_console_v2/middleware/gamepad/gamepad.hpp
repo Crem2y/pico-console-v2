@@ -48,7 +48,6 @@ class gamepad {
 
     void init(void);
     void update(void);
-    void recv_bridge_data(const uint8_t* payload, uint8_t payload_size);
 
     int is_btn_pressed(enum btn_code btn);
     int is_btn_released(enum btn_code btn);
@@ -57,13 +56,22 @@ class gamepad {
 
     int8_t get_joystick_x(int joystick_num);
     int8_t get_joystick_y(int joystick_num);
+    uint16_t get_joystick_raw_x(int joystick_num);
+    uint16_t get_joystick_raw_y(int joystick_num);
+
+    void send_bridge_enable(bool enable, bool raw_data_enable);
+
+    void recv_bridge_data(const uint8_t* payload, uint8_t payload_size);
+    void recv_bridge_raw_data(const uint8_t* payload, uint8_t payload_size);
 
   private:
     time_ms_t current_time_ms;
-    uint8_t btn_state[GP_BTN_NUM] = {0,}; // 0 for released, 1 for pressed
-    time_ms_t btn_last_pressed_ms[GP_BTN_NUM] = {0,};
-    time_ms_t btn_last_released_ms[GP_BTN_NUM] = {0,};
+    uint8_t btn_state[GP_BTN_NUM]; // 0 for released, 1 for pressed
+    time_ms_t btn_last_pressed_ms[GP_BTN_NUM];
+    time_ms_t btn_last_released_ms[GP_BTN_NUM];
     uint32_t key_data;
-    int8_t joystick_x[GP_JOYSTICK_NUM] = {0,};
-    int8_t joystick_y[GP_JOYSTICK_NUM] = {0,};
+    int8_t joystick_x[GP_JOYSTICK_NUM];
+    int8_t joystick_y[GP_JOYSTICK_NUM];
+    uint16_t joystick_raw_x[GP_JOYSTICK_NUM];
+    uint16_t joystick_raw_y[GP_JOYSTICK_NUM];
 };

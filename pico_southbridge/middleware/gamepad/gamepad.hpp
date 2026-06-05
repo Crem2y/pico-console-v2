@@ -39,13 +39,21 @@ class gamepad {
     void init(void);
     void update(void);
 
-    int make_bridge_payload(uint8_t* payload_buf, uint max_size);
+    void send_bridge_data(void);
+    void send_bridge_raw_data(void);
 
-  private:
+    void recv_bridge_enable(const uint8_t* payload, uint8_t payload_size);
+    void recv_bridge_cali_data(const uint8_t* payload, uint8_t payload_size);
+
+    private:
     btn_matrix* btns;
     uint32_t btn_data;
     joystick* joy1;
     joystick* joy2;
-    int8_t joystick_x[GP_JOYSTICK_NUM] = {0,};
-    int8_t joystick_y[GP_JOYSTICK_NUM] = {0,};
+    int8_t joystick_x[GP_JOYSTICK_NUM];
+    int8_t joystick_y[GP_JOYSTICK_NUM];
+    uint16_t joystick_raw_x[GP_JOYSTICK_NUM];
+    uint16_t joystick_raw_y[GP_JOYSTICK_NUM];
+
+    bool enable, raw_data_enable;
 };
