@@ -140,6 +140,13 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   case CMD_IR_TX_DISABLE:
     Ir.enable_tx(false);
     break;
+  case CMD_IMU_ENABLE:
+    Imu.recv_bridge_enable(msg->payload, msg->payload_size);
+    break;
+  case CMD_IMU_DISABLE:
+    Imu.enable_accel_data(false);
+    Imu.enable_gyro_data(false);
+    break;
   case CMD_AUDIO_ENABLE:
     // Audio.enable();
     break;
