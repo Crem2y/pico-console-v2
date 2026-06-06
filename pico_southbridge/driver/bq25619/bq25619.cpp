@@ -15,33 +15,42 @@ void bq25619::init() {
   gpio_pull_up(_pin_sda);
   gpio_pull_up(_pin_scl);
 
-  charging = false;
-  fault = 0;
-  reset_reg();
+  reset_all_regs();
 }
 
-void bq25619::update() {
-  uint8_t addr;
-  uint8_t buf[2];
+void bq25619::update_watchdog() {
 
-  // read charge status
-  addr = BQ25619_REG_CHARGER_STATUS_0;
-  i2c_write_blocking(_i2c, _address, &addr, 1, true);
-  i2c_read_blocking(_i2c, _address, &reg_status_0.byte, 1, false);
-
-  if(reg_status_0.CHRG_STAT == 0x01 || reg_status_0.CHRG_STAT == 0x02) {
-    charging = true;
-  } else {
-    charging = false;
-  }
-
-  // read fault status
-  addr = BQ25619_REG_CHARGER_STATUS_1;
-  i2c_write_blocking(_i2c, _address, &addr, 1, true);
-  i2c_read_blocking(_i2c, _address, &reg_status_1.byte, 1, false);
 }
 
-void bq25619::reset_reg() {
+void bq25619::read_reg(uint8_t reg_addr) {
+  if(reg_addr > BQ25619_REG_CHARGER_CONTROL_4) return; // invalid register address
+
+  i2c_write_blocking(_i2c, _address, &reg_addr, 1, true);
+  i2c_read_blocking(_i2c, _address, &reg.raw[reg_addr], 1, false);
+}
+
+void bq25619::read_all_regs(void) {
+  uint8_t addr = BQ25619_REG_INPUT_CURRENT_LIMIT;
+
+  i2c_write_blocking(_i2c, _address, &addr, 1, true);
+  i2c_read_blocking(_i2c, _address, reg.raw, 13, false);
+
+  reg.in_cur_lim.byte   = reg.raw[0];
+  reg.ctrl_0.byte       = reg.raw[1];
+  reg.chg_cur_lim.byte  = reg.raw[2];
+  reg.pre_cur_lim.byte  = reg.raw[3];
+  reg.bat_volt_lim.byte = reg.raw[4];
+  reg.ctrl_1.byte       = reg.raw[5];
+  reg.ctrl_2.byte       = reg.raw[6];
+  reg.ctrl_3.byte       = reg.raw[7];
+  reg.status_0.byte     = reg.raw[8];
+  reg.status_1.byte     = reg.raw[9];
+  reg.status_2.byte     = reg.raw[10];
+  reg.part_info.byte    = reg.raw[11];
+  reg.ctrl_4.byte       = reg.raw[12];
+}
+
+void bq25619::reset_all_regs() {
   uint8_t addr = BQ25619_REG_PART_INFORMATION;
   uint8_t buf[2] = {BQ25619_REG_PART_INFORMATION, 0x80}; // register reset
 
@@ -49,31 +58,10 @@ void bq25619::reset_reg() {
 
   while (true) {
     i2c_write_blocking(_i2c, _address, &addr, 1, true);
-    i2c_read_blocking(_i2c, _address, &reg_part_info.byte, 1, false);
-    if(reg_part_info.REG_RST == 0) break; // wait until reset is done
+    i2c_read_blocking(_i2c, _address, &reg.part_info.byte, 1, false);
+    if(reg.part_info.REG_RST == 0) break; // wait until reset is done
     sleep_ms(10);
   }
-}
-
-void bq25619::read_all_regs(void) {
-  uint8_t addr = BQ25619_REG_INPUT_CURRENT_LIMIT;
-
-  i2c_write_blocking(_i2c, _address, &addr, 1, true);
-  i2c_read_blocking(_i2c, _address, reg_raw, 13, false);
-
-  reg_in_cur_lim.byte   = reg_raw[0];
-  reg_ctrl_0.byte       = reg_raw[1];
-  reg_chg_cur_lim.byte  = reg_raw[2];
-  reg_pre_cur_lim.byte  = reg_raw[3];
-  reg_bat_volt_lim.byte = reg_raw[4];
-  reg_ctrl_1.byte       = reg_raw[5];
-  reg_ctrl_2.byte       = reg_raw[6];
-  reg_ctrl_3.byte       = reg_raw[7];
-  reg_status_0.byte     = reg_raw[8];
-  reg_status_1.byte     = reg_raw[9];
-  reg_status_2.byte     = reg_raw[10];
-  reg_part_info.byte    = reg_raw[11];
-  reg_ctrl_3.byte       = reg_raw[12];
 }
 
 void bq25619::set_ignore_ts(bool ignore) {
@@ -81,10 +69,18 @@ void bq25619::set_ignore_ts(bool ignore) {
   uint8_t buf[2] = {BQ25619_REG_INPUT_CURRENT_LIMIT, 0x00};
 
   i2c_write_blocking(_i2c, _address, &addr, 1, true);
-  i2c_read_blocking(_i2c, _address, &reg_in_cur_lim.byte, 1, false);
+  i2c_read_blocking(_i2c, _address, &reg.in_cur_lim.byte, 1, false);
 
-  reg_in_cur_lim.TS_IGNORE = ignore ? 1 : 0;
+  reg.in_cur_lim.TS_IGNORE = ignore ? 1 : 0;
 
-  buf[1] = reg_in_cur_lim.byte;
+  buf[1] = reg.in_cur_lim.byte;
   i2c_write_blocking(_i2c, _address, buf, 2, false);
+}
+
+bool bq25619::get_charging_status(void) {
+  return reg.status_0.CHRG_STAT == 0x01 || reg.status_0.CHRG_STAT == 0x02;
+}
+
+uint8_t bq25619::get_fault_status(void) {
+  return reg.status_1.byte;
 }
