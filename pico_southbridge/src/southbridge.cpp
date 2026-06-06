@@ -46,6 +46,7 @@ int main() {
   gpio_put(PIN_DAC_MUTE, 1);
   Gamepad.init();
   Temperature.init();
+  TempSensor.init();
   Vibration.init();
   Vibration.enable(true);
   Charger.init();

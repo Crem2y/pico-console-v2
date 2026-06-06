@@ -9,7 +9,7 @@ tempNTC::tempNTC(int ntc_pin, float ratio, float t0) {
 
 void tempNTC::init(void) {
   adc_init();
-  adc_gpio_init(_adc_channel);
+  adc_gpio_init(_ntc_pin);
 }
 
 float tempNTC::read(void) {
