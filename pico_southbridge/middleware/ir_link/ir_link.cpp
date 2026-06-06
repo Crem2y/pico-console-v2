@@ -15,6 +15,11 @@ void irLink::init() {
   current_tx_format = IR_FORMAT_UNKNOWN;
   current_rx_format = IR_FORMAT_UNKNOWN;
   tx_data_len = 0;
+
+  enable_tx(true);
+  enable_tx(false);
+  enable_rx(true);
+  enable_rx(false);
 }
 
 void irLink::update(void) {
