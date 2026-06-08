@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "uart_bridge.h"
 
 static uart_inst_t* _uart;
@@ -114,20 +113,30 @@ int uart_bridge_readable(void) {
  * @return int buffer size (0-UART_BRIDGE_BUF_SIZE)
  */
 int uart_bridge_writable(void) {
-  return (tx_queue.head + tx_queue.buf_size - tx_queue.tail) % tx_queue.buf_size;
+  //return (tx_queue.head + tx_queue.buf_size - tx_queue.tail) % tx_queue.buf_size;
+  return UART_BRIDGE_BUF_SIZE; // test
 }
 
-int uart_bridge_send(size_t data_size, const uint8_t* data) {
+int uart_bridge_write(const uint8_t* data, size_t data_size) {
   if (data_size > UART_BRIDGE_BUF_SIZE || data == NULL) {
     return -1; // Data size exceeds buffer size or data is NULL
   }
+
   uart_write_blocking(_uart, data, data_size);
-  return 1; // Success
+
+  return data_size; // Success
 }
 
-int uart_bridge_receive(size_t buf_size, uint8_t* data) {
-  if (buf_size > UART_BRIDGE_BUF_SIZE || data == NULL) {
-    return -1; // Buffer size exceeds buffer capacity or data is NULL
+int uart_bridge_read(uint8_t* data, size_t buf_size) {
+  if (data == NULL) {
+    return -1;
   }
+  size_t readable_bytes = uart_bridge_readable();
+  size_t read_size = readable_bytes > buf_size ? buf_size : readable_bytes;
+  for (size_t i = 0; i < read_size; i++) {
+    data[i] = rx_queue.buf[(rx_queue.head + i) % rx_queue.buf_size];
+  }
+  rx_queue.head = (rx_queue.head + read_size) % rx_queue.buf_size;
 
+  return read_size; // Success
 }

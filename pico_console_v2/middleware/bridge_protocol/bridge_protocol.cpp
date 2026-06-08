@@ -6,6 +6,10 @@ bridgeProtocol::bridgeProtocol(void) {
 
 void bridgeProtocol::init(void) {
   cmd_handler = NULL;
+  readable = NULL;
+  read = NULL;
+  writable = NULL;
+  write = NULL;
 
   parse_seq = SEQ_WAIT_HEADER;
   parse_payload_index = 0;
@@ -182,6 +186,13 @@ void bridgeProtocol::set_cmd_handler(void (*do_cmd)(const bridge_msg_t*)) {
   cmd_handler = do_cmd;
 }
 
+void bridgeProtocol::set_transport_handler(bridge_transport_t* handlers) {
+  readable = handlers->readable;
+  read = handlers->read;
+  writable = handlers->writable;
+  write = handlers->write;
+}
+
 bridge_protocol_t bridgeProtocol::encode_packet(const bridge_msg_t* msg) {
   bridge_protocol_t packet;
   size_t payload_size = msg->payload_size;
@@ -209,20 +220,19 @@ bridge_protocol_t bridgeProtocol::encode_packet(const bridge_msg_t* msg) {
 }
 
 void bridgeProtocol::process_io(void) {
-  int rx_data_size = uart_bridge_readable();
-  if(rx_data_size > 0) {
-    uint8_t data[UART_BRIDGE_BUF_SIZE];
-    for (size_t i = 0; i < rx_data_size; i++) {
-      data[i] = rx_queue.buf[(rx_queue.head + i) % rx_queue.buf_size];
-    }
-    rx_queue.head = (rx_queue.head + rx_data_size) % rx_queue.buf_size;
+  if(readable == NULL || read == NULL || writable == NULL || write == NULL) {
+    return;
+  }
+
+  if(readable() > 0) {
+    uint8_t data[128];
+    int rx_data_size = read(data, 128);
     parse_bytes(data, rx_data_size);
   }
 
   bridge_msg_t msg;
   bridge_protocol_t packet;
   if(pop_tx(&msg) > 0) {
-    // Send cmd via UART
     packet = encode_packet(&msg);
     uint8_t buffer[sizeof(bridge_protocol_t)];
     buffer[0] = packet.header;
@@ -231,6 +241,10 @@ void bridgeProtocol::process_io(void) {
     memcpy(&buffer[3], packet.payload, packet.payload_size);
     buffer[3 + packet.payload_size] = packet.checksum;
     buffer[4 + packet.payload_size] = packet.tail;
-    uart_bridge_send(5 + packet.payload_size, buffer);
+
+    int tx_data_size = 5 + packet.payload_size;
+    if(writable() >= tx_data_size) {
+      write(buffer, tx_data_size);
+    }
   }
 }

@@ -32,6 +32,8 @@ time_ms_t touch_timer;
 int main() { // uses core 0 to sub core
   // uartLog_init(uart0, 0, 1, 115200);
   uart_bridge_init(uart0, PIN_BRIDGE_TX, PIN_BRIDGE_RX, 921600);
+  bridge_transport_t transport = {uart_bridge_readable, uart_bridge_read, uart_bridge_writable, uart_bridge_write};
+  Bridge.set_transport_handler(&transport);
   Bridge.set_cmd_handler(bridge_do_cmd);
   last_bridge_cmd_time = 0;
   sleep_ms(100);
