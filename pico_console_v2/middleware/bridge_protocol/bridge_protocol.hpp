@@ -45,11 +45,11 @@ class bridgeProtocol {
 
     void init(void);
 
-    int bridge_msg_push(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload);
+    int send(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload);
 
-    void bridge_handle(void);
-    void bridge_protocol_execute_cmd(void);
-    void set_bridge_do_cmd(void (*do_cmd)(const bridge_msg_t*));
+    void process_io(void);
+    void dispatch_rx(void);
+    void set_cmd_handler(void (*do_cmd)(const bridge_msg_t*));
 
   private:
     ProtocolSequence parse_seq;
@@ -61,18 +61,18 @@ class bridgeProtocol {
     bridge_msg_queue_t tx_msg_queue;
     bridge_msg_queue_t rx_msg_queue;
 
-    void bridge_protocol_parse(const uint8_t* data, size_t data_size);
+    void parse_bytes(const uint8_t* data, size_t data_size);
 
-    bridge_msg_t bridge_msg_create(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload);
+    bridge_msg_t make_msg(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload);
 
-    int bridge_msg_tx_queue_push(bridge_msg_t msg);
-    int bridge_msg_tx_queue_pop(bridge_msg_t* msg);
+    int push_tx(bridge_msg_t msg);
+    int pop_tx(bridge_msg_t* msg);
 
-    int bridge_msg_rx_queue_push(bridge_msg_t msg);
-    int bridge_msg_rx_queue_pop(bridge_msg_t* msg);
+    int push_rx(bridge_msg_t msg);
+    int pop_rx(bridge_msg_t* msg);
 
-    inline void bridge_protocol_error_print(ProtocolSequence error_seq, uint8_t data);
-    bridge_protocol_t bridge_protocol_create(const bridge_msg_t* msg);
+    inline void print_error(ProtocolSequence error_seq, uint8_t data);
+    bridge_protocol_t encode_packet(const bridge_msg_t* msg);
 
-    void (*do_cmd_function)(const bridge_msg_t*);
+    void (*cmd_handler)(const bridge_msg_t*);
 };

@@ -94,7 +94,7 @@ void gamepad::send_bridge_data(void) {
   payload_buf[5] = joystick_x[1]; // joyRx
   payload_buf[6] = joystick_y[1]; // joyRy
 
-  Bridge.bridge_msg_push(CMD_GAMEPAD_DATA, payload_size, payload_buf);
+  Bridge.send(CMD_GAMEPAD_DATA, payload_size, payload_buf);
 }
 
 void gamepad::send_bridge_raw_data(void) {
@@ -111,7 +111,7 @@ void gamepad::send_bridge_raw_data(void) {
   payload_buf[6] = joystick_raw_y[1] & 0xFF;
   payload_buf[7] = joystick_raw_y[1] >> 8 & 0xFF;
 
-  Bridge.bridge_msg_push(CMD_GAMEPAD_RAW_DATA, payload_size, payload_buf);
+  Bridge.send(CMD_GAMEPAD_RAW_DATA, payload_size, payload_buf);
 }
 
 void gamepad::recv_bridge_enable(const uint8_t* payload, uint8_t payload_size) {

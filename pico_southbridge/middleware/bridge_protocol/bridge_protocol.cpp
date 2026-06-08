@@ -5,7 +5,7 @@ bridgeProtocol::bridgeProtocol(void) {
 }
 
 void bridgeProtocol::init(void) {
-  do_cmd_function = NULL;
+  cmd_handler = NULL;
 
   parse_seq = SEQ_WAIT_HEADER;
   parse_payload_index = 0;
@@ -18,11 +18,11 @@ void bridgeProtocol::init(void) {
   rx_msg_queue.tail = 0;
 }
 
-int bridgeProtocol::bridge_msg_push(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload) {
-  return bridge_msg_tx_queue_push(bridge_msg_create(cmd, payload_size, payload));
+int bridgeProtocol::send(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload) {
+  return push_tx(make_msg(cmd, payload_size, payload));
 }
 
-bridge_msg_t bridgeProtocol::bridge_msg_create(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload) {
+bridge_msg_t bridgeProtocol::make_msg(enum bridge_cmd cmd, size_t payload_size, const uint8_t* payload) {
   bridge_msg_t msg;
   msg.cmd = (uint8_t)cmd;
   memset(msg.payload, 0, PAYLOAD_MAX_SIZE);
@@ -39,7 +39,7 @@ bridge_msg_t bridgeProtocol::bridge_msg_create(enum bridge_cmd cmd, size_t paylo
   return msg;
 }
 
-int bridgeProtocol::bridge_msg_tx_queue_push(bridge_msg_t msg) {
+int bridgeProtocol::push_tx(bridge_msg_t msg) {
   size_t next_tail = (tx_msg_queue.tail + 1) % BRIDGE_MSG_QUEUE_SIZE;
   if (next_tail == tx_msg_queue.head) {
     return -1; // Queue is full
@@ -49,7 +49,7 @@ int bridgeProtocol::bridge_msg_tx_queue_push(bridge_msg_t msg) {
   return 1; // Success
 }
 
-int bridgeProtocol::bridge_msg_tx_queue_pop(bridge_msg_t* msg) {
+int bridgeProtocol::pop_tx(bridge_msg_t* msg) {
   if (tx_msg_queue.head == tx_msg_queue.tail) {
     return -1; // Queue is empty
   }
@@ -58,7 +58,7 @@ int bridgeProtocol::bridge_msg_tx_queue_pop(bridge_msg_t* msg) {
   return 1; // Success
 }
 
-int bridgeProtocol::bridge_msg_rx_queue_push(bridge_msg_t msg) {
+int bridgeProtocol::push_rx(bridge_msg_t msg) {
   size_t next_tail = (rx_msg_queue.tail + 1) % BRIDGE_MSG_QUEUE_SIZE;
   if (next_tail == rx_msg_queue.head) {
     return -1; // Queue is full
@@ -68,7 +68,7 @@ int bridgeProtocol::bridge_msg_rx_queue_push(bridge_msg_t msg) {
   return 1; // Success
 }
 
-int bridgeProtocol::bridge_msg_rx_queue_pop(bridge_msg_t* msg) {
+int bridgeProtocol::pop_rx(bridge_msg_t* msg) {
   if (rx_msg_queue.head == rx_msg_queue.tail) {
     return -1; // Queue is empty
   }
@@ -77,7 +77,7 @@ int bridgeProtocol::bridge_msg_rx_queue_pop(bridge_msg_t* msg) {
   return 1; // Success
 }
 
-void bridgeProtocol::bridge_protocol_parse(const uint8_t* data, size_t data_size) {
+void bridgeProtocol::parse_bytes(const uint8_t* data, size_t data_size) {
   for (size_t i = 0; i < data_size; i++) {
     uint8_t byte = data[i];
     switch (parse_seq) {
@@ -86,7 +86,7 @@ void bridgeProtocol::bridge_protocol_parse(const uint8_t* data, size_t data_size
           parse_seq = SEQ_WAIT_COMMAND;
         } else {
           // Invalid header
-          bridge_protocol_error_print(parse_seq, byte);
+          print_error(parse_seq, byte);
         }
         break;
       case SEQ_WAIT_COMMAND:
@@ -99,7 +99,7 @@ void bridgeProtocol::bridge_protocol_parse(const uint8_t* data, size_t data_size
         parse_checksum ^= byte;
         if (parse_msg.payload_size > PAYLOAD_MAX_SIZE) {
           // Invalid payload size, reset state
-          bridge_protocol_error_print(parse_seq, byte);
+          print_error(parse_seq, byte);
           parse_seq = SEQ_WAIT_HEADER;
         } else if (parse_msg.payload_size == 0) {
           parse_seq = SEQ_WAIT_INTEGRITY; // No payload, skip to integrity check
@@ -130,10 +130,10 @@ void bridgeProtocol::bridge_protocol_parse(const uint8_t* data, size_t data_size
       case SEQ_WAIT_TAIL:
         if (byte == BRIDGE_TAIL) {
           //printf("Bridge protocol OK! (cmd: 0x%02X, size: %d)\n", cmd.cmd, cmd.payload_size);
-          bridge_msg_rx_queue_push(parse_msg);
+          push_rx(parse_msg);
         } else {
           // Invalid tail
-          bridge_protocol_error_print(parse_seq, byte);
+          print_error(parse_seq, byte);
         }
         // Reset state for next command
         parse_seq = SEQ_WAIT_HEADER;
@@ -142,16 +142,16 @@ void bridgeProtocol::bridge_protocol_parse(const uint8_t* data, size_t data_size
   }
 }
 
-void bridgeProtocol::bridge_protocol_execute_cmd(void) {
+void bridgeProtocol::dispatch_rx(void) {
   bridge_msg_t msg;
-  while(bridge_msg_rx_queue_pop(&msg) > 0) {
-    if(do_cmd_function) {
-      do_cmd_function(&msg);
+  while(pop_rx(&msg) > 0) {
+    if(cmd_handler) {
+      cmd_handler(&msg);
     }
   }
 }
 
-inline void bridgeProtocol::bridge_protocol_error_print(ProtocolSequence error_seq, uint8_t data) {
+inline void bridgeProtocol::print_error(ProtocolSequence error_seq, uint8_t data) {
   /*
   // print error message
   switch (error_seq)
@@ -178,11 +178,11 @@ inline void bridgeProtocol::bridge_protocol_error_print(ProtocolSequence error_s
   */
 }
 
-void bridgeProtocol::set_bridge_do_cmd(void (*do_cmd)(const bridge_msg_t*)) {
-  do_cmd_function = do_cmd;
+void bridgeProtocol::set_cmd_handler(void (*do_cmd)(const bridge_msg_t*)) {
+  cmd_handler = do_cmd;
 }
 
-bridge_protocol_t bridgeProtocol::bridge_protocol_create(const bridge_msg_t* msg) {
+bridge_protocol_t bridgeProtocol::encode_packet(const bridge_msg_t* msg) {
   bridge_protocol_t packet;
   size_t payload_size = msg->payload_size;
 
@@ -208,7 +208,7 @@ bridge_protocol_t bridgeProtocol::bridge_protocol_create(const bridge_msg_t* msg
   return packet;
 }
 
-void bridgeProtocol::bridge_handle(void) {
+void bridgeProtocol::process_io(void) {
   int rx_data_size = uart_bridge_readable();
   if(rx_data_size > 0) {
     uint8_t data[UART_BRIDGE_BUF_SIZE];
@@ -216,14 +216,14 @@ void bridgeProtocol::bridge_handle(void) {
       data[i] = rx_queue.buf[(rx_queue.head + i) % rx_queue.buf_size];
     }
     rx_queue.head = (rx_queue.head + rx_data_size) % rx_queue.buf_size;
-    bridge_protocol_parse(data, rx_data_size);
+    parse_bytes(data, rx_data_size);
   }
 
   bridge_msg_t msg;
   bridge_protocol_t packet;
-  if(bridge_msg_tx_queue_pop(&msg) > 0) {
+  if(pop_tx(&msg) > 0) {
     // Send cmd via UART
-    packet = bridge_protocol_create(&msg);
+    packet = encode_packet(&msg);
     uint8_t buffer[sizeof(bridge_protocol_t)];
     buffer[0] = packet.header;
     buffer[1] = packet.cmd;

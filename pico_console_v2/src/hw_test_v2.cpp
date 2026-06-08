@@ -32,7 +32,7 @@ time_ms_t touch_timer;
 int main() { // uses core 0 to sub core
   // uartLog_init(uart0, 0, 1, 115200);
   uart_bridge_init(uart0, PIN_BRIDGE_TX, PIN_BRIDGE_RX, 921600);
-  Bridge.set_bridge_do_cmd(bridge_do_cmd);
+  Bridge.set_cmd_handler(bridge_do_cmd);
   last_bridge_cmd_time = 0;
   sleep_ms(100);
 
@@ -106,8 +106,8 @@ int main() { // uses core 0 to sub core
     uint8_t temp_payload[PAYLOAD_MAX_SIZE];
     int payload_size = 0;
 
-    Bridge.bridge_handle();
-    Bridge.bridge_protocol_execute_cmd();
+    Bridge.process_io();
+    Bridge.dispatch_rx();
 
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
@@ -122,7 +122,7 @@ int main() { // uses core 0 to sub core
       Audio.update();
       payload_size = Audio.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        Bridge.bridge_msg_push(CMD_AUDIO_PCM_DATA, payload_size, temp_payload);
+        Bridge.send(CMD_AUDIO_PCM_DATA, payload_size, temp_payload);
       }
     }
     if(system_time_elapsed_ms(now_time, vibration_timer) > 10) {

@@ -188,7 +188,7 @@ void gamepad::send_bridge_enable(bool enable, bool raw_data_enable) {
 
   payload_buf[0] = (enable ? 1 : 0) | (raw_data_enable ? 2 : 0);
 
-  Bridge.bridge_msg_push(CMD_GAMEPAD_ENABLE, payload_size, payload_buf);
+  Bridge.send(CMD_GAMEPAD_ENABLE, payload_size, payload_buf);
 }
 
 void gamepad::recv_bridge_data(const uint8_t* payload, uint8_t payload_size) {

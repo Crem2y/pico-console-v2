@@ -56,7 +56,7 @@ void imu::send_bridge_accel_data(void) {
   payload_buf[4] = accel_data_raw[2] & 0xFF;
   payload_buf[5] = accel_data_raw[2] >> 8;
 
-  Bridge.bridge_msg_push(CMD_IMU_ACCEL_DATA, payload_size, payload_buf);
+  Bridge.send(CMD_IMU_ACCEL_DATA, payload_size, payload_buf);
 }
 
 void imu::send_bridge_gyro_data(void) {
@@ -71,7 +71,7 @@ void imu::send_bridge_gyro_data(void) {
   payload_buf[4] = gyro_data_raw[2] & 0xFF;
   payload_buf[5] = gyro_data_raw[2] >> 8;
 
-  Bridge.bridge_msg_push(CMD_IMU_GYRO_DATA, payload_size, payload_buf);
+  Bridge.send(CMD_IMU_GYRO_DATA, payload_size, payload_buf);
 }
 
 void imu::recv_bridge_enable(const uint8_t* payload, uint8_t payload_size) {

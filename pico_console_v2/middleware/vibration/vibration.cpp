@@ -37,7 +37,7 @@ void vibration::update(void) {
   payload_buf[4] = (freq[VIBRATION_R] >> 8) & 0xFF;  // high byte of channel 2 frequency
   payload_buf[5] = power[VIBRATION_R];               // channel 2 power
 
-  Bridge.bridge_msg_push(CMD_VIBRATION_DATA, payload_size, payload_buf);
+  Bridge.send(CMD_VIBRATION_DATA, payload_size, payload_buf);
 
   prev_freq[VIBRATION_L] = freq[VIBRATION_L];
   prev_freq[VIBRATION_R] = freq[VIBRATION_R];

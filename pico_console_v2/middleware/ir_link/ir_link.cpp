@@ -18,9 +18,9 @@ void irLink::send_bridge_enable_tx(bool enable, enum ir_format format) {
 
   payload_buf[0] = (uint8_t)format;
   if (enable) {
-    Bridge.bridge_msg_push(CMD_IR_TX_ENABLE, payload_size, payload_buf);
+    Bridge.send(CMD_IR_TX_ENABLE, payload_size, payload_buf);
   } else {
-    Bridge.bridge_msg_push(CMD_IR_TX_DISABLE, payload_size, payload_buf);
+    Bridge.send(CMD_IR_TX_DISABLE, payload_size, payload_buf);
   }
 }
 
@@ -30,9 +30,9 @@ void irLink::send_bridge_enable_rx(bool enable, enum ir_format format) {
 
   payload_buf[0] = (uint8_t)format;
   if (enable) {
-    Bridge.bridge_msg_push(CMD_IR_RX_ENABLE, payload_size, payload_buf);
+    Bridge.send(CMD_IR_RX_ENABLE, payload_size, payload_buf);
   } else {
-    Bridge.bridge_msg_push(CMD_IR_RX_DISABLE, payload_size, payload_buf);
+    Bridge.send(CMD_IR_RX_DISABLE, payload_size, payload_buf);
   }
 
   rx_format = (enum ir_format)format;
@@ -101,6 +101,6 @@ void irLink::send_bridge_tx_data(enum ir_format format, const uint8_t* data, siz
     }
 
     size_t payload_size = 2 + send_count;
-    Bridge.bridge_msg_push(CMD_IR_TX_DATA, payload_size, payload_buf);
+    Bridge.send(CMD_IR_TX_DATA, payload_size, payload_buf);
   }
 }

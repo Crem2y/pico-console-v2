@@ -37,7 +37,7 @@ int main() {
 //  uartLog_init(uart0, 0, 1, 115200);
   stdio_init_all();
   uart_bridge_init(uart1, PIN_BRIDGE_TX, PIN_BRIDGE_RX, 921600);
-  Bridge.set_bridge_do_cmd(bridge_do_cmd);
+  Bridge.set_cmd_handler(bridge_do_cmd);
 
   audio_init(PIN_I2S_DATA, PIN_I2S_SCK);
   Audio.init();
@@ -73,8 +73,8 @@ int main() {
     uint8_t temp_payload[PAYLOAD_MAX_SIZE];
     int payload_size = 0;
 
-    Bridge.bridge_handle();
-    Bridge.bridge_protocol_execute_cmd();
+    Bridge.process_io();
+    Bridge.dispatch_rx();
 
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
@@ -85,7 +85,7 @@ int main() {
       Temperature.update();
       payload_size = Temperature.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
       if(payload_size > 0) {
-        Bridge.bridge_msg_push(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
+        Bridge.send(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
       }
 
       printf("voltage : % 1.3fV\n", TempSensor.read()*2); //test

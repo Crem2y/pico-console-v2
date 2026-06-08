@@ -45,11 +45,11 @@ void imu::send_bridge_enable(bool enable_accel, bool enable_gyro) {
 
   payload_buf[0] = (enable_accel ? 1 : 0) | (enable_gyro ? 2 : 0);
 
-  Bridge.bridge_msg_push(CMD_IMU_ENABLE, 1, payload_buf);
+  Bridge.send(CMD_IMU_ENABLE, 1, payload_buf);
 }
 
 void imu::send_bridge_disable(void) {
-  Bridge.bridge_msg_push(CMD_IMU_DISABLE, 0, NULL);
+  Bridge.send(CMD_IMU_DISABLE, 0, NULL);
 }
 
 void imu::recv_bridge_accel_data(const uint8_t* payload, uint8_t payload_size) {

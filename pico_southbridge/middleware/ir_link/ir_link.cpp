@@ -178,6 +178,6 @@ void irLink::send_bridge_rx_data(enum ir_format format, const uint8_t* data, siz
     }
 
     size_t payload_size = 2 + send_count;
-    Bridge.bridge_msg_push(CMD_IR_RX_DATA, payload_size, payload_buf);
+    Bridge.send(CMD_IR_RX_DATA, payload_size, payload_buf);
   }
 }
