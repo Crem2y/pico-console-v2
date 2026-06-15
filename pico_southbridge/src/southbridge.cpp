@@ -1,14 +1,15 @@
 // headers
 #include "southbridge.hpp"
+#include "southbridge_hw_def.h"
 
 // hw lib init
 btn_matrix BtnMatrix = btn_matrix(PIN_BTN_H1, PIN_BTN_H2, PIN_BTN_H3, PIN_BTN_H4, PIN_BTN_V1, PIN_BTN_V2, PIN_BTN_V3, PIN_BTN_V4);
 joystick Joy1 = joystick(PIN_JOY1_X, PIN_JOY1_Y, false, false, PIN_JOY1_BTN);
 joystick Joy2 = joystick(PIN_JOY2_X, PIN_JOY2_Y, true,  true,  PIN_JOY2_BTN);
 vibrationLRA Lra = vibrationLRA(PIN_LRA_L, PIN_LRA_R);
-liBattery Bat = liBattery(PIN_VBAT, 0.5f);
-bq25619 Bq25619 = bq25619(i2c1, PIN_I2C_SDA, PIN_I2C_SCL, PIN_BAT_INT);
-mpu6050 Mpu = mpu6050(i2c1, PIN_I2C_SDA, PIN_I2C_SCL, PIN_IMU_INT);
+liBattery Bat = liBattery(PIN_VBAT, HW_VBAT_RATIO);
+bq25619 Bq25619 = bq25619(HW_I2C_CH, PIN_I2C_SDA, PIN_I2C_SCL, PIN_BAT_INT);
+mpu6050 Mpu = mpu6050(HW_I2C_CH, PIN_I2C_SDA, PIN_I2C_SCL, PIN_IMU_INT);
 tempNTC TempSensor = tempNTC(PIN_NTC); //test
 tempNTC TempSensor1 = tempNTC(PIN_VIN); //test
 ir_pulse_capture_t ir_rx;
@@ -36,9 +37,9 @@ time_ms_t ir_timer;
 //////// function ////////
 
 int main() {
-//  uartLog_init(uart0, 0, 1, 115200);
+//  uartLog_init(HW_LOG_CH, PIN_LOG_TX, PIN_LOG_RX, HW_LOG_BAUD);
   stdio_init_all();
-  uart_bridge_init(uart1, PIN_BRIDGE_TX, PIN_BRIDGE_RX, 921600);
+  uart_bridge_init(HW_BRIDGE_CH, PIN_BRIDGE_TX, PIN_BRIDGE_RX, HW_BRIDGE_BAUD);
   Bridge.set_cmd_handler(bridge_do_cmd);
 
   audio_init(PIN_I2S_DATA, PIN_I2S_SCK);
@@ -85,7 +86,7 @@ int main() {
         Bridge.send(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
       }
 
-      printf("voltage : % 1.3fV\n", TempSensor1.read()*2); //test (VIN)
+      printf("voltage : % 1.3fV\n", TempSensor1.read() / HW_VIN_RATIO); //test (VIN)
       printf("ntc : % 1.3fV\n", TempSensor.read()); //test (NTC)
     }
     if(system_time_elapsed_ms(now_time, imu_timer) > 10) {

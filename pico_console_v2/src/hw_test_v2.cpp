@@ -1,10 +1,11 @@
 // headers
 #include "hw_test.hpp"
+#include "v2_hw_def.h"
 
 // hw lib init
 ledStatus Led = ledStatus(PIN_LED_WL_1, PIN_LED_WL_2, PIN_LED_WL_3, PIN_LED_WL_4);
 ili9488_40 Lcd = ili9488_40(PIN_DP_MOSI, PIN_DP_SCK, PIN_DP_CS, PIN_DP_DC, PIN_DP_RST, PIN_DP_BL);
-xpt2046 Touch = xpt2046(spi0, PIN_TOUCH_MOSI, PIN_TOUCH_SCK, PIN_TOUCH_MISO, PIN_TOUCH_CS, PIN_TOUCH_IRQ);
+xpt2046 Touch = xpt2046(HW_TOUCH_CH, PIN_TOUCH_MOSI, PIN_TOUCH_SCK, PIN_TOUCH_MISO, PIN_TOUCH_CS, PIN_TOUCH_IRQ);
 
 // middleware lib init
 bridgeProtocol Bridge = bridgeProtocol();
@@ -31,8 +32,8 @@ time_ms_t touch_timer;
 //////// function ////////
 
 int main() { // uses core 0 to sub core
-  // uartLog_init(uart0, 0, 1, 115200);
-  uart_bridge_init(uart0, PIN_BRIDGE_TX, PIN_BRIDGE_RX, 921600);
+  // uartLog_init(HW_LOG_CH, PIN_LOG_TX, PIN_LOG_RX, HW_LOG_BAUD);
+  uart_bridge_init(HW_BRIDGE_CH, PIN_BRIDGE_TX, PIN_BRIDGE_RX, HW_BRIDGE_BAUD);
   bridge_transport_t transport = {uart_bridge_readable, uart_bridge_read, uart_bridge_writable, uart_bridge_write};
   Bridge.set_transport_handler(&transport);
   Bridge.set_cmd_handler(bridge_do_cmd);
