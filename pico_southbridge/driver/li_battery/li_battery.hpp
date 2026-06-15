@@ -1,10 +1,7 @@
 #pragma once
 
 #include "pico/stdlib.h"
-#include "hardware/gpio.h"
 #include "hardware/adc.h"
-
-#define BAT_ADC_CH 2
 
 class liBattery {
   public:
@@ -19,5 +16,6 @@ class liBattery {
 
   private:
     int _adc_pin;
+    int _adc_channel;
     float _res_ratio;
 };
