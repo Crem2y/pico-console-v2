@@ -2,7 +2,7 @@
 
 liBattery::liBattery(int adc_pin, float ratio) {
   _adc_pin = adc_pin;
-  _adc_channel = ntc_pin - ADC_BASE_PIN;
+  _adc_channel = adc_pin - ADC_BASE_PIN;
   _ratio = ratio;
 }
 

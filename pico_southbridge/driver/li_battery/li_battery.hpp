@@ -17,5 +17,5 @@ class liBattery {
   private:
     int _adc_pin;
     int _adc_channel;
-    float _res_ratio;
+    float _ratio;
 };
