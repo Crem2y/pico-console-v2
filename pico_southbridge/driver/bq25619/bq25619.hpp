@@ -34,16 +34,20 @@ class bq25619 {
     bq25619(i2c_inst_t* i2c, int pin_sda, int pin_scl, int pin_int, uint8_t address = BQ25619_DEFAULT_ADDRESS);
 
     void init(void);
-    void update_watchdog(void);
 
     void read_reg(uint8_t reg_addr);
     void read_all_regs(void);
     void reset_all_regs(void);
 
+    void update_watchdog(void);
+
+    void enable_charge(bool enable);
     void set_ignore_ts(bool ignore);
+    void set_charge_current(uint16_t charge_current_ma);
 
     bool get_charging_status(void);
     uint8_t get_fault_status(void);
+    uint16_t get_charge_current(void);
 
   private:
     i2c_inst_t* _i2c;

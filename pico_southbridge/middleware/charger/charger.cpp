@@ -16,10 +16,12 @@ void charger::init(void) {
   fault = 0x00;
 
   float voltage = Bat->get_voltage();
-  if(voltage < 0.5f) {
+  if(voltage < 2.0f) {
     is_battery_exist = false;
+    Bq25619->enable_charge(false);
   } else {
     is_battery_exist = true;
+    Bq25619->set_ignore_ts(true);
   }
 }
 
