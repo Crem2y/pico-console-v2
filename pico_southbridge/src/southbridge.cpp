@@ -65,6 +65,13 @@ int main() {
   uart_bridge_enable_irq();
 
   // boot sequence end
+  Bq25619.read_reg(BQ25619_REG_CHARGE_CURRENT_LIMIT);
+  printf("before ichg : %dmA\n", Bq25619.get_charge_current());
+
+  Bq25619.set_charge_current(500);
+
+  Bq25619.read_reg(BQ25619_REG_CHARGE_CURRENT_LIMIT);
+  printf("after ichg : %dmA\n", Bq25619.get_charge_current());
 
   while (true) {
     time_ms_t now_time = get_system_time_ms();

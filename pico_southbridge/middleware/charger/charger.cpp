@@ -15,6 +15,8 @@ void charger::init(void) {
   charging = false;
   fault = 0x00;
 
+  sleep_ms(100);
+
   float voltage = Bat->get_voltage();
   if(voltage < 2.0f) {
     is_battery_exist = false;
