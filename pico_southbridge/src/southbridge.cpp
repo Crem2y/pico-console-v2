@@ -6,9 +6,11 @@ btn_matrix BtnMatrix = btn_matrix(PIN_BTN_H1, PIN_BTN_H2, PIN_BTN_H3, PIN_BTN_H4
 joystick Joy1 = joystick(PIN_JOY1_X, PIN_JOY1_Y, false, false, PIN_JOY1_BTN);
 joystick Joy2 = joystick(PIN_JOY2_X, PIN_JOY2_Y, true,  true,  PIN_JOY2_BTN);
 vibrationLRA Lra = vibrationLRA(PIN_LRA_L, PIN_LRA_R);
+liBattery Bat = liBattery(PIN_VBAT, 0.5f);
 bq25619 Bq25619 = bq25619(i2c1, PIN_I2C_SDA, PIN_I2C_SCL, PIN_BAT_INT);
 mpu6050 Mpu = mpu6050(i2c1, PIN_I2C_SDA, PIN_I2C_SCL, PIN_IMU_INT);
-tempNTC TempSensor = tempNTC(PIN_VIN);
+tempNTC TempSensor = tempNTC(PIN_NTC); //test
+tempNTC TempSensor1 = tempNTC(PIN_VIN); //test
 ir_pulse_capture_t ir_rx;
 ir_tx_t ir_tx;
 
@@ -62,11 +64,6 @@ int main() {
   uart_bridge_enable_irq();
 
   // boot sequence end
-  // Bq25619.set_ignore_ts(true); //test
-  // Bq25619.read_all_regs();
-  // for(int i=0; i<13; i++) { //test
-  //   printf("bq25619 reg 0x%02X : 0x%02X\n", i, Charger.reg_raw[i]);
-  // }
 
   while (true) {
     time_ms_t now_time = get_system_time_ms();
@@ -88,7 +85,8 @@ int main() {
         Bridge.send(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
       }
 
-      printf("voltage : % 1.3fV\n", TempSensor.read()*2); //test
+      printf("voltage : % 1.3fV\n", TempSensor1.read()*2); //test (VIN)
+      printf("ntc : % 1.3fV\n", TempSensor.read()); //test (NTC)
     }
     if(system_time_elapsed_ms(now_time, imu_timer) > 10) {
       imu_timer = now_time;
@@ -97,7 +95,9 @@ int main() {
     if(system_time_elapsed_ms(now_time, battery_timer) > 1000) {
       battery_timer = now_time;
       Charger.update();
-      printf("Charging: %s | Fault: 0x%02X\n", Charger.charging ? "Yes" : "No", Charger.fault); //test
+      //test
+      printf("Level : % 3.1f%% (% 1.3fV)\n", Charger.get_bat_level(), Charger.get_bat_voltage());
+      printf("Charging: %s | Fault: 0x%02X\n", Charger.get_charging_status() ? "Yes" : "No", Charger.get_fault_status());
     }
     if(system_time_elapsed_ms(now_time, ir_timer) > 1) {
       ir_timer = now_time;
@@ -122,6 +122,11 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   enum bridge_cmd command = (enum bridge_cmd)msg->cmd;
   switch (command)
   {
+  case CMD_POWER_CONTROL:
+    break;
+  case CMD_BATTERY_CONTROL:
+    Charger.recv_bridge_bat_control(msg->payload, msg->payload_size);
+    break;
   case CMD_GAMEPAD_ENABLE:
     Gamepad.recv_bridge_enable(msg->payload, msg->payload_size);
     break;

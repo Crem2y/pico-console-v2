@@ -12,7 +12,7 @@
 #include "i2s_pcm.h"
 #include "btn_matrix.hpp"
 #include "joystick.hpp"
-// #include "li_battery.hpp"
+#include "li_battery.hpp"
 #include "ir_rx.h"
 #include "ir_tx.h"
 #include "system_time.h"
@@ -69,4 +69,6 @@
 #define PIN_JOY2_X      42
 #define PIN_JOY2_Y      43
 #define PIN_VIN         44
-// reserved 45-47
+#define PIN_VBAT        45 // VBAT / 2
+#define PIN_NTC         46
+// reserved 47
