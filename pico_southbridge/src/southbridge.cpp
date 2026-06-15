@@ -68,8 +68,6 @@ int main() {
 
   while (true) {
     time_ms_t now_time = get_system_time_ms();
-    uint8_t temp_payload[PAYLOAD_MAX_SIZE];
-    int payload_size = 0;
 
     Bridge.process_io();
     Bridge.dispatch_rx();
@@ -81,11 +79,8 @@ int main() {
     if(system_time_elapsed_ms(now_time, temperature_timer) > 1000) {
       temperature_timer = now_time;
       Temperature.update();
-      payload_size = Temperature.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
-      if(payload_size > 0) {
-        Bridge.send(CMD_TEMPERATURE_DATA, payload_size, temp_payload);
-      }
 
+      printf("temp : % 3.1f'C\n", Temperature.get_temp(TEMP_BUILTIN));
       printf("voltage : % 1.3fV\n", TempSensor1.read() / HW_VIN_RATIO); //test (VIN)
       printf("ntc : % 1.3fV\n", TempSensor.read()); //test (NTC)
     }
@@ -97,8 +92,8 @@ int main() {
       battery_timer = now_time;
       Charger.update();
       //test
-      printf("Level : % 3.1f%% (% 1.3fV)\n", Charger.get_bat_level(), Charger.get_bat_voltage());
-      printf("Charging: %s | Fault: 0x%02X\n", Charger.get_charging_status() ? "Yes" : "No", Charger.get_fault_status());
+      // printf("Level : % 3.1f%% (% 1.3fV)\n", Charger.get_bat_level(), Charger.get_bat_voltage());
+      // printf("Charging: %s | Fault: 0x%02X\n", Charger.get_charging_status() ? "Yes" : "No", Charger.get_fault_status());
     }
     if(system_time_elapsed_ms(now_time, ir_timer) > 1) {
       ir_timer = now_time;

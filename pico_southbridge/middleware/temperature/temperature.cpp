@@ -1,8 +1,11 @@
 #include "temperature.hpp"
+#include "bridge_protocol.hpp"
+
+extern bridgeProtocol Bridge;
 
 temperature::temperature(void) {
   for(int i=0; i<TEMP_CH_NUM; i++) {
-    temp[i] = 0.0;
+    temp[i] = 0.0f;
   }
 }
 
@@ -11,24 +14,27 @@ void temperature::init(void) {
 }
 
 void temperature::update(void) {
-  temp[TEMP_BUILTIN] = (int32_t)(built_in_temp_read() * 100);
+  temp[TEMP_BUILTIN] = built_in_temp_read();
+
+  send_bridge_data();
 }
 
-int temperature::make_bridge_payload(uint8_t* payload_buf, uint max_size) {
-  if(max_size < TEMP_CH_NUM * 2) return -1;
-
-  for(int i=0; i<TEMP_CH_NUM; i++) {
-    payload_buf[i*2] = temp[i] & 0xFF; // temp_L
-    payload_buf[i*2 + 1] = (temp[i] >> 8) & 0xFF; // temp_H
-  }
-
-  return TEMP_CH_NUM * 2;
-}
-
-temp_t temperature::get_temp(temp_ch ch) {
+float temperature::get_temp(temp_ch ch) {
   if(ch < TEMP_CH_NUM) {
     return temp[ch];
   } else {
     return 0;
   }
+}
+
+void temperature::send_bridge_data(void) {
+  int payload_size = TEMP_CH_NUM * 2;
+  uint8_t payload_buf[PAYLOAD_MAX_SIZE];
+
+  int16_t temp_x100 = temp[0] * 100.0f;
+
+  payload_buf[0] = temp_x100 & 0xFF;
+  payload_buf[1] = (temp_x100 >> 8) & 0xFF;
+
+  Bridge.send(CMD_TEMPERATURE_DATA, payload_size, payload_buf);
 }

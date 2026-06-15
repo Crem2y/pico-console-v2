@@ -4,8 +4,6 @@
 
 #define TEMP_CH_NUM 1
 
-typedef int32_t temp_t;
-
 enum temp_ch {
   TEMP_BUILTIN = 0,
   TEMP_01,
@@ -18,10 +16,10 @@ class temperature {
     void init(void);
     void update(void);
 
-    int make_bridge_payload(uint8_t* payload_buf, uint max_size);
+    float get_temp(temp_ch ch);
 
-    temp_t get_temp(temp_ch ch);
+    void send_bridge_data(void);
 
   private:
-    temp_t temp[TEMP_CH_NUM];
+    float temp[TEMP_CH_NUM];
 };

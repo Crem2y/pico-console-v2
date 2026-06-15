@@ -11,18 +11,20 @@ void temperature::init(void) {
 }
 
 void temperature::update(void) {
-  temp[TEMP_BUILTIN] = (int32_t)(built_in_temp_read() * 100);
+  temp[TEMP_BUILTIN] = built_in_temp_read();
 }
 
 void temperature::recv_bridge_data(const uint8_t* payload, uint8_t payload_size) {
   if(payload_size < (TEMP_CH_NUM-1) * 2) return; // each temp is 2 bytes (int16_t)
 
+  int16_t temp_x100;
   for(int i=0; i<TEMP_CH_NUM-1; i++) {
-    temp[i+1] = (int16_t)((payload[i*2+1] << 8) | payload[i*2]);
+    temp_x100 = ((payload[i*2+1] << 8) | payload[i*2]);
+    temp[i+1] = (float)temp_x100 / 100.0f;
   }
 }
 
-temp_t temperature::get_temp(temp_ch ch) {
+float temperature::get_temp(temp_ch ch) {
   if(ch < TEMP_CH_NUM) {
     return temp[ch];
   } else {

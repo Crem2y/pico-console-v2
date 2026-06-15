@@ -985,10 +985,10 @@ void menu_temp_test(void) {
   while(1) {
     sleep_ms(100);
     char string_buf[32];
-    sprintf(string_buf, "TEMP_BUILTIN : % 3.1fC", (float)Temperature.get_temp(TEMP_BUILTIN) / 100.0f);
+    sprintf(string_buf, "TEMP_BUILTIN : % 3.1fC", Temperature.get_temp(TEMP_BUILTIN));
     Lcd.setCursor(0,16);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "TEMP_SOUTHBRIDGE : % 3.1fC", (float)Temperature.get_temp(TEMP_SOUTHBRIDGE) / 100.0f);
+    sprintf(string_buf, "TEMP_SOUTHBRIDGE : % 3.1fC", Temperature.get_temp(TEMP_SOUTHBRIDGE));
     Lcd.setCursor(0,32);
     Lcd.print_5x8(string_buf);
 
