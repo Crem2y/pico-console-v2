@@ -24,7 +24,7 @@ void charger::init(void) {
 }
 
 void charger::update(void) {
-  Bat->get_voltage();
+  Bat->get_level();
 
   Bq25619->update_watchdog();
 
@@ -38,19 +38,11 @@ void charger::update(void) {
 }
 
 float charger::get_bat_voltage(void) {
-  if(is_battery_exist) {
-    return 0.0f;
-  } else {
-    return Bat->voltage;
-  }
+  return Bat->voltage;
 }
 
 float charger::get_bat_level(void) {
-  if(is_battery_exist) {
-    return 0.0f;
-  } else {
-    return Bat->level;
-  }
+  return Bat->level;
 }
 
 bool charger::get_charging_status(void) {

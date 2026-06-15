@@ -34,7 +34,7 @@ float liBattery::get_level(void) {
   } else if(voltage > 3.8) { // 95.9 ~ 56.0, 300mV
     bat_level = (((voltage - 3.8) / 0.3) * 40) + 56;
   } else if(voltage > 3.4) { // 55.9 ~ 13.0, 400mV
-    bat_level = (((voltage) / 0.4) * 43) + 13;
+    bat_level = (((voltage - 3.4) / 0.4) * 43) + 13;
   } else if(voltage > 3.0) { // 12.9 ~ 0.0, 400mV
     bat_level = (((voltage - 3.0) / 0.4) * 13) + 0;
   } else {

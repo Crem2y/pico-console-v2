@@ -261,9 +261,8 @@ main_menu_loop:
       sleep_ms(100);
 
       Lcd.setTextSize(1);
-      //sprintf(string_buf, "BAT:% 3.1f%%", Bat.level);
-      sprintf(string_buf, "BAT:% 3.1f%%", 0.0f);
-      Lcd.setCursor(254,0);
+      sprintf(string_buf, "BAT:% 3.1f%%", Charger.get_bat_level());
+      Lcd.setCursor(480-66,0);
       Lcd.print_5x8(string_buf);
 
       Lcd.setTextSize(2);
@@ -960,7 +959,7 @@ void menu_bat_test(void) {
     sleep_ms(100);
     char string_buf[32];
     sprintf(string_buf, "Battery : %s", Charger.get_battery_exist() ? "Yes" : "No");
-    Lcd.setCursor(0,32);
+    Lcd.setCursor(0,16);
     Lcd.print_5x8(string_buf);
     sprintf(string_buf, "Level : % 3.1f%% (%01.3fV)", Charger.get_bat_level(), Charger.get_bat_voltage());
     Lcd.setCursor(0,32);
