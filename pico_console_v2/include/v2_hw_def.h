@@ -12,7 +12,7 @@
 #define PIN_SDIO_D2     6
 #define PIN_SDIO_D3     7
 #define PIN_PSRAM_CS    8
-#define PIN_SDIO_DET    9
+#define PIN_SD_DET      9
 #define PIN_BUILTIN_LED 10
 // reserved 11
 #define PIN_BRIDGE_TX   12

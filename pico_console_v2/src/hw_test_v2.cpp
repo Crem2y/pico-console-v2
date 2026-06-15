@@ -284,7 +284,7 @@ main_menu_loop:
       }
 
       if(Gamepad.is_btn_pressed(BTN_A) || Gamepad.is_btn_pressed(BTN_START)) {
-        Lcd.fillScreen(0x0000);
+        Lcd.fillScreen(LCD_BLACK);
         switch (cursor_x)
         {
         case MAIN_BTN_TEST:
@@ -1114,10 +1114,9 @@ void menu_sd_test(void) {
   Lcd.print_5x8("SD card test");
 
   //placeholder
-  const uint8_t sd_detect_pin = 9;
-  gpio_init(sd_detect_pin);
-  gpio_set_dir(sd_detect_pin, GPIO_IN);
-  gpio_pull_up(sd_detect_pin);
+  gpio_init(PIN_SD_DET);
+  gpio_set_dir(PIN_SD_DET, GPIO_IN);
+  gpio_pull_up(PIN_SD_DET);
 
   sleep_ms(100);
   char string_buf[32];
@@ -1125,7 +1124,7 @@ void menu_sd_test(void) {
   while(1) {
     sleep_ms(100);
 
-    sprintf(string_buf, "SD card : %s", gpio_get(sd_detect_pin) ? "not inserted" : "inserted    ");
+    sprintf(string_buf, "SD card : %s", gpio_get(PIN_SD_DET) ? "not inserted" : "inserted    ");
     Lcd.setCursor(0,16);
     Lcd.print_5x8(string_buf);
 
@@ -1147,7 +1146,7 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   case CMD_POWER_STATUS:
     break;
   case CMD_BATTERY_STATUS:
-    Charger.recv_bridge_bat_control(msg->payload, msg->payload_size);
+    Charger.recv_bridge_bat_status(msg->payload, msg->payload_size);
     break;
   case CMD_GAMEPAD_DATA:
     Gamepad.recv_bridge_data(msg->payload, msg->payload_size);
