@@ -61,7 +61,7 @@ int main() { // uses core 0 to sub core
   LOG_PRINTF("LED ok\n");
   Lcd.begin();
   Lcd.fillScreen(LCD_BLACK);
-  Lcd.set_bright(250);
+  Lcd.set_bright(750);
   Lcd.setTextColor(LCD_WHITE, LCD_BLACK);
   Lcd.setTextSize(1);
   LOG_PRINTF("LCD ok\n");
@@ -166,15 +166,43 @@ void core1_entry() { // uses core 1 to main core
   Lcd.setCursor(170,210);
   Lcd.print_5x8("or touch the screen");
 
+  Lcd.setCursor(0,0);
+  Lcd.print_5x8("press L/R to change bright");
+
+  time_ms_t btn_time_ms = 0;
   time_ms_t display_time_ms = 0;
   bool display_text = false;
   bool display_bridge_status = false;
   while(true) {
+    time_ms_t now_time = get_system_time_ms();
     if(Gamepad.is_btn_pressed(BTN_START)) break;
     if(Touchscreen.is_touched()) break;
 
-    if(system_time_elapsed_ms(get_system_time_ms(), display_time_ms) > 1000) {
-      display_time_ms = get_system_time_ms();
+    if(system_time_elapsed_ms(now_time, btn_time_ms) > 200) {
+      btn_time_ms = now_time;
+      char string_buf[32];
+
+      uint16_t bright = Lcd.get_bright();
+      if(Gamepad.is_btn_pressed(BTN_SL) && bright > 50) {
+        Lcd.set_bright(bright - 50);
+        sprintf(string_buf, "bright : %d ", bright - 50);
+        Lcd.setCursor(0,8);
+        Lcd.print_5x8(string_buf);
+      }
+      if(Gamepad.is_btn_pressed(BTN_SR) && bright < 1000) {
+        Lcd.set_bright(bright + 50);
+        sprintf(string_buf, "bright : %d ", bright + 50);
+        Lcd.setCursor(0,8);
+        Lcd.print_5x8(string_buf);
+      }
+
+      sprintf(string_buf, "BAT:% 3.1f%%", Charger.get_bat_level());
+      Lcd.setCursor(480-66,0);
+      Lcd.print_5x8(string_buf);
+    }
+
+    if(system_time_elapsed_ms(now_time, display_time_ms) > 1000) {
+      display_time_ms = now_time;
       if(display_text) {
         Lcd.fillRect(190,200,66,8,LCD_BLACK);
       } else {
@@ -184,6 +212,7 @@ void core1_entry() { // uses core 1 to main core
       display_text = !display_text;
     }
 
+    // to remove flickering
     if(system_time_elapsed_ms(get_system_time_ms(), last_bridge_cmd_time) > 500) {
       if(!display_bridge_status) {
         Lcd.setCursor(150,240);
@@ -214,7 +243,10 @@ void core1_entry() { // uses core 1 to main core
     .notes = boot_notes
   };
 
-  Audio.play_music(&boot_music);
+  // if SELECT+START, quiet boot
+  if(!Gamepad.is_btn_pressed(BTN_SELECT)) {
+    Audio.play_music(&boot_music);
+  }
 
   char string_buf[32];
   uint8_t cursor_x = 0;
