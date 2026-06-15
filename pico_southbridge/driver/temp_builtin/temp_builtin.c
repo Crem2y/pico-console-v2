@@ -2,11 +2,11 @@
 
 void built_in_temp_init(void) {
   adc_init();
-  adc_set_temp_sensor_enabled(true);
 }
 
 float built_in_temp_read(void) {
-  adc_select_input(NUM_ADC_CHANNELS-1);
+  adc_set_temp_sensor_enabled(true);
+  adc_select_input(ADC_TEMPERATURE_CHANNEL_NUM);
 
   /* 12-bit conversion, assume max value == ADC_VREF == 3.3 V */
   const float conversionFactor = 3.3f / (1 << 12);

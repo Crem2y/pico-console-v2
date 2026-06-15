@@ -80,7 +80,6 @@ int main() {
       temperature_timer = now_time;
       Temperature.update();
 
-      printf("temp : % 3.1f'C\n", Temperature.get_temp(TEMP_BUILTIN));
       printf("voltage : % 1.3fV\n", TempSensor1.read() / HW_VIN_RATIO); //test (VIN)
       printf("ntc : % 1.3fV\n", TempSensor.read()); //test (NTC)
     }
