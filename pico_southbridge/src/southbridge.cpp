@@ -16,7 +16,7 @@ ir_tx_t ir_tx;
 
 // middleware lib init
 bridgeProtocol Bridge = bridgeProtocol();
-charger Charger = charger(&Bq25619);
+charger Charger = charger(&Bat, &Bq25619);
 gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, &Joy2);
 audioSystem Audio = audioSystem();
 temperature Temperature = temperature();

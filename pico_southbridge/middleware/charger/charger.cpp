@@ -67,12 +67,13 @@ void charger::send_bridge_bat_status(void) {
 
   uint16_t voltage_mv = (Bat->voltage * 1000);
   uint16_t level_x10 = (Bat->level * 10);
+  uint8_t status_flag = (is_battery_exist ? 0x80 : 0x00) | (charging ? 0x40 : 0x00);
 
   payload_buf[0] = voltage_mv & 0xFF;
-  payload_buf[1] = voltage >> 8;
+  payload_buf[1] = voltage_mv >> 8;
   payload_buf[2] = level_x10 & 0xFF;
   payload_buf[3] = level_x10 >> 8;
-  payload_buf[4] = charging; //test
+  payload_buf[4] = status_flag;
   payload_buf[5] = fault;
 
   Bridge.send(CMD_BATTERY_STATUS, payload_size, payload_buf);

@@ -8,6 +8,7 @@ xpt2046 Touch = xpt2046(spi0, PIN_TOUCH_MOSI, PIN_TOUCH_SCK, PIN_TOUCH_MISO, PIN
 
 // middleware lib init
 bridgeProtocol Bridge = bridgeProtocol();
+charger Charger = charger();
 ledControl LedCtrl = ledControl(&Led);
 gamepad Gamepad = gamepad();
 audioSystem Audio = audioSystem();
@@ -306,11 +307,9 @@ main_menu_loop:
         case MAIN_VIBRATION_TEST:
           menu_vibration_test();
           break;
-        /*
         case MAIN_BAT_TEST:
           menu_bat_test();
           break;
-        */
         case MAIN_TEMP_TEST:
           menu_temp_test();
           break;
@@ -947,7 +946,7 @@ void menu_vibration_test(void) {
     }
   }
 }
-/*
+
 void menu_bat_test(void) {
   Lcd.setTextSize(1);
   Lcd.setCursor(0,320-8);
@@ -959,11 +958,14 @@ void menu_bat_test(void) {
   while(1) {
     sleep_ms(100);
     char string_buf[32];
-    sprintf(string_buf, "bat level   : % 3.1f%%", Bat.level);
-    Lcd.setCursor(0,16);
-    Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "bat voltage : %01.3fV", Bat.voltage);
+    sprintf(string_buf, "Battery : %s", Charger.get_battery_exist() ? "Yes" : "No");
     Lcd.setCursor(0,32);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "Level : % 3.1f%% (%01.3fV)", Charger.get_bat_level(), Charger.get_bat_voltage());
+    Lcd.setCursor(0,32);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "Charging : %s | Fault : 0x%02X\n", Charger.get_charging_status() ? "Yes" : "No", Charger.get_fault_status());
+    Lcd.setCursor(0,48);
     Lcd.print_5x8(string_buf);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
@@ -971,7 +973,7 @@ void menu_bat_test(void) {
     }
   }
 }
-*/
+
 void menu_temp_test(void) {
   Lcd.setTextSize(1);
   Lcd.setCursor(0,320-8);
@@ -1140,6 +1142,11 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   {
   case CMD_TEMPERATURE_DATA:
     Temperature.recv_bridge_data(msg->payload, msg->payload_size);
+    break;
+  case CMD_POWER_STATUS:
+    break;
+  case CMD_BATTERY_STATUS:
+    Charger.recv_bridge_bat_control(msg->payload, msg->payload_size);
     break;
   case CMD_GAMEPAD_DATA:
     Gamepad.recv_bridge_data(msg->payload, msg->payload_size);
