@@ -1025,6 +1025,10 @@ void menu_ir_test(void) {
   Lcd.setCursor(0,16);
   Lcd.print_5x8("press START to change format");
 
+  led_config_t led_config = {.mode = LED_OFF, .brightness = 255, .blink_interval_ms = 100};
+  LedCtrl.set_config(LED_CONTROL_1, led_config); // RX indicator
+  LedCtrl.set_config(LED_CONTROL_4, led_config); // TX indicator
+
   Ir.send_bridge_enable_rx(true, IR_FORMAT_MANUAL);
   Ir.send_bridge_enable_tx(true, IR_FORMAT_MANUAL);
   
@@ -1066,6 +1070,7 @@ void menu_ir_test(void) {
 
     if(Gamepad.is_btn_pressed(BTN_A)) {
       if(Ir.is_data_ready()) {
+        LedCtrl.set_mode(LED_CONTROL_4, LED_BLINK_ONCE);
         Ir.send_bridge_tx_data(Ir.get_rx_data_format(), Ir.rx_data_buf, Ir.rx_data_len);
       }
       sleep_ms(500);
