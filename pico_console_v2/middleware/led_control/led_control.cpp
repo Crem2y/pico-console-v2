@@ -189,6 +189,17 @@ void ledControl::update_led(enum led_ctrl_name led_name) {
   }
 }
 
+void ledControl::set_config(enum led_ctrl_name led_name, led_config_t config) {
+  uint32_t num = led_name;
+  led_controls[num].mode = config.mode;
+  led_controls[num].brightness = config.brightness;
+  led_controls[num].blink_interval_ms = config.blink_interval_ms;
+  led_controls[num].breathing_step = config.breathing_step;
+
+  led_controls[num].blink_last_update_ms = current_time_ms;
+  led_controls[num].breathing_last_update_ms = current_time_ms;
+}
+
 void ledControl::set_mode(enum led_ctrl_name led_name, enum led_ctrl_mode mode) {
   uint32_t num = led_name;
   led_controls[num].mode = mode;

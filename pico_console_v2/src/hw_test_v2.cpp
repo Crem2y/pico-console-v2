@@ -41,22 +41,18 @@ int main() { // uses core 0 to sub core
   sleep_ms(100);
 
   LedCtrl.init();
-  LedCtrl.set_brightness(LED_CONTROL_BUILT_IN, 255);
-  LedCtrl.set_blink_interval(LED_CONTROL_BUILT_IN, 500);
-  LedCtrl.set_mode(LED_CONTROL_BUILT_IN, LED_BLINK_REPEAT);
+  led_config_t led_config = {.mode = LED_BLINK_REPEAT, .brightness = 255, .blink_interval_ms = 500};
+  LedCtrl.set_config(LED_CONTROL_BUILT_IN, led_config);
   LedCtrl.update();
 
   multicore_launch_core1(core1_entry);
 
   // initalizing hardwares
-  LedCtrl.set_brightness(LED_CONTROL_1, 255);
-  LedCtrl.set_brightness(LED_CONTROL_2, 255);
-  LedCtrl.set_brightness(LED_CONTROL_3, 255);
-  LedCtrl.set_brightness(LED_CONTROL_4, 255);
-  LedCtrl.set_mode(LED_CONTROL_1, LED_ON);
-  LedCtrl.set_mode(LED_CONTROL_2, LED_ON);
-  LedCtrl.set_mode(LED_CONTROL_3, LED_ON);
-  LedCtrl.set_mode(LED_CONTROL_4, LED_ON);
+  led_config = {.mode = LED_ON, .brightness = 255, .breathing_step = 10};
+  LedCtrl.set_config(LED_CONTROL_1, led_config);
+  LedCtrl.set_config(LED_CONTROL_2, led_config);
+  LedCtrl.set_config(LED_CONTROL_3, led_config);
+  LedCtrl.set_config(LED_CONTROL_4, led_config);
   LedCtrl.update();
   LOG_PRINTF("LED ok\n");
   Lcd.begin();
@@ -742,23 +738,11 @@ void menu_led_test(void) {
     "LED_BREATHING_REPEAT",
   };
 
-  LedCtrl.set_brightness(LED_CONTROL_1, 255);
-  LedCtrl.set_brightness(LED_CONTROL_2, 255);
-  LedCtrl.set_brightness(LED_CONTROL_3, 255);
-  LedCtrl.set_brightness(LED_CONTROL_4, 255);
-  LedCtrl.set_breathing_step(LED_CONTROL_1, 5);
-  LedCtrl.set_breathing_step(LED_CONTROL_2, 5);
-  LedCtrl.set_breathing_step(LED_CONTROL_3, 5);
-  LedCtrl.set_breathing_step(LED_CONTROL_4, 5);
-  LedCtrl.set_blink_interval(LED_CONTROL_1, 500);
-  LedCtrl.set_blink_interval(LED_CONTROL_2, 500);
-  LedCtrl.set_blink_interval(LED_CONTROL_3, 500);
-  LedCtrl.set_blink_interval(LED_CONTROL_4, 500);
-
-  LedCtrl.set_mode(LED_CONTROL_1, (enum led_ctrl_mode)now_mode);
-  LedCtrl.set_mode(LED_CONTROL_2, (enum led_ctrl_mode)now_mode);
-  LedCtrl.set_mode(LED_CONTROL_3, (enum led_ctrl_mode)now_mode);
-  LedCtrl.set_mode(LED_CONTROL_4, (enum led_ctrl_mode)now_mode);
+  led_config_t led_config = {.mode = (enum led_ctrl_mode)now_mode, .brightness = 255, .blink_interval_ms = 500, .breathing_step = 5};
+  LedCtrl.set_config(LED_CONTROL_1, led_config);
+  LedCtrl.set_config(LED_CONTROL_2, led_config);
+  LedCtrl.set_config(LED_CONTROL_3, led_config);
+  LedCtrl.set_config(LED_CONTROL_4, led_config);
 
   while(1) {
     sleep_ms(100);

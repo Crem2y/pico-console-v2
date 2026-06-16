@@ -28,7 +28,7 @@ enum led_ctrl_mode {
   LED_BREATHING_REPEAT,
 };
 
-typedef struct led_control_t_ {
+typedef struct _led_control_t {
   enum led_ctrl_mode mode;
   uint8_t brightness;
   uint8_t current_brightness;
@@ -39,6 +39,13 @@ typedef struct led_control_t_ {
   uint32_t breathing_direction; // 1 for increasing brightness, 0 for decreasing brightness
 } led_control_t;
 
+typedef struct _led_config_t {
+  enum led_ctrl_mode mode;
+  uint8_t brightness;
+  time_ms_t blink_interval_ms;
+  uint8_t breathing_step;
+} led_config_t;
+
 class ledControl {
   public:
     ledControl(ledStatus* led_ptr);
@@ -48,6 +55,7 @@ class ledControl {
 
     void update_led(enum led_ctrl_name led_name);
 
+    void set_config(enum led_ctrl_name led_name, led_config_t config);
     void set_mode(enum led_ctrl_name led_name, enum led_ctrl_mode mode);
     void set_brightness(enum led_ctrl_name led_name, uint8_t brightness); // for LED_ON, LED_BLINK, LED_BREATHING
     void set_blink_interval(enum led_ctrl_name led_name, time_ms_t interval_ms); // for LED_BLINK, LED_BREATHING
@@ -55,6 +63,6 @@ class ledControl {
 
   private:
     ledStatus* led;
-    time_ms_t current_time_ms;
     led_control_t led_controls[LED_CTRL_NUM];
+    time_ms_t current_time_ms;
 };
