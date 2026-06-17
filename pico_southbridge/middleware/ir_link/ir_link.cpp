@@ -84,6 +84,8 @@ void irLink::send_ir_blocking(const uint16_t* data, uint16_t len) {
     }
     mark = !mark; // toggle between mark and space
   }
+  while(!ir_tx_fifo_empty(_ir_tx));
+  sleep_ms(10);
   enable_rx(true); // re-enable RX after transmission
 }
 
