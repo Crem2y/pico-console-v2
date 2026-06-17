@@ -113,8 +113,8 @@ void ili9488_40::begin(void) {
   clock_configure(
       clk_hstx,
       0,
-      CLOCKS_CLK_HSTX_CTRL_AUXSRC_VALUE_CLKSRC_PLL_USB,
-      48 * 1000000,
+      CLOCKS_CLK_HSTX_CTRL_AUXSRC_VALUE_CLK_SYS,
+      SYS_CLK_KHZ * 1000,
       LCD_SPI_FAST
   );
   unreset_block_wait(RESETS_RESET_HSTX_BITS);
@@ -164,7 +164,7 @@ void ili9488_40::begin(void) {
   led_pwm_ch = pwm_gpio_to_channel(_pin_led);
 
   pwm_set_chan_level(slice_num, led_pwm_ch, 0);
-  pwm_set_clkdiv(slice_num, SYS_CLK_KHZ * 1000/LCD_BACKLIGHT_MAX);
+  pwm_set_clkdiv(slice_num, (SYS_CLK_KHZ * 1000)/LCD_BACKLIGHT_MAX);
   pwm_set_wrap(slice_num, 1000);
   pwm_set_enabled(slice_num, true);
 }

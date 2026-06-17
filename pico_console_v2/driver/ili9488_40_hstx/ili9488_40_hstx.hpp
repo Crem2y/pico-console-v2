@@ -22,7 +22,7 @@
 #include "hardware/structs/hstx_ctrl.h"
 #include "hardware/structs/hstx_fifo.h"
 
-#define LCD_SPI_FAST (24*1000*1000)
+#define LCD_SPI_FAST (50*1000*1000)
 
 /////////////////////////////////////////////////////////////////////
 
