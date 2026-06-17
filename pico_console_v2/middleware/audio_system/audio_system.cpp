@@ -1,4 +1,7 @@
 #include "audio_system.hpp"
+#include "bridge_protocol.hpp"
+
+extern bridgeProtocol Bridge;
 
 audioSystem::audioSystem(void) {
 
@@ -26,23 +29,9 @@ void audioSystem::update(void) {
 
     note_now = current_note[current_note_index];
     current_note_index++;
-  } else {
-    note_now = (music_note_t){0, 0, 0}; // no sound
+
+    send_bridge_data();
   }
-}
-
-int audioSystem::make_bridge_payload(uint8_t* payload_buf, uint max_size) {
-  if(max_size < 1) return -1;
-
-  if(note_now.octave == 0 && note_now.note == 0) {
-    return 0; // no update
-  }
-
-  payload_buf[0] = note_now.channel;
-  payload_buf[1] = note_now.octave;
-  payload_buf[2] = note_now.note;
-
-  return 3;
 }
 
 void audioSystem::play_music(music_table_t* music_table) {
@@ -54,4 +43,15 @@ void audioSystem::play_music(music_table_t* music_table) {
   current_note_duration_ms = music_table->note_duration_ms;
 
   prev_note_time_ms = current_time_ms;
+}
+
+void audioSystem::send_bridge_data(void) {
+  int payload_size = 3;
+  uint8_t payload_buf[PAYLOAD_MAX_SIZE];
+
+  payload_buf[0] = note_now.channel;
+  payload_buf[1] = note_now.octave;
+  payload_buf[2] = note_now.note;
+
+  Bridge.send(CMD_AUDIO_PCM_DATA, payload_size, payload_buf);
 }

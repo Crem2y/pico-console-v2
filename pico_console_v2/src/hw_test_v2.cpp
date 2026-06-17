@@ -103,8 +103,6 @@ int main() { // uses core 0 to sub core
 
   while (true) {
     time_ms_t now_time = get_system_time_ms();
-    uint8_t temp_payload[PAYLOAD_MAX_SIZE];
-    int payload_size = 0;
 
     Bridge.process_io();
     Bridge.dispatch_rx();
@@ -120,10 +118,6 @@ int main() { // uses core 0 to sub core
     if(system_time_elapsed_ms(now_time, audio_timer) > 1) {
       audio_timer = now_time;
       Audio.update();
-      payload_size = Audio.make_bridge_payload(temp_payload, PAYLOAD_MAX_SIZE);
-      if(payload_size > 0) {
-        Bridge.send(CMD_AUDIO_PCM_DATA, payload_size, temp_payload);
-      }
     }
     if(system_time_elapsed_ms(now_time, vibration_timer) > 10) {
       vibration_timer = now_time;
@@ -134,7 +128,6 @@ int main() { // uses core 0 to sub core
       Touchscreen.update();
       //LOG_PRINTF("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
     }
-    //Bat.get_level();
     LedCtrl.update();
   }
 

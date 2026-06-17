@@ -22,9 +22,9 @@ class audioSystem {
     void init(void);
     void update(void);
 
-    int make_bridge_payload(uint8_t* payload_buf, uint max_size);
-
     void play_music(music_table_t* music_table); //placeholder
+
+    void send_bridge_data(void);
 
   private:
     time_ms_t current_time_ms;
