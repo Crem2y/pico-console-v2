@@ -238,6 +238,19 @@ void ili9488_40::drawFastHLine(int16_t x, int16_t y, int16_t w,
   }
 }
 
+void ili9488_40::drawPicture(int16_t x, int16_t y, const uint16_t *picture, int16_t w, int16_t h) {
+  int16_t i, j, color;
+
+  setAddrWindow(x, y, x+w-1, y+h-1);
+
+  for(j=0; j<h; j++) {
+    for(i=0; i<w; i++) {
+      color = (picture[i + (j * w)]);
+      pushColor(color);
+    }
+  }
+}
+
 void ili9488_40::fillScreen(uint16_t color) {
   fillRect(0, 0,  _width, _height, color);
 }

@@ -40,6 +40,7 @@ class Adafruit_GFX {
     drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color),
     fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color),
     fillScreen(uint16_t color),
+    drawPicture(int16_t x, int16_t y, const uint16_t *picture, int16_t w, int16_t h),
     invertDisplay(bool i);
 
   // These exist only with Adafruit_GFX (no subclass overrides)

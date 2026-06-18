@@ -230,6 +230,16 @@ void Adafruit_GFX::drawFastHLine(int16_t x, int16_t y,
   drawLine(x, y, x+w-1, y, color);
 }
 
+void Adafruit_GFX::drawPicture(int16_t x, int16_t y, const uint16_t *picture, int16_t w, int16_t h) {
+  int16_t i, j;
+
+  for(j=0; j<h; j++) {
+    for(i=0; i<w; i++) {
+      drawPixel(x+i, y+j, picture[i + (j * w)]);
+    }
+  }
+}
+
 void Adafruit_GFX::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
 			    uint16_t color) {
   // Update in subclasses if desired!
