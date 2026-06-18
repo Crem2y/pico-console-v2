@@ -45,6 +45,8 @@ const unsigned char bul_cho1[22] = {0,0,0,0,0,0,0,0,0,1,3,3,3,1,2,4,4,4,2,1,3,0}
 const unsigned char bul_cho2[22] = {0,5,5,5,5,5,5,5,5,6,7,7,7,6,6,7,7,7,6,6,7,5};
 const unsigned char bul_jong[22] = {0,0,2,0,2,1,2,1,2,3,0,2,1,3,3,1,2,1,3,3,1,1};
 
+uint16_t text_draw_buffer[512];
+
 Adafruit_GFX::Adafruit_GFX(int16_t w, int16_t h):
   WIDTH(w), HEIGHT(h)
 {
@@ -462,23 +464,33 @@ void Adafruit_GFX::drawChar_5x8(int16_t x, int16_t y, unsigned char c,
       line = 0x0;
     else 
       line = font[(c*5)+i];
-    for (int8_t j = 0; j<8; j++) {
+    for (int8_t j=0; j<8; j++) {
       if (line & 0x1) {
-        if (size == 1) // default size
-          drawPixel(x+i, y+j, color);
-        else {  // big size
-          fillRect(x+(i*size), y+(j*size), size, size, color);
+        if (size == 1) { // minimum size
+          text_draw_buffer[i + j*6] = color;
+        } else { // big size
+          for (uint8_t px=0; px<size; px++) {
+            for (uint8_t py=0; py<size; py++) {
+              text_draw_buffer[((i*size)+px) + ((j*size)+py)*(6*size)] = color;
+            }
+          }
         } 
-      } else if (bg != color) {
-        if (size == 1) // default size
-          drawPixel(x+i, y+j, bg);
-        else {  // big size
-          fillRect(x+i*size, y+j*size, size, size, bg);
+      } else {
+        if (size == 1) { // minimum size
+          text_draw_buffer[i + j*6] = bg;
+        } else { // big size
+          for (uint8_t px=0; px<size; px++) {
+            for (uint8_t py=0; py<size; py++) {
+              text_draw_buffer[((i*size)+px) + ((j*size)+py)*(6*size)] = bg;
+            }
+          }
         }
       }
       line >>= 1;
     }
   }
+
+  drawPicture(x, y, text_draw_buffer, size*6, size*8);
 }
 
 void Adafruit_GFX::print_16(const wchar_t *S) {

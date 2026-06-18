@@ -140,14 +140,14 @@ void core1_entry() { // uses core 1 to main core
 
   // boot animation
   Lcd.setTextSize(2);
-  for(int i=0; i<160; i+=5) {
-    Lcd.fillRect(140, i-5, 800, 5, LCD_BLACK);
+  for(int i=0; i<160; i+=1) {
+    Lcd.fillRect(140, i-1, (6*2*16), 1, LCD_BLACK);
     Lcd.setCursor(140,i);
     Lcd.print_5x8("PICO CONSOLE V2");
-    sleep_ms(50);
+    sleep_ms(10);
   }
 
-  Lcd.setCursor(480-(12*9),320-(16));
+  Lcd.setCursor(480-(6*2*9),320-(8*2));
   Lcd.print_5x8("by Crem2y");
   Lcd.setTextSize(1);
   Lcd.setCursor(190,200);
@@ -775,9 +775,13 @@ void menu_lcd_test(void) {
   Lcd.print_5x8("LCD test");
 
   int count = 0;
+  uint16_t color = 0x0000;
 
   while(1) {
     sleep_ms(500);
+
+    char string_buf[32];
+    time_us_t start_time = get_system_time_us();
 
     switch(count) {
       case 0:
@@ -794,13 +798,25 @@ void menu_lcd_test(void) {
         break;
       case 4:
         Lcd.fillRect(0,16,480,(320-24),LCD_BLACK);
+        for(int i=0; i<28; i++) {
+          Lcd.setTextColor(color, LCD_BLACK);
+          Lcd.setCursor(0+(i*10),16+(i*10));
+          Lcd.print_5x8("LCD test");
+          color += 0x1234;
+        }
         break;
     }
+
+    Lcd.setTextColor(LCD_WHITE, LCD_BLACK);
+    Lcd.setCursor((480-(6*2*12)), 0);
+    sprintf(string_buf, "% 3.3f fps ", (1000000.0f / system_time_elapsed_us(get_system_time_us(), start_time)));
+    Lcd.print_5x8(string_buf);
 
     count++;
     if(count > 4) count = 0;
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
+      Lcd.setTextColor(LCD_WHITE, LCD_BLACK);
       return;
     }
   }
