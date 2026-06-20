@@ -23,6 +23,13 @@ class irLink {
 
     void init(void);
 
+    inline void set_enable_tx(bool enable_tx, enum ir_format format) {
+      send_bridge_enable_tx(enable_tx, format);
+    }
+    inline void set_enable_rx(bool enable_rx, enum ir_format format) {
+      send_bridge_enable_rx(enable_rx, format);
+    }
+
     enum ir_format get_rx_format(void);
     enum ir_format get_rx_data_format(void);
     bool is_data_ready(void);

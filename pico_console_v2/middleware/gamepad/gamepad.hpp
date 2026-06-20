@@ -56,6 +56,10 @@ class gamepad {
     void init(void);
     void update(void);
 
+    void set_enable(bool enable, bool raw_data_enable) {
+      send_bridge_enable(enable, raw_data_enable);
+    }
+
     int is_btn_pressed(enum btn_code btn);
     int is_btn_released(enum btn_code btn);
     time_ms_t get_btn_pressed_duration(enum btn_code btn);

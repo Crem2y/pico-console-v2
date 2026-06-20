@@ -9,6 +9,10 @@ class imu {
     void init(void);
     void update(void);
 
+    void set_enable(bool enable_accel, bool enable_gyro) {
+      send_bridge_enable(enable_accel, enable_gyro);
+    }
+
     float get_accel_x();
     float get_accel_y();
     float get_accel_z();

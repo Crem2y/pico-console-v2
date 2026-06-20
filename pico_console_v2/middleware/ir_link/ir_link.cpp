@@ -12,6 +12,25 @@ void irLink::init(void) {
   rx_format = IR_FORMAT_UNKNOWN;
 }
 
+enum ir_format irLink::get_rx_format(void) {
+  return rx_format;
+}
+
+enum ir_format irLink::get_rx_data_format(void) {
+  return rx_data_format;
+}
+
+bool irLink::is_data_ready(void) {
+  return rx_data_len > 0;
+}
+
+int irLink::get_raw_data_pulses(void) {
+  if(rx_format != IR_FORMAT_MANUAL) return -1;
+
+  // each pulse represented by 2 bytes in manual format
+  return rx_data_len / 2;
+}
+
 void irLink::send_bridge_enable_tx(bool enable, enum ir_format format) {
   int payload_size = 1;
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];
@@ -38,47 +57,6 @@ void irLink::send_bridge_enable_rx(bool enable, enum ir_format format) {
   rx_format = (enum ir_format)format;
 }
 
-enum ir_format irLink::get_rx_format(void) {
-  return rx_format;
-}
-
-enum ir_format irLink::get_rx_data_format(void) {
-  return rx_data_format;
-}
-
-bool irLink::is_data_ready(void) {
-  return rx_data_len > 0;
-}
-
-int irLink::get_raw_data_pulses(void) {
-  if(rx_format != IR_FORMAT_MANUAL) return -1;
-
-  // each pulse represented by 2 bytes in manual format
-  return rx_data_len / 2;
-}
-
-void irLink::recv_bridge_rx_data(const uint8_t* payload, size_t payload_size) {
-  if(payload_size < 2) return; // Not enough data
-
-  rx_data_format = (enum ir_format)payload[0];
-  uint8_t sequence_info = payload[1];
-  size_t sequence_index = (sequence_info >> 4) & 0x0F;
-  size_t sequence_length = sequence_info & 0x0F;
-
-  if(sequence_index == 0) {
-    rx_data_len = 0;  // reset data length for new sequence
-  }
-
-  for(int i = 0; i < payload_size - 2; i++) {
-    rx_data_buf[rx_data_len + i] = payload[i + 2];
-  }
-  rx_data_len += (payload_size - 2);
-
-  if(sequence_index != sequence_length) {
-    return; // wait for more sequences
-  }
-}
-
 void irLink::send_bridge_tx_data(enum ir_format format, const uint8_t* data, size_t len) {
   if(len > IR_LINK_MAX_DATA_SIZE) {
     len = IR_LINK_MAX_DATA_SIZE; // Limit to max data size
@@ -102,5 +80,27 @@ void irLink::send_bridge_tx_data(enum ir_format format, const uint8_t* data, siz
 
     size_t payload_size = 2 + send_count;
     Bridge.send(CMD_IR_TX_DATA, payload_size, payload_buf);
+  }
+}
+
+void irLink::recv_bridge_rx_data(const uint8_t* payload, size_t payload_size) {
+  if(payload_size < 2) return; // Not enough data
+
+  rx_data_format = (enum ir_format)payload[0];
+  uint8_t sequence_info = payload[1];
+  size_t sequence_index = (sequence_info >> 4) & 0x0F;
+  size_t sequence_length = sequence_info & 0x0F;
+
+  if(sequence_index == 0) {
+    rx_data_len = 0;  // reset data length for new sequence
+  }
+
+  for(int i = 0; i < payload_size - 2; i++) {
+    rx_data_buf[rx_data_len + i] = payload[i + 2];
+  }
+  rx_data_len += (payload_size - 2);
+
+  if(sequence_index != sequence_length) {
+    return; // wait for more sequences
   }
 }

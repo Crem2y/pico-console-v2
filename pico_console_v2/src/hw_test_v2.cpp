@@ -71,7 +71,7 @@ int main() { // uses core 0 to sub core
   Lcd.setCursor(0,0);
   Lcd.print_5x8("Gamepad init...");
   Gamepad.init();
-  Gamepad.send_bridge_enable(true, false);
+  Gamepad.set_enable(true, false);
   LOG_PRINTF("Gamepad ok\n");
   Lcd.setCursor(0,0);
   Lcd.print_5x8("TEMP init...");
@@ -652,7 +652,7 @@ void menu_joystick_test(void) {
   Lcd.drawRect(160-72, 160-72, 128+15, 128+15, LCD_WHITE);
   Lcd.drawRect(320-72, 160-72, 128+15, 128+15, LCD_WHITE);
 
-  Gamepad.send_bridge_enable(true, true);
+  Gamepad.set_enable(true, true);
 
   while(1) {
     sleep_ms(10);
@@ -1038,8 +1038,8 @@ void menu_ir_test(void) {
   LedCtrl.set_config(LED_CONTROL_1, led_config); // RX indicator
   LedCtrl.set_config(LED_CONTROL_4, led_config); // TX indicator
 
-  Ir.send_bridge_enable_rx(true, IR_FORMAT_MANUAL);
-  Ir.send_bridge_enable_tx(true, IR_FORMAT_MANUAL);
+  Ir.set_enable_tx(true, IR_FORMAT_MANUAL);
+  Ir.set_enable_rx(true, IR_FORMAT_MANUAL);
   
   while(1) {
     sleep_ms(100);
@@ -1073,7 +1073,7 @@ void menu_ir_test(void) {
       uint8_t temp = (uint8_t)Ir.get_rx_format();
       temp++;
       if(temp > IR_FORMAT_NEC) temp = IR_FORMAT_MANUAL;
-      Ir.send_bridge_enable_rx(true, (enum ir_format)temp);
+      Ir.set_enable_rx(true, (enum ir_format)temp);
       Lcd.fillRect(0,16*3,480,(320-56),LCD_BLACK);
     }
 
@@ -1086,8 +1086,8 @@ void menu_ir_test(void) {
     } 
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
-      Ir.send_bridge_enable_rx(false, IR_FORMAT_MANUAL);
-      Ir.send_bridge_enable_tx(false, IR_FORMAT_MANUAL);
+      Ir.set_enable_tx(false, IR_FORMAT_MANUAL);
+      Ir.set_enable_rx(false, IR_FORMAT_MANUAL);
       return;
     }
   }
@@ -1101,7 +1101,7 @@ void menu_imu_test(void) {
   Lcd.setCursor(0,0);
   Lcd.print_5x8("IMU test");
 
-  Imu.send_bridge_enable(true, true);
+  Imu.set_enable(true, true);
 
   while(1) {
     sleep_ms(10);
@@ -1128,7 +1128,7 @@ void menu_imu_test(void) {
     Lcd.print_5x8(string_buf);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
-      Imu.send_bridge_disable();
+      Imu.set_enable(false, false);
       return;
     }
   }
