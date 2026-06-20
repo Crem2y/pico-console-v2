@@ -18,9 +18,9 @@ void imu::update(void) {
   if(enable_accel) {
     Mpu6050->read_accel_data();
 
-    accel_data_raw[0] = Mpu6050->accel_raw.x;
-    accel_data_raw[1] = Mpu6050->accel_raw.y;
-    accel_data_raw[2] = Mpu6050->accel_raw.z;
+    accel_data[0] = Mpu6050->accel.x;
+    accel_data[1] = Mpu6050->accel.y;
+    accel_data[2] = Mpu6050->accel.z;
 
     send_bridge_accel_data();
   }
@@ -28,9 +28,9 @@ void imu::update(void) {
   if(enable_gyro) {
     Mpu6050->read_gyro_data();
 
-    gyro_data_raw[0] = Mpu6050->gyro_raw.x;
-    gyro_data_raw[1] = Mpu6050->gyro_raw.y;
-    gyro_data_raw[2] = Mpu6050->gyro_raw.z;
+    gyro_data[0] = Mpu6050->gyro.x;
+    gyro_data[1] = Mpu6050->gyro.y;
+    gyro_data[2] = Mpu6050->gyro.z;
 
     send_bridge_gyro_data();
   }
@@ -45,31 +45,23 @@ void imu::enable_gyro_data(bool enable) {
 }
 
 void imu::send_bridge_accel_data(void) {
-  int payload_size = 6;
+  int payload_size = 12;
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];
 
-  //placeholder
-  payload_buf[0] = accel_data_raw[0] & 0xFF;
-  payload_buf[1] = accel_data_raw[0] >> 8;
-  payload_buf[2] = accel_data_raw[1] & 0xFF;
-  payload_buf[3] = accel_data_raw[1] >> 8;
-  payload_buf[4] = accel_data_raw[2] & 0xFF;
-  payload_buf[5] = accel_data_raw[2] >> 8;
+  memcpy(&payload_buf[0], &accel_data[0], sizeof(float));
+  memcpy(&payload_buf[4], &accel_data[1], sizeof(float));
+  memcpy(&payload_buf[8], &accel_data[2], sizeof(float));
 
   Bridge.send(CMD_IMU_ACCEL_DATA, payload_size, payload_buf);
 }
 
 void imu::send_bridge_gyro_data(void) {
-  int payload_size = 6;
+  int payload_size = 12;
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];
 
-  //placeholder
-  payload_buf[0] = gyro_data_raw[0] & 0xFF;
-  payload_buf[1] = gyro_data_raw[0] >> 8;
-  payload_buf[2] = gyro_data_raw[1] & 0xFF;
-  payload_buf[3] = gyro_data_raw[1] >> 8;
-  payload_buf[4] = gyro_data_raw[2] & 0xFF;
-  payload_buf[5] = gyro_data_raw[2] >> 8;
+  memcpy(&payload_buf[0], &gyro_data[0], sizeof(float));
+  memcpy(&payload_buf[4], &gyro_data[1], sizeof(float));
+  memcpy(&payload_buf[8], &gyro_data[2], sizeof(float));
 
   Bridge.send(CMD_IMU_GYRO_DATA, payload_size, payload_buf);
 }

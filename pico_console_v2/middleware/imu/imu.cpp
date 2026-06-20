@@ -53,27 +53,17 @@ void imu::send_bridge_disable(void) {
 }
 
 void imu::recv_bridge_accel_data(const uint8_t* payload, uint8_t payload_size) {
-  if(payload_size < 6) return;
+  if(payload_size < 12) return;
 
-  accel_raw[0] = (payload[1] << 8) | payload[0];
-  accel_raw[1] = (payload[3] << 8) | payload[2];
-  accel_raw[2] = (payload[5] << 8) | payload[4];
-
-  //placeholder
-  accel_x = (float)accel_raw[0];
-  accel_y = (float)accel_raw[1];
-  accel_z = (float)accel_raw[2];
+  memcpy(&accel_x, &payload[0], sizeof(float));
+  memcpy(&accel_y, &payload[4], sizeof(float));
+  memcpy(&accel_z, &payload[8], sizeof(float));
 }
 
 void imu::recv_bridge_gyro_data(const uint8_t* payload, uint8_t payload_size) {
-  if(payload_size < 6) return;
+  if(payload_size < 12) return;
 
-  gyro_raw[0] = (payload[1] << 8) | payload[0];
-  gyro_raw[1] = (payload[3] << 8) | payload[2];
-  gyro_raw[2] = (payload[5] << 8) | payload[4];
-
-  //placeholder
-  gyro_x = (float)gyro_raw[0];
-  gyro_y = (float)gyro_raw[1];
-  gyro_z = (float)gyro_raw[2];
+  memcpy(&gyro_x, &payload[0], sizeof(float));
+  memcpy(&gyro_y, &payload[4], sizeof(float));
+  memcpy(&gyro_z, &payload[8], sizeof(float));
 }

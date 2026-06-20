@@ -1107,23 +1107,23 @@ void menu_imu_test(void) {
     sleep_ms(10);
     char string_buf[32];
     //test
-    sprintf(string_buf, "accel x: % 6d", (int16_t)Imu.get_accel_x());
+    sprintf(string_buf, "accel x: %2.4f ", Imu.get_accel_x());
     Lcd.setCursor(0,16);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "accel y: % 6d", (int16_t)Imu.get_accel_y());
+    sprintf(string_buf, "accel y: %2.4f ", Imu.get_accel_y());
     Lcd.setCursor(0,32);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "accel z: % 6d", (int16_t)Imu.get_accel_z());
+    sprintf(string_buf, "accel z: %2.4f ", Imu.get_accel_z());
     Lcd.setCursor(0,48);
     Lcd.print_5x8(string_buf);
 
-    sprintf(string_buf, "gyro x: % 6d", (int16_t)Imu.get_gyro_x());
+    sprintf(string_buf, "gyro x: %4.2f ", Imu.get_gyro_x());
     Lcd.setCursor(0,64);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "gyro y: % 6d", (int16_t)Imu.get_gyro_y());
+    sprintf(string_buf, "gyro y: %4.2f ", Imu.get_gyro_y());
     Lcd.setCursor(0,80);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "gyro z: % 6d", (int16_t)Imu.get_gyro_z());
+    sprintf(string_buf, "gyro z: %4.2f ", Imu.get_gyro_z());
     Lcd.setCursor(0,96);
     Lcd.print_5x8(string_buf);
 
