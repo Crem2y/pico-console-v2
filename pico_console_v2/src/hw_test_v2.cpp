@@ -22,6 +22,38 @@ irLink Ir = irLink();
 void core1_entry();
 void bridge_do_cmd(const bridge_msg_t* packet);
 
+static volatile bool card_det_int_pend;
+static volatile uint card_det_int_gpio;
+
+static void process_card_detect_int() {
+    card_det_int_pend = false;
+    for (size_t i = 0; i < sd_get_num(); ++i) {
+        sd_card_t *sd_card_p = sd_get_by_num(i);
+        if (!sd_card_p)
+            continue;
+        if (sd_card_p->card_detect_gpio == card_det_int_gpio) {
+            if (sd_card_p->state.mounted) {
+                DBG_PRINTF("(Card Detect Interrupt: unmounting %s)\n", sd_get_drive_prefix(sd_card_p));
+                FRESULT fr = f_unmount(sd_get_drive_prefix(sd_card_p));
+                if (FR_OK == fr) {
+                    sd_card_p->state.mounted = false;
+                } else {
+                    printf("f_unmount error: %s (%d)\n", FRESULT_str(fr), fr);
+                }
+            }
+            sd_card_p->state.m_Status |= STA_NOINIT;  // in case medium is removed
+            sd_card_detect(sd_card_p);
+        }
+    }
+}
+
+static void card_detect_callback(uint gpio, uint32_t events) {
+    (void)events;
+    // This is actually an interrupt service routine!
+    card_det_int_gpio = gpio;
+    card_det_int_pend = true;
+}
+
 time_ms_t last_bridge_cmd_time;
 time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
@@ -90,6 +122,11 @@ int main() { // uses core 0 to sub core
   Ir.init();
   LOG_PRINTF("IR ok\n");
   Lcd.setCursor(0,0);
+  Lcd.print_5x8("SD init...");
+  sd_init_driver();
+  sd_card_t *sd_card_p = sd_get_by_num(0);
+  LOG_PRINTF("SD ok\n");
+  Lcd.setCursor(0,0);
   Lcd.print_5x8("               ");
   LOG_PRINTF("all HWs ok!\n");
   LOG_PRINTF("core freq = %ld hz\n", SYS_CLK_KHZ * 1000);
@@ -129,6 +166,9 @@ int main() { // uses core 0 to sub core
       //LOG_PRINTF("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
     }
     LedCtrl.update();
+    if (card_det_int_pend) {
+      process_card_detect_int();
+    }
   }
 
   return 0;
@@ -303,7 +343,7 @@ main_menu_loop:
         if(cursor_x < MAIN_SD_TEST) cursor_x++;
       }
 
-      if(Gamepad.is_btn_pressed(BTN_A) || Gamepad.is_btn_pressed(BTN_START)) {
+      if(!Gamepad.is_btn_pressed(BTN_SELECT) && (Gamepad.is_btn_pressed(BTN_A) || Gamepad.is_btn_pressed(BTN_START))) {
         Lcd.fillScreen(LCD_BLACK);
         switch (cursor_x)
         {
@@ -1142,20 +1182,38 @@ void menu_sd_test(void) {
   Lcd.setCursor(0,0);
   Lcd.print_5x8("SD card test");
 
-  //placeholder
-  gpio_init(PIN_SD_DET);
-  gpio_set_dir(PIN_SD_DET, GPIO_IN);
-  gpio_pull_up(PIN_SD_DET);
-
-  sleep_ms(100);
+  Lcd.setCursor(0,16);
+  Lcd.print_5x8("Loading...");
   char string_buf[32];
+
+  sd_card_t *sd_card_p = sd_get_by_num(0);
+
+  int ds = sd_card_p->init(sd_card_p);
+  if (STA_NODISK & ds || STA_NOINIT & ds) {
+      printf("SD card initialization failed\n");
+  }
+
+  size_t au_size_bytes;
+  bool ok = sd_allocation_unit(sd_card_p, &au_size_bytes);
 
   while(1) {
     sleep_ms(100);
 
-    sprintf(string_buf, "SD card : %s", gpio_get(PIN_SD_DET) ? "not inserted" : "inserted    ");
+    sprintf(string_buf, "SD card : %s", (STA_NODISK & ds) ? "not inserted" : "inserted    ");
     Lcd.setCursor(0,16);
     Lcd.print_5x8(string_buf);
+    if(ok) {
+      sprintf(string_buf, "mount : %s", sd_card_p->state.mounted ? "not mounted" : "mounted    ");
+      Lcd.setCursor(0,16*2);
+      Lcd.print_5x8(string_buf);
+      if(au_size_bytes > (1<<20)) {
+        sprintf(string_buf, "size : %zu MB (%zu sectors)", au_size_bytes / (1<<20), au_size_bytes / sd_block_size);
+      } else {
+        sprintf(string_buf, "size : %zu bytes (%zu sectors)", au_size_bytes, au_size_bytes / sd_block_size);
+      }
+      Lcd.setCursor(0,16*3);
+      Lcd.print_5x8(string_buf);
+    }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       return;

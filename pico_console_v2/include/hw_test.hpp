@@ -15,6 +15,11 @@
 #include "system_time.h"
 #include "temp_builtin.h"
 #include "xpt2046.hpp"
+// sd driver (carlk3/no-OS-FatFS-SD-SDIO-SPI-RPi-Pico)
+#include "f_util.h"
+#include "hw_config.h"
+#include "sd_card.h"
+#include "diskio.h" /* Declarations of disk functions */
 
 // middlewares
 #include "bridge_protocol.hpp"

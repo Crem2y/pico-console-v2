@@ -41,6 +41,7 @@ pico_sdk_init()
 
 add_executable(${PROJECT_NAME}
   src/hw_test_v2.cpp
+  src/hw_config.c
 )
 
 add_subdirectory(driver)
