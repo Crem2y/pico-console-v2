@@ -40,12 +40,23 @@ enum joy_channel {
   JOY2_Y
 };
 
+typedef struct _joy_cali_data
+{
+  uint16_t center;
+  uint16_t deadzone;
+  uint16_t min;
+  uint16_t max;
+} joy_cali_data;
+
+
 class gamepad {
   public:
     gamepad(btn_matrix* btn_matrix, joystick* joy_1, joystick* joy_2);
 
     void init(void);
     void update(void);
+
+    int8_t calibrate_joystick(uint16_t raw, const joy_cali_data* cali);
 
     void send_bridge_data(void);
     void send_bridge_raw_data(void);
@@ -60,6 +71,7 @@ class gamepad {
     joystick* joy2;
     int8_t joystick_data[GP_JOYSTICK_CH_NUM];
     uint16_t joystick_raw[GP_JOYSTICK_CH_NUM];
+    joy_cali_data cali_data[GP_JOYSTICK_CH_NUM];
 
     bool enable, raw_data_enable;
 };

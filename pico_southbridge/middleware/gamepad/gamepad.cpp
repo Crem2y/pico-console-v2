@@ -16,7 +16,14 @@ void gamepad::init(void) {
 
   for(int i=0; i<GP_JOYSTICK_CH_NUM; i++) {
     joystick_data[i] = 0;
-    joystick_raw[i] = 2048;
+    joystick_raw[i] = JOYSTICK_RAW_MAX/2;
+  }
+
+  for(int i=0; i<GP_JOYSTICK_CH_NUM; i++) {
+    cali_data[i].center = JOYSTICK_RAW_MAX/2;                                                             
+    cali_data[i].deadzone = 30;
+    cali_data[i].min = 350;
+    cali_data[i].max = JOYSTICK_RAW_MAX - 350;
   }
 
   enable = true;
@@ -63,7 +70,7 @@ void gamepad::update(void) {
   // calibration is not implemented yet
   // just convert to -128 ~ 127
   for(int i=0; i<GP_JOYSTICK_CH_NUM; i++) {
-    joystick_data[i] = (int16_t)(joystick_raw[i] >> 4) - 128;
+    joystick_data[i] = calibrate_joystick(joystick_raw[i], &cali_data[i]);
   }
 
   if(enable) {
@@ -72,6 +79,32 @@ void gamepad::update(void) {
   if (raw_data_enable) {
     send_bridge_raw_data();
   }
+}
+
+int8_t gamepad::calibrate_joystick(uint16_t raw, const joy_cali_data* cali) {
+  int32_t diff = raw - cali->center;
+  int8_t output;
+
+  if (raw < cali->min) raw = cali->min;
+  if (raw > cali->max) raw = cali->max;
+
+  if (diff >= -cali->deadzone && diff <= cali->deadzone) {
+    return 0;
+  }
+
+  if (diff > 0) {
+    int32_t in_range = cali->max - cali->center - cali->deadzone;
+    int32_t adjusted = raw - cali->center - cali->deadzone;
+
+    output = (adjusted * GP_JOYSTICK_MAX) / in_range;
+  } else {
+    int32_t in_range = cali->center - cali->min - cali->deadzone;
+    int32_t adjusted = cali->center - cali->deadzone - raw;
+
+    output = -((adjusted * -GP_JOYSTICK_MIN) / in_range);
+  }
+
+  return output;
 }
 
 void gamepad::send_bridge_data(void) {
