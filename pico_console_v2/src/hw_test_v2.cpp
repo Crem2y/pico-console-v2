@@ -658,8 +658,8 @@ void menu_joystick_test(void) {
     sleep_ms(10);
     char string_buf[32];
 
-    int8_t joy1_x = Gamepad.get_joystick_x(0);
-    int8_t joy1_y = Gamepad.get_joystick_y(0);
+    int8_t joy1_x = Gamepad.get_joystick_data(JOY1_X);
+    int8_t joy1_y = Gamepad.get_joystick_data(JOY1_Y);
 
     uint16_t pos1_x = 160 + (joy1_x >> 1);
     uint16_t pos1_y = 160 + (joy1_y >> 1);
@@ -676,13 +676,13 @@ void menu_joystick_test(void) {
       sprintf(string_buf, "L stick : % 4d, % 4d", joy1_x, joy1_y);
       Lcd.setCursor(0,16);
       Lcd.print_5x8(string_buf);
-      sprintf(string_buf, "L raw   :% 5d,% 5d", Gamepad.get_joystick_raw_x(0), Gamepad.get_joystick_raw_y(0));
+      sprintf(string_buf, "L raw   :% 5d,% 5d", Gamepad.get_joystick_raw(JOY1_X), Gamepad.get_joystick_raw(JOY1_Y));
       Lcd.setCursor(0,16*2);
       Lcd.print_5x8(string_buf);
     }
 
-    int8_t joy2_x = Gamepad.get_joystick_x(1);
-    int8_t joy2_y = Gamepad.get_joystick_y(1);
+    int8_t joy2_x = Gamepad.get_joystick_data(JOY2_X);
+    int8_t joy2_y = Gamepad.get_joystick_data(JOY2_Y);
 
     uint16_t pos2_x = 320 + (joy2_x >> 1);
     uint16_t pos2_y = 160 + (joy2_y >> 1);
@@ -699,13 +699,13 @@ void menu_joystick_test(void) {
       sprintf(string_buf, "R stick : % 4d, % 4d", joy2_x, joy2_y);
       Lcd.setCursor(0,16*3);
       Lcd.print_5x8(string_buf);
-      sprintf(string_buf, "R raw   :% 5d,% 5d", Gamepad.get_joystick_raw_x(1), Gamepad.get_joystick_raw_y(1));
+      sprintf(string_buf, "R raw   :% 5d,% 5d", Gamepad.get_joystick_raw(JOY2_X), Gamepad.get_joystick_raw(JOY2_Y));
       Lcd.setCursor(0,16*4);
       Lcd.print_5x8(string_buf);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
-      Gamepad.send_bridge_enable(true, false);
+      Gamepad.set_enable(true, false);
       return;
     }
   }

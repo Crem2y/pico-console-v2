@@ -14,15 +14,10 @@ void gamepad::init(void) {
     btn_last_released_ms[i] = 0;
   }
 
-  joystick_x[0] = 0;
-  joystick_y[0] = 0;
-  joystick_x[1] = 0;
-  joystick_y[1] = 0;
-
-  joystick_raw_x[0] = 0;
-  joystick_raw_y[0] = 0;
-  joystick_raw_x[1] = 0;
-  joystick_raw_y[1] = 0;
+  for(int i=0; i<4; i++) {
+    joystick_data[i] = 0;
+    joystick_raw[i] = 2048;
+  }
 }
 
 void gamepad::update(void) {
@@ -41,12 +36,12 @@ void gamepad::update(void) {
 
   // joystick -> btn data update
   // S1 joystick
-  if(joystick_x[0] > GP_JOYSTICK_TO_BTN_THRESHOLD) {
+  if(joystick_data[JOY1_X] > GP_JOYSTICK_TO_BTN_THRESHOLD) {
     if(!btn_state[BTN_S1_RIGHT]) {
       btn_state[BTN_S1_RIGHT] = 1;
       btn_last_pressed_ms[BTN_S1_RIGHT] = current_time_ms;
     }
-  } else if(joystick_x[0] < -GP_JOYSTICK_TO_BTN_THRESHOLD) {
+  } else if(joystick_data[JOY1_X] < -GP_JOYSTICK_TO_BTN_THRESHOLD) {
     if(!btn_state[BTN_S1_LEFT]) {
       btn_state[BTN_S1_LEFT] = 1;
       btn_last_pressed_ms[BTN_S1_LEFT] = current_time_ms;
@@ -62,12 +57,12 @@ void gamepad::update(void) {
     }
   }
 
-  if(joystick_y[0] > GP_JOYSTICK_TO_BTN_THRESHOLD) {
+  if(joystick_data[JOY1_Y] > GP_JOYSTICK_TO_BTN_THRESHOLD) {
     if(!btn_state[BTN_S1_DOWN]) {
       btn_state[BTN_S1_DOWN] = 1;
       btn_last_pressed_ms[BTN_S1_DOWN] = current_time_ms;
     }
-  } else if(joystick_y[0] < -GP_JOYSTICK_TO_BTN_THRESHOLD) {
+  } else if(joystick_data[JOY1_Y] < -GP_JOYSTICK_TO_BTN_THRESHOLD) {
     if(!btn_state[BTN_S1_UP]) {
       btn_state[BTN_S1_UP] = 1;
       btn_last_pressed_ms[BTN_S1_UP] = current_time_ms;
@@ -84,13 +79,13 @@ void gamepad::update(void) {
   }
 
   // S2 joystick
-  if(joystick_x[1] > GP_JOYSTICK_TO_BTN_THRESHOLD)
+  if(joystick_data[JOY2_X] > GP_JOYSTICK_TO_BTN_THRESHOLD)
   {
     if(!btn_state[BTN_S2_RIGHT]) {
       btn_state[BTN_S2_RIGHT] = 1;
       btn_last_pressed_ms[BTN_S2_RIGHT] = current_time_ms;
     }
-  } else if(joystick_x[1] < -GP_JOYSTICK_TO_BTN_THRESHOLD) {
+  } else if(joystick_data[JOY2_X] < -GP_JOYSTICK_TO_BTN_THRESHOLD) {
     if(!btn_state[BTN_S2_LEFT]) {
       btn_state[BTN_S2_LEFT] = 1;
       btn_last_pressed_ms[BTN_S2_LEFT] = current_time_ms;
@@ -106,12 +101,12 @@ void gamepad::update(void) {
     }
   }
 
-  if(joystick_y[1] > GP_JOYSTICK_TO_BTN_THRESHOLD) {
+  if(joystick_data[JOY2_Y] > GP_JOYSTICK_TO_BTN_THRESHOLD) {
     if(!btn_state[BTN_S2_DOWN]) {
       btn_state[BTN_S2_DOWN] = 1;
       btn_last_pressed_ms[BTN_S2_DOWN] = current_time_ms;
     }
-  } else if(joystick_y[1] < -GP_JOYSTICK_TO_BTN_THRESHOLD) {
+  } else if(joystick_data[JOY2_Y] < -GP_JOYSTICK_TO_BTN_THRESHOLD) {
     if(!btn_state[BTN_S2_UP]) {
       btn_state[BTN_S2_UP] = 1;
       btn_last_pressed_ms[BTN_S2_UP] = current_time_ms;
@@ -152,34 +147,19 @@ time_ms_t gamepad::get_btn_released_duration(enum btn_code btn) {
   }
 }
 
-int8_t gamepad::get_joystick_x(int joystick_num) {
-  if(joystick_num < 0 || joystick_num >= GP_JOYSTICK_NUM) return 0;
+int8_t gamepad::get_joystick_data(enum joy_channel joy_ch) {
+  if(joy_ch < 0 || joy_ch >= GP_JOYSTICK_CH_NUM) return 0;
 
-  if(joystick_x[joystick_num] > GP_JOYSTICK_MAX) joystick_x[joystick_num] = GP_JOYSTICK_MAX;
-  if(joystick_x[joystick_num] < GP_JOYSTICK_MIN) joystick_x[joystick_num] = GP_JOYSTICK_MIN;
+  if(joystick_data[joy_ch] > GP_JOYSTICK_MAX) joystick_data[joy_ch] = GP_JOYSTICK_MAX;
+  if(joystick_data[joy_ch] < GP_JOYSTICK_MIN) joystick_data[joy_ch] = GP_JOYSTICK_MIN;
 
-  return joystick_x[joystick_num];
+  return joystick_data[joy_ch];
 }
 
-int8_t gamepad::get_joystick_y(int joystick_num) {
-  if(joystick_num < 0 || joystick_num >= GP_JOYSTICK_NUM) return 0;
+uint16_t gamepad::get_joystick_raw(enum joy_channel joy_ch) {
+  if(joy_ch < 0 || joy_ch >= GP_JOYSTICK_CH_NUM) return 0;
 
-  if(joystick_y[joystick_num] > GP_JOYSTICK_MAX) joystick_y[joystick_num] = GP_JOYSTICK_MAX;
-  if(joystick_y[joystick_num] < GP_JOYSTICK_MIN) joystick_y[joystick_num] = GP_JOYSTICK_MIN;
-
-  return joystick_y[joystick_num];
-}
-
-uint16_t gamepad::get_joystick_raw_x(int joystick_num) {
-  if(joystick_num < 0 || joystick_num >= GP_JOYSTICK_NUM) return 0;
-
-  return joystick_raw_x[joystick_num];
-}
-
-uint16_t gamepad::get_joystick_raw_y(int joystick_num) {
-  if(joystick_num < 0 || joystick_num >= GP_JOYSTICK_NUM) return 0;
-
-  return joystick_raw_y[joystick_num];
+  return joystick_raw[joy_ch];
 }
 
 void gamepad::send_bridge_enable(bool enable, bool raw_data_enable) {
@@ -197,18 +177,16 @@ void gamepad::recv_bridge_data(const uint8_t* payload, uint8_t payload_size) {
   // little endian
   key_data = payload[0] | (payload[1] << 8) | (payload[2] << 16);
 
-  joystick_x[0] = payload[3];
-  joystick_y[0] = payload[4];
-  joystick_x[1] = payload[5];
-  joystick_y[1] = payload[6];
+  for(int i=0; i<GP_JOYSTICK_CH_NUM; i++) {
+    joystick_data[i] = payload[3+i];
+  }
 }
 
 void gamepad::recv_bridge_raw_data(const uint8_t* payload, uint8_t payload_size) {
   if(payload_size < 8) return;
 
   // little endian
-  joystick_raw_x[0] = payload[0] | (payload[1] << 8);
-  joystick_raw_y[0] = payload[2] | (payload[3] << 8);
-  joystick_raw_x[1] = payload[4] | (payload[5] << 8);
-  joystick_raw_y[1] = payload[6] | (payload[7] << 8);
+  for(int i=0; i<GP_JOYSTICK_CH_NUM; i++) {
+    joystick_raw[i] = payload[2*i] | (payload[2*i+1] << 8);
+  }
 }

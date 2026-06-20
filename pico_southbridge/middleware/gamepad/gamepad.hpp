@@ -7,6 +7,7 @@
 #define GP_BTN_NUM 18
 
 #define GP_JOYSTICK_NUM 2
+#define GP_JOYSTICK_CH_NUM (GP_JOYSTICK_NUM * 2)
 #define GP_JOYSTICK_MAX 127
 #define GP_JOYSTICK_MIN -127
 
@@ -32,6 +33,13 @@ enum btn_code {
   BTN_NONE = 0xff
 };
 
+enum joy_channel {
+  JOY1_X = 0,
+  JOY1_Y,
+  JOY2_X,
+  JOY2_Y
+};
+
 class gamepad {
   public:
     gamepad(btn_matrix* btn_matrix, joystick* joy_1, joystick* joy_2);
@@ -50,10 +58,8 @@ class gamepad {
     uint32_t btn_data;
     joystick* joy1;
     joystick* joy2;
-    int8_t joystick_x[GP_JOYSTICK_NUM];
-    int8_t joystick_y[GP_JOYSTICK_NUM];
-    uint16_t joystick_raw_x[GP_JOYSTICK_NUM];
-    uint16_t joystick_raw_y[GP_JOYSTICK_NUM];
+    int8_t joystick_data[GP_JOYSTICK_CH_NUM];
+    uint16_t joystick_raw[GP_JOYSTICK_CH_NUM];
 
     bool enable, raw_data_enable;
 };

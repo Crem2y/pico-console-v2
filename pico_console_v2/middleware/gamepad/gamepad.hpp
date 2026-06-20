@@ -6,7 +6,7 @@
 #define GP_BTN_NUM 26 // 18 buttons + 8 directional inputs from joysticks
 
 #define GP_JOYSTICK_NUM 2
-#define GP_JOYSTICK_DEADZONE 10
+#define GP_JOYSTICK_CH_NUM (GP_JOYSTICK_NUM * 2)
 #define GP_JOYSTICK_MAX 127
 #define GP_JOYSTICK_MIN -127
 #define GP_JOYSTICK_TO_BTN_THRESHOLD 50
@@ -42,6 +42,13 @@ enum btn_code {
   BTN_NONE = 0xff
 };
 
+enum joy_channel {
+  JOY1_X = 0,
+  JOY1_Y,
+  JOY2_X,
+  JOY2_Y
+};
+
 class gamepad {
   public:
     gamepad(void);
@@ -54,10 +61,8 @@ class gamepad {
     time_ms_t get_btn_pressed_duration(enum btn_code btn);
     time_ms_t get_btn_released_duration(enum btn_code btn);
 
-    int8_t get_joystick_x(int joystick_num);
-    int8_t get_joystick_y(int joystick_num);
-    uint16_t get_joystick_raw_x(int joystick_num);
-    uint16_t get_joystick_raw_y(int joystick_num);
+    int8_t get_joystick_data(enum joy_channel joy_ch);
+    uint16_t get_joystick_raw(enum joy_channel joy_ch);
 
     void send_bridge_enable(bool enable, bool raw_data_enable);
 
@@ -70,8 +75,7 @@ class gamepad {
     time_ms_t btn_last_pressed_ms[GP_BTN_NUM];
     time_ms_t btn_last_released_ms[GP_BTN_NUM];
     uint32_t key_data;
-    int8_t joystick_x[GP_JOYSTICK_NUM];
-    int8_t joystick_y[GP_JOYSTICK_NUM];
-    uint16_t joystick_raw_x[GP_JOYSTICK_NUM];
-    uint16_t joystick_raw_y[GP_JOYSTICK_NUM];
+
+    int8_t joystick_data[GP_JOYSTICK_NUM*2];
+    uint16_t joystick_raw[GP_JOYSTICK_NUM*2];
 };

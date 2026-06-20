@@ -14,15 +14,10 @@ void gamepad::init(void) {
   if(joy1) joy1->init();
   if(joy2) joy2->init();
 
-  joystick_x[0] = 0;
-  joystick_y[0] = 0;
-  joystick_x[1] = 0;
-  joystick_y[1] = 0;
-
-  joystick_raw_x[0] = 0;
-  joystick_raw_y[0] = 0;
-  joystick_raw_x[1] = 0;
-  joystick_raw_y[1] = 0;
+  for(int i=0; i<GP_JOYSTICK_CH_NUM; i++) {
+    joystick_data[i] = 0;
+    joystick_raw[i] = 2048;
+  }
 
   enable = true;
   raw_data_enable = false;
@@ -54,23 +49,22 @@ void gamepad::update(void) {
 
   if(joy1) {
     joy1->update();
-    joystick_raw_x[0] = joy1->x_raw;
-    joystick_raw_y[0] = joy1->y_raw;
+    joystick_raw[JOY1_X] = joy1->x_raw;
+    joystick_raw[JOY1_Y] = joy1->y_raw;
     btn_data |= joy1->stick_btn_state ? 1 << BTN_S1_CENTER : 0;
   }
   if(joy2) {
     joy2->update();
-    joystick_raw_x[1] = joy2->x_raw;
-    joystick_raw_y[1] = joy2->y_raw;
+    joystick_raw[JOY2_X] = joy2->x_raw;
+    joystick_raw[JOY2_Y] = joy2->y_raw;
     btn_data |= joy2->stick_btn_state ? 1 << BTN_S2_CENTER : 0;
   }
 
   // calibration is not implemented yet
   // just convert to -128 ~ 127
-  joystick_x[0] = (int16_t)(joystick_raw_x[0] >> 4) - 128;
-  joystick_y[0] = (int16_t)(joystick_raw_y[0] >> 4) - 128;
-  joystick_x[1] = (int16_t)(joystick_raw_x[1] >> 4) - 128;
-  joystick_y[1] = (int16_t)(joystick_raw_y[1] >> 4) - 128;
+  for(int i=0; i<GP_JOYSTICK_CH_NUM; i++) {
+    joystick_data[i] = (int16_t)(joystick_raw[i] >> 4) - 128;
+  }
 
   if(enable) {
     send_bridge_data();
@@ -89,10 +83,9 @@ void gamepad::send_bridge_data(void) {
   payload_buf[1] = (btn_data >> 8) & 0xFF;
   payload_buf[2] = (btn_data >> 16) & 0xFF;
 
-  payload_buf[3] = joystick_x[0]; // joyLx
-  payload_buf[4] = joystick_y[0]; // joyLy
-  payload_buf[5] = joystick_x[1]; // joyRx
-  payload_buf[6] = joystick_y[1]; // joyRy
+  for(int i=0; i<GP_JOYSTICK_CH_NUM; i++) {
+    payload_buf[3+i] = joystick_data[i];
+  }
 
   Bridge.send(CMD_GAMEPAD_DATA, payload_size, payload_buf);
 }
@@ -102,14 +95,10 @@ void gamepad::send_bridge_raw_data(void) {
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];
 
   // little endian
-  payload_buf[0] = joystick_raw_x[0] & 0xFF;
-  payload_buf[1] = joystick_raw_x[0] >> 8 & 0xFF;
-  payload_buf[2] = joystick_raw_y[0] & 0xFF;
-  payload_buf[3] = joystick_raw_y[0] >> 8 & 0xFF;
-  payload_buf[4] = joystick_raw_x[1] & 0xFF;
-  payload_buf[5] = joystick_raw_x[1] >> 8 & 0xFF;
-  payload_buf[6] = joystick_raw_y[1] & 0xFF;
-  payload_buf[7] = joystick_raw_y[1] >> 8 & 0xFF;
+  for(int i=0; i<GP_JOYSTICK_CH_NUM; i++) {
+    payload_buf[2*i] = joystick_raw[i] & 0xFF;
+    payload_buf[2*i+1] = joystick_raw[i] >> 8 & 0xFF;
+  }
 
   Bridge.send(CMD_GAMEPAD_RAW_DATA, payload_size, payload_buf);
 }
