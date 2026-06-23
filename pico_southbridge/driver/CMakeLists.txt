@@ -5,7 +5,7 @@ add_subdirectory(uart_bridge)
 add_subdirectory(i2s_pcm)
 add_subdirectory(btn_matrix)
 add_subdirectory(joystick)
-add_subdirectory(li_battery)
+add_subdirectory(adc_vsense)
 add_subdirectory(bq25619)
 add_subdirectory(mpu6050)
 add_subdirectory(ir_rx)
@@ -23,7 +23,7 @@ target_link_libraries(driver INTERFACE
   i2s_pcm
   btn_matrix
   joystick
-  li_battery
+  adc_vsense
   bq25619
   mpu6050
   ir_rx

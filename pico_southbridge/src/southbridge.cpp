@@ -7,17 +7,17 @@ btn_matrix BtnMatrix = btn_matrix(PIN_BTN_H1, PIN_BTN_H2, PIN_BTN_H3, PIN_BTN_H4
 joystick Joy1 = joystick(PIN_JOY1_X, PIN_JOY1_Y, false, false, PIN_JOY1_BTN);
 joystick Joy2 = joystick(PIN_JOY2_X, PIN_JOY2_Y, true,  true,  PIN_JOY2_BTN);
 vibrationLRA Lra = vibrationLRA(PIN_LRA_L, PIN_LRA_R);
-liBattery Bat = liBattery(PIN_VBAT, HW_VBAT_RATIO);
 bq25619 Bq25619 = bq25619(HW_I2C_CH, PIN_I2C_SDA, PIN_I2C_SCL, PIN_BAT_INT);
 mpu6050 Mpu = mpu6050(HW_I2C_CH, PIN_I2C_SDA, PIN_I2C_SCL, PIN_IMU_INT);
-tempNTC TempSensor = tempNTC(PIN_NTC); //test
-tempNTC TempSensor1 = tempNTC(PIN_VIN); //test
+tempNTC TempSensor = tempNTC(PIN_NTC);
+AdcVSense VSenseVBAT = AdcVSense(PIN_VBAT, HW_VBAT_RATIO, 0);
+AdcVSense VSenseVIN = AdcVSense(PIN_VIN, HW_VIN_RATIO, 0);
 ir_pulse_capture_t ir_rx;
 ir_tx_t ir_tx;
 
 // middleware lib init
 bridgeProtocol Bridge = bridgeProtocol();
-charger Charger = charger(&Bat, &Bq25619);
+charger Charger = charger(&VSenseVBAT, &Bq25619);
 gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, &Joy2);
 audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
@@ -87,7 +87,7 @@ int main() {
       temperature_timer = now_time;
       Temperature.update();
 
-      printf("voltage : % 1.3fV\n", TempSensor1.read() / HW_VIN_RATIO); //test (VIN)
+      printf("vin : % 1.3fV\n", VSenseVIN.read_voltage()); //test (VIN)
       printf("ntc : % 1.3fV\n", TempSensor.read()); //test (NTC)
     }
     if(system_time_elapsed_ms(now_time, imu_timer) > 10) {

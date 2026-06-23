@@ -12,7 +12,7 @@
 #include "i2s_pcm.h"
 #include "btn_matrix.hpp"
 #include "joystick.hpp"
-#include "li_battery.hpp"
+#include "adc_vsense.hpp"
 #include "ir_rx.h"
 #include "ir_tx.h"
 #include "system_time.h"

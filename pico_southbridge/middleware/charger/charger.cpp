@@ -3,13 +3,13 @@
 
 extern bridgeProtocol Bridge;
 
-charger::charger(liBattery* bat, bq25619* bq25619) {
-  Bat = bat;
+charger::charger(AdcVSense* vbat, bq25619* bq25619) {
+  Vbat = vbat;
   Bq25619 = bq25619;
 }
 
 void charger::init(void) {
-  Bat->init();
+  Vbat->init();
   Bq25619->init();
 
   charging = false;
@@ -17,8 +17,8 @@ void charger::init(void) {
 
   sleep_ms(100);
 
-  float voltage = Bat->get_voltage();
-  if(voltage < 2.0f) {
+  bat_voltage = Vbat->read_voltage();
+  if(bat_voltage < 2.0f) {
     is_battery_exist = false;
     Bq25619->enable_charge(false);
   } else {
@@ -28,7 +28,20 @@ void charger::init(void) {
 }
 
 void charger::update(void) {
-  Bat->get_level();
+  bat_voltage = Vbat->read_voltage();
+  if(bat_voltage >= 4.2) {
+    bat_level = 100;
+  } else if(bat_voltage > 4.1) { // 99.9 ~ 96.0, 100mV
+    bat_level = (((bat_voltage - 4.1) / 0.1) * 4) + 96;
+  } else if(bat_voltage > 3.8) { // 95.9 ~ 56.0, 300mV
+    bat_level = (((bat_voltage - 3.8) / 0.3) * 40) + 56;
+  } else if(bat_voltage > 3.4) { // 55.9 ~ 13.0, 400mV
+    bat_level = (((bat_voltage - 3.4) / 0.4) * 43) + 13;
+  } else if(bat_voltage > 3.0) { // 12.9 ~ 0.0, 400mV
+    bat_level = (((bat_voltage - 3.0) / 0.4) * 13) + 0;
+  } else {
+    bat_level = 0;
+  }
 
   Bq25619->update_watchdog();
 
@@ -41,28 +54,12 @@ void charger::update(void) {
   send_bridge_bat_status();
 }
 
-float charger::get_bat_voltage(void) {
-  return Bat->voltage;
-}
-
-float charger::get_bat_level(void) {
-  return Bat->level;
-}
-
-bool charger::get_charging_status(void) {
-  return charging;
-}
-
-uint8_t charger::get_fault_status(void) {
-  return fault;
-}
-
 void charger::send_bridge_bat_status(void) {
   int payload_size = 6;
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];
 
-  uint16_t voltage_mv = (Bat->voltage * 1000);
-  uint16_t level_x10 = (Bat->level * 10);
+  uint16_t voltage_mv = (bat_voltage * 1000);
+  uint16_t level_x10 = (bat_level * 10);
   uint8_t status_flag = (is_battery_exist ? 0x80 : 0x00) | (charging ? 0x40 : 0x00);
 
   payload_buf[0] = voltage_mv & 0xFF;
