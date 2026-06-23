@@ -23,6 +23,7 @@
 
 // middlewares
 #include "bridge_protocol.hpp"
+#include "power.hpp"
 #include "charger.hpp"
 #include "gamepad.hpp"
 #include "audio_system.hpp"

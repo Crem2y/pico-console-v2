@@ -9,6 +9,7 @@ xpt2046 Touch = xpt2046(HW_TOUCH_CH, PIN_TOUCH_MOSI, PIN_TOUCH_SCK, PIN_TOUCH_MI
 
 // middleware lib init
 bridgeProtocol Bridge = bridgeProtocol();
+power Power = power();
 charger Charger = charger();
 ledControl LedCtrl = ledControl(&Led);
 gamepad Gamepad = gamepad();
@@ -302,7 +303,7 @@ main_menu_loop:
     Lcd.setCursor(16,96);
     Lcd.print_5x8("Vibration test");
     Lcd.setCursor(16,112);
-    Lcd.print_5x8("Battery test");
+    Lcd.print_5x8("Battery & Power test");
     Lcd.setCursor(16,128);
     Lcd.print_5x8("Temperature test");
     Lcd.setCursor(16,144);
@@ -1018,19 +1019,24 @@ void menu_bat_test(void) {
   Lcd.print_5x8("press SELECT & START to exit menu");
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
-  Lcd.print_5x8("Battery test");
+  Lcd.print_5x8("Battery & Power test");
 
   while(1) {
     sleep_ms(100);
     char string_buf[32];
-    sprintf(string_buf, "Battery : %s", Charger.get_battery_exist() ? "Yes" : "No");
+
+    sprintf(string_buf, "Vin : %01.3fV", Power.get_input_voltage());
     Lcd.setCursor(0,16);
     Lcd.print_5x8(string_buf);
+
+    sprintf(string_buf, "Battery : %s", Charger.get_battery_exist() ? "Yes" : "No");
+    Lcd.setCursor(0,16*2);
+    Lcd.print_5x8(string_buf);
     sprintf(string_buf, "Level : % 3.1f%% (%01.3fV)", Charger.get_bat_level(), Charger.get_bat_voltage());
-    Lcd.setCursor(0,32);
+    Lcd.setCursor(0,16*3);
     Lcd.print_5x8(string_buf);
     sprintf(string_buf, "Charging : %s | Fault : 0x%02X\n", Charger.get_charging_status() ? "Yes" : "No", Charger.get_fault_status());
-    Lcd.setCursor(0,48);
+    Lcd.setCursor(0,16*4);
     Lcd.print_5x8(string_buf);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
@@ -1231,6 +1237,7 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
     Temperature.recv_bridge_data(msg->payload, msg->payload_size);
     break;
   case CMD_POWER_STATUS:
+    Power.recv_bridge_power_status(msg->payload, msg->payload_size);
     break;
   case CMD_BATTERY_STATUS:
     Charger.recv_bridge_bat_status(msg->payload, msg->payload_size);

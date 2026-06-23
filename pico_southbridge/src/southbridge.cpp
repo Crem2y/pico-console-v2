@@ -17,6 +17,7 @@ ir_tx_t ir_tx;
 
 // middleware lib init
 bridgeProtocol Bridge = bridgeProtocol();
+power Power = power(&VSenseVIN);
 charger Charger = charger(&VSenseVBAT, &Bq25619);
 gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, &Joy2);
 audioSystem Audio = audioSystem();
@@ -53,6 +54,7 @@ int main() {
   TempSensor.init();
   Vibration.init();
   Vibration.enable(true);
+  Power.init();
   Charger.init();
   Imu.init();
   ir_pulse_capture_init(&ir_rx, pio1, PIN_IR_RX); //placeholder for pio
@@ -87,7 +89,6 @@ int main() {
       temperature_timer = now_time;
       Temperature.update();
 
-      printf("vin : % 1.3fV\n", VSenseVIN.read_voltage()); //test (VIN)
       printf("ntc : % 1.3fV\n", TempSensor.read()); //test (NTC)
     }
     if(system_time_elapsed_ms(now_time, imu_timer) > 10) {
@@ -97,6 +98,7 @@ int main() {
     if(system_time_elapsed_ms(now_time, battery_timer) > 1000) {
       battery_timer = now_time;
       Charger.update();
+      Power.update();
       //test
       // printf("Level : % 3.1f%% (% 1.3fV)\n", Charger.get_bat_level(), Charger.get_bat_voltage());
       // printf("Charging: %s | Fault: 0x%02X\n", Charger.get_charging_status() ? "Yes" : "No", Charger.get_fault_status());
