@@ -2,11 +2,12 @@
 
 #include "temp_builtin.h"
 
-#define TEMP_CH_NUM 2
+#define TEMP_CH_NUM 3
 
 enum temp_ch {
   TEMP_BUILTIN = 0,
   TEMP_SOUTHBRIDGE,
+  TEMP_NTC
 };
 
 class temperature {

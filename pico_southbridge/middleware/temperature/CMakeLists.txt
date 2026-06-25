@@ -11,6 +11,7 @@ target_include_directories(${OUTPUT_STATIC_LIB} PUBLIC
 )
 target_link_libraries(${OUTPUT_STATIC_LIB}
   temp_builtin
+  temp_ntc
   bridge_protocol
 )
 

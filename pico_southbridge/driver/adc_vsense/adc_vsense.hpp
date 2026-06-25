@@ -5,7 +5,7 @@
 
 class AdcVSense {
   public:
-    AdcVSense(int adc_pin, float res_ratio, int32_t offset_mv);
+    AdcVSense(int adc_pin, float res_ratio = 1, int32_t offset_mv = 0);
 
     void init(void);
     float read_voltage(void);

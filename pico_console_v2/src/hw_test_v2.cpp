@@ -81,6 +81,8 @@ int main() { // uses core 0 to sub core
   multicore_launch_core1(core1_entry);
 
   // initalizing hardwares
+  Power.init();
+  Charger.init();
   led_config = {.mode = LED_ON, .brightness = 255, .breathing_step = 10};
   LedCtrl.set_config(LED_CONTROL_1, led_config);
   LedCtrl.set_config(LED_CONTROL_2, led_config);
@@ -1056,11 +1058,14 @@ void menu_temp_test(void) {
   while(1) {
     sleep_ms(100);
     char string_buf[32];
-    sprintf(string_buf, "TEMP_BUILTIN : % 3.1fC", Temperature.get_temp(TEMP_BUILTIN));
+    sprintf(string_buf, "TEMP_BUILTIN     : %.1fC", Temperature.get_temp(TEMP_BUILTIN));
     Lcd.setCursor(0,16);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "TEMP_SOUTHBRIDGE : % 3.1fC", Temperature.get_temp(TEMP_SOUTHBRIDGE));
-    Lcd.setCursor(0,32);
+    sprintf(string_buf, "TEMP_SOUTHBRIDGE : %.1fC", Temperature.get_temp(TEMP_SOUTHBRIDGE));
+    Lcd.setCursor(0,16*2);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "TEMP_NTC         : %.1fC", Temperature.get_temp(TEMP_NTC));
+    Lcd.setCursor(0,16*3);
     Lcd.print_5x8(string_buf);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {

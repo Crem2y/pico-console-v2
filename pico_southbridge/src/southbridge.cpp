@@ -10,8 +10,8 @@ vibrationLRA Lra = vibrationLRA(PIN_LRA_L, PIN_LRA_R);
 bq25619 Bq25619 = bq25619(HW_I2C_CH, PIN_I2C_SDA, PIN_I2C_SCL, PIN_BAT_INT);
 mpu6050 Mpu = mpu6050(HW_I2C_CH, PIN_I2C_SDA, PIN_I2C_SCL, PIN_IMU_INT);
 tempNTC TempSensor = tempNTC(PIN_NTC);
-AdcVSense VSenseVBAT = AdcVSense(PIN_VBAT, HW_VBAT_RATIO, 0);
-AdcVSense VSenseVIN = AdcVSense(PIN_VIN, HW_VIN_RATIO, 0);
+AdcVSense VSenseVBAT = AdcVSense(PIN_VBAT, HW_VBAT_RATIO);
+AdcVSense VSenseVIN = AdcVSense(PIN_VIN, HW_VIN_RATIO);
 ir_pulse_capture_t ir_rx;
 ir_tx_t ir_tx;
 
@@ -21,7 +21,7 @@ power Power = power(&VSenseVIN);
 charger Charger = charger(&VSenseVBAT, &Bq25619);
 gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, &Joy2);
 audioSystem Audio = audioSystem();
-temperature Temperature = temperature();
+temperature Temperature = temperature(&TempSensor);
 vibration Vibration = vibration(&Lra);
 imu Imu = imu(&Mpu);
 irLink Ir = irLink(&ir_rx, &ir_tx);
@@ -89,7 +89,9 @@ int main() {
       temperature_timer = now_time;
       Temperature.update();
 
-      printf("ntc : % 1.3fV\n", TempSensor.read()); //test (NTC)
+      //test (NTC)
+      // printf("ntc : %.1f 'C\n", TempSensor.get_temperature());
+      // printf("ntc : %.0f ohm\n", TempSensor.get_resistance()); 
     }
     if(system_time_elapsed_ms(now_time, imu_timer) > 10) {
       imu_timer = now_time;
