@@ -18,12 +18,17 @@ void touchscreen::init(void) {
   _swap_xy = false;
   _invert_x = false;
   _invert_y = false;
+
+  touch_state = false;
+  touch_point = {.x = -1, .y = -1};
+  last_touched_point = {.x = -1, .y = -1};
+  last_released_point = {.x = -1, .y = -1};
 }
 
 void touchscreen::update(void) {
+  // get touch point data
   _touch_controller->get_touch_data();
 
-  // placeholder for calibration and screen size adjustment
   touch_data_t raw_touch_data = _touch_controller->touch_data;
   if(_invert_x) {
     raw_touch_data.x = _x_max - raw_touch_data.x;
@@ -32,14 +37,26 @@ void touchscreen::update(void) {
     raw_touch_data.y = _y_max - raw_touch_data.y;
   }
   if(_swap_xy) {
-    touch_data.x = (raw_touch_data.y - _y_min) * _screen_width / (_y_max - _y_min);
-    touch_data.y = (raw_touch_data.x - _x_min) * _screen_height / (_x_max - _x_min);
-  } else {
-    touch_data.x = (raw_touch_data.x - _x_min) * _screen_width / (_x_max - _x_min);
-    touch_data.y = (raw_touch_data.y - _y_min) * _screen_height / (_y_max - _y_min);
+    uint16_t temp = raw_touch_data.x;
+    raw_touch_data.x = raw_touch_data.y;
+    raw_touch_data.y = temp;
   }
-  touch_data.z1 = raw_touch_data.z1;
-  touch_data.z2 = raw_touch_data.z2;
+
+  touch_point.x = ((raw_touch_data.x - _x_min) * _screen_width) / (_x_max - _x_min);
+  touch_point.y = ((raw_touch_data.y - _y_min) * _screen_height) / (_y_max - _y_min);
+
+  // get touch state
+  if(touch_state) {
+    if(raw_touch_data.z1 < TS_RELEASE_THRESHOLD) { // just released
+      touch_state = false;
+      last_released_point = touch_point;
+    }
+  } else {
+    if(raw_touch_data.z1 > TS_TOUCH_THRESHOLD) { // just touched
+      touch_state = true;
+      last_touched_point = touch_point;
+    }
+  }
 }
 
 void touchscreen::set_calibration(uint16_t x_min, uint16_t x_max, uint16_t y_min, uint16_t y_max) {
@@ -86,6 +103,14 @@ void touchscreen::set_rotation(uint8_t rotation) {
   }
 }
 
-bool touchscreen::is_touched(void) {
-  return touch_data.z1 > 100;
+touch_point_t touchscreen::get_touch_point(void) {
+  touch_point_t point;
+
+  if(!touch_state) {
+    point = {.x = -1, .y = -1};
+  } else {
+    point = touch_point;
+  }
+
+  return point;
 }
