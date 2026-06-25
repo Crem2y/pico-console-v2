@@ -1161,7 +1161,7 @@ void menu_imu_test(void) {
   while(1) {
     sleep_ms(10);
     char string_buf[32];
-    //test
+
     sprintf(string_buf, "accel x: %2.4f ", Imu.get_accel_x());
     Lcd.setCursor(0,16);
     Lcd.print_5x8(string_buf);

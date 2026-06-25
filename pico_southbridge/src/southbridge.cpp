@@ -88,10 +88,6 @@ int main() {
     if(system_time_elapsed_ms(now_time, temperature_timer) > 1000) {
       temperature_timer = now_time;
       Temperature.update();
-
-      //test (NTC)
-      // printf("ntc : %.1f 'C\n", TempSensor.get_temperature());
-      // printf("ntc : %.0f ohm\n", TempSensor.get_resistance()); 
     }
     if(system_time_elapsed_ms(now_time, imu_timer) > 10) {
       imu_timer = now_time;
@@ -101,9 +97,6 @@ int main() {
       battery_timer = now_time;
       Charger.update();
       Power.update();
-      //test
-      // printf("Level : % 3.1f%% (% 1.3fV)\n", Charger.get_bat_level(), Charger.get_bat_voltage());
-      // printf("Charging: %s | Fault: 0x%02X\n", Charger.get_charging_status() ? "Yes" : "No", Charger.get_fault_status());
     }
     if(system_time_elapsed_ms(now_time, ir_timer) > 1) {
       ir_timer = now_time;

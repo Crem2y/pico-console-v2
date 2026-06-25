@@ -31,7 +31,4 @@ class imu {
   private:
     float accel_x, accel_y, accel_z;
     float gyro_x, gyro_y, gyro_z;
-    //test
-    int16_t accel_raw[3];
-    int16_t gyro_raw[3];
 };
