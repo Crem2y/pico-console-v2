@@ -3,11 +3,10 @@
 #include "temp_builtin.h"
 #include "temp_ntc.hpp"
 
-#define TEMP_CH_NUM 2
-
 enum temp_ch {
   TEMP_BUILTIN = 0,
   TEMP_NTC,
+  TEMP_CH_NUM
 };
 
 class temperature {
@@ -17,6 +16,7 @@ class temperature {
     void init(void);
     void update(void);
 
+    void set_temp(temp_ch ch, float temp_data);
     float get_temp(temp_ch ch);
 
     void send_bridge_data(void);

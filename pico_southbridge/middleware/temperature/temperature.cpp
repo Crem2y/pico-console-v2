@@ -30,6 +30,12 @@ float temperature::get_temp(temp_ch ch) {
   }
 }
 
+void temperature::set_temp(temp_ch ch, float temp_data) {
+  if(ch < TEMP_CH_NUM) {
+    temp[ch] = temp_data;
+  }
+}
+
 void temperature::send_bridge_data(void) {
   int payload_size = TEMP_CH_NUM * 2;
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];
