@@ -47,13 +47,12 @@ typedef struct {
     const int16_t *table;
 } voice_t;
 
-extern const float sound_freq_table[9][12];
 extern voice_t g_voices[NUM_CHANNELS];
 
 void audio_loop(void);
 void audio_init(int data_pin, int clock_pin_base);
 
-void voice_note_on(int voice_idx, int octave_0_to_8, int semitone_0_to_11, int32_t peak_vol_q8);
+void voice_note_on(int voice_idx, float freq, int32_t peak_vol_q8);
 void voice_env_set(voice_t *v, uint32_t tick_us, int32_t decay_step_q8);
 void set_voice_waveform(int voice_idx, wave_t w);
 

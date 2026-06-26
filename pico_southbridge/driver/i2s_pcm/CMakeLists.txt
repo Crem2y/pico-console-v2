@@ -4,7 +4,7 @@ message(STATUS "building lib \"${LIB_NAME}\"...")
 
 set(OUTPUT_STATIC_LIB ${LIB_NAME})
 
-add_library(${OUTPUT_STATIC_LIB} ${LIB_NAME}.c sound_freq.c)
+add_library(${OUTPUT_STATIC_LIB} ${LIB_NAME}.c)
 
 target_include_directories(${OUTPUT_STATIC_LIB} PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -22,6 +22,7 @@ target_compile_definitions(${OUTPUT_STATIC_LIB} PUBLIC
 target_link_libraries(${OUTPUT_STATIC_LIB}
   pico_stdlib
   pico_audio_i2s
+  system_time
 )
 
 message(STATUS "building lib \"${LIB_NAME}\" completed!")

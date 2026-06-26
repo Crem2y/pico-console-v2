@@ -8,6 +8,7 @@
 #include "pico/audio_i2s.h"
 
 #include "i2s_pcm.h"
+#include "system_time.h"
 
 static int16_t square_12_wave_table[WAVE_TABLE_LEN];
 static int16_t square_25_wave_table[WAVE_TABLE_LEN];
@@ -43,9 +44,7 @@ static void make_wave_tables(void) {
     }
 }
 
-// -------------------- Note -> step table --------------------
-static uint32_t note_step_table[9][12]; // octave 0..8
-
+// convert freq to step
 static inline uint32_t step_from_hz(float f_hz, uint32_t fs_hz) {
     // step = round( (WAVE_TABLE_LEN * 65536 * f) / Fs )
     // Use double for precision; called only on note changes.
@@ -56,14 +55,6 @@ static inline uint32_t step_from_hz(float f_hz, uint32_t fs_hz) {
     return (uint32_t)(step + 0.5);
 }
 
-static void build_note_step_table(uint32_t fs_hz) {
-    for (int o = 0; o < 9; o++) {
-        for (int n = 0; n < 12; n++) {
-            note_step_table[o][n] = step_from_hz(sound_freq_table[o][n], fs_hz);
-        }
-    }
-}
-
 // -------------------- Simple synth state --------------------
 
 voice_t g_voices[NUM_CHANNELS];
@@ -71,7 +62,7 @@ voice_t g_voices[NUM_CHANNELS];
 void voice_env_set(voice_t *v, uint32_t tick_us, int32_t decay_step_q8) {
     v->env_tick_us = tick_us;
     v->env_decay_step_q8 = (decay_step_q8 < 0) ? 1 : decay_step_q8;
-    v->env_next_us = time_us_32() + v->env_tick_us;
+    v->env_next_us = get_system_time_us() + v->env_tick_us;
 }
 
 static inline void voice_env_init(voice_t *v, uint32_t tick_us, int32_t decay_step_q8) {
@@ -84,7 +75,7 @@ static inline void voice_env_note_on(voice_t *v, int32_t peak_vol_q8) {
     if (peak_vol_q8 > 256) peak_vol_q8 = 256;
     v->vol_q8 = peak_vol_q8;
     v->env_q8 = peak_vol_q8;
-    v->env_next_us = time_us_32() + v->env_tick_us;
+    v->env_next_us = get_system_time_us() + v->env_tick_us;
 }
 
 static inline void voice_env_tick(voice_t *v, uint32_t now_us) {
@@ -116,7 +107,7 @@ static inline int32_t voice_next_sample_i32(voice_t *v) {
 }
 
 static void render_buffer_mono_mix(int16_t *dst, uint32_t count) {
-    uint32_t now_us = time_us_32();
+    uint32_t now_us = get_system_time_us();
     // Update envelopes once per buffer render (cheap). If you need tighter timing,
     // call voice_env_tick() inside the sample loop instead.
     for (int v = 0; v < NUM_CHANNELS; v++) {
@@ -163,11 +154,9 @@ void set_voice_waveform(int voice_idx, wave_t w) {
     g_voices[voice_idx].wave = w;
 }
 
-static bool set_voice_note(int voice_idx, int octave_0_to_8, int semitone_0_to_11) {
+static bool set_voice_note(int voice_idx, float freq) {
     if (voice_idx < 0 || voice_idx >= NUM_CHANNELS) return false;
-    if (octave_0_to_8 < 0 || octave_0_to_8 > 8) return false;
-    if (semitone_0_to_11 < 0 || semitone_0_to_11 > 11) return false;
-    g_voices[voice_idx].step = note_step_table[octave_0_to_8][semitone_0_to_11];
+    g_voices[voice_idx].step = step_from_hz(freq, AUDIO_FS_HZ);
     return true;
 }
 
@@ -179,8 +168,8 @@ static void set_voice_volume_q8(int voice_idx, int32_t vol_q8) {
     // Do not directly change env_q8 here; env_q8 is controlled by note triggers.
 }
 
-void voice_note_on(int voice_idx, int octave_0_to_8, int semitone_0_to_11, int32_t peak_vol_q8) {
-    if (!set_voice_note(voice_idx, octave_0_to_8, semitone_0_to_11)) return;
+void voice_note_on(int voice_idx, float freq, int32_t peak_vol_q8) {
+    if (!set_voice_note(voice_idx, freq)) return;
     voice_env_note_on(&g_voices[voice_idx], peak_vol_q8);
 }
 
@@ -248,7 +237,6 @@ void audio_init(int data_pin, int clock_pin_base) {
     _data_pin = data_pin;
     _clock_pin_base = clock_pin_base;
     make_wave_tables();
-    build_note_step_table(AUDIO_FS_HZ);
 
     memset(g_voices, 0, sizeof(g_voices));
 

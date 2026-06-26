@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include "i2s_pcm.h"
 
+extern const float sound_freq_table[9][12];
+
 class audioSystem {
   public:
     audioSystem(void);
