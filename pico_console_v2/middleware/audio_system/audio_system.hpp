@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include "system_time.h"
 
+extern const float sound_freq_table[9][12];
+
 typedef struct _music_note_t { //placeholder
   uint8_t channel;
   uint8_t octave;

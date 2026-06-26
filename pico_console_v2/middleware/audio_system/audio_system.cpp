@@ -46,12 +46,13 @@ void audioSystem::play_music(music_table_t* music_table) {
 }
 
 void audioSystem::send_bridge_data(void) {
-  int payload_size = 3;
+  int payload_size = 5;
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];
+  
+  float freq = sound_freq_table[note_now.octave][note_now.note];
 
   payload_buf[0] = note_now.channel;
-  payload_buf[1] = note_now.octave;
-  payload_buf[2] = note_now.note;
+  memcpy(&payload_buf[1], &freq, sizeof(float));
 
   Bridge.send(CMD_AUDIO_PCM_DATA, payload_size, payload_buf);
 }

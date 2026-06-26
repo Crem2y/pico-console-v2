@@ -33,7 +33,7 @@ enum bridge_cmd {
   CMD_IMU_DISABLE       = 0x5F,
 
   CMD_AUDIO_ENABLE      = 0x60,
-  CMD_AUDIO_PCM_DATA    = 0x61,
+  CMD_AUDIO_PCM_DATA    = 0x61, // [ch][freq][vol]
   CMD_AUDIO_DISABLE     = 0x6F,
 
   CMD_VIBRATION_ENABLE  = 0x70,
