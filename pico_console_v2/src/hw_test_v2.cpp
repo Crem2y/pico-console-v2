@@ -923,7 +923,9 @@ void menu_audio_test(void) {
   Lcd.print_5x8("Audio test");
 
   Lcd.setCursor(0,16);
-  Lcd.print_5x8("press A to play sound");
+  Lcd.print_5x8("press A to play music");
+  Lcd.setCursor(0,16*2);
+  Lcd.print_5x8("press B to play sound");
 
   music_note_t test_notes[4] = {
     {0, 4, 0},   // C4
@@ -938,11 +940,18 @@ void menu_audio_test(void) {
     .notes = test_notes
   };
 
+  //test
+  Audio.set_wave(4, WAVE_NOISE);
+  Audio.set_env(4, 10000, 1);
+
   while(1) {
-    sleep_ms(100);
+    sleep_ms(10);
 
     if(Gamepad.is_btn_pressed(BTN_A)) {
       Audio.play_music(&test_music);
+    }
+    if(Gamepad.is_btn_pressed(BTN_B)) {
+      Audio.play_note(4, 3, 6); //test
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {

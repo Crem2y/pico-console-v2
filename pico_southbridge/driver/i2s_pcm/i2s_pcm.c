@@ -59,15 +59,15 @@ static inline uint32_t step_from_hz(float f_hz, uint32_t fs_hz) {
 
 voice_t g_voices[NUM_CHANNELS];
 
-void voice_env_set(voice_t *v, uint32_t tick_us, int32_t decay_step_q8) {
-    v->env_tick_us = tick_us;
-    v->env_decay_step_q8 = (decay_step_q8 < 0) ? 1 : decay_step_q8;
-    v->env_next_us = get_system_time_us() + v->env_tick_us;
+void voice_env_set(int voice_idx, uint32_t tick_us, int32_t decay_step_q8) {
+    g_voices[voice_idx].env_tick_us = tick_us;
+    g_voices[voice_idx].env_decay_step_q8 = (decay_step_q8 < 0) ? 1 : decay_step_q8;
+    g_voices[voice_idx].env_next_us = get_system_time_us() + g_voices[voice_idx].env_tick_us;
 }
 
-static inline void voice_env_init(voice_t *v, uint32_t tick_us, int32_t decay_step_q8) {
-    voice_env_set(v, tick_us, decay_step_q8);
-    v->env_q8 = 0;
+static inline void voice_env_init(int voice_idx, uint32_t tick_us, int32_t decay_step_q8) {
+    voice_env_set(voice_idx, tick_us, decay_step_q8);
+    g_voices[voice_idx].env_q8 = 0;
 }
 
 static inline void voice_env_note_on(voice_t *v, int32_t peak_vol_q8) {
@@ -243,6 +243,6 @@ void audio_init(int data_pin, int clock_pin_base) {
     for (int i = 0; i < NUM_CHANNELS; i++) {
         set_voice_waveform(i, WAVE_SQUARE_50);
         set_voice_volume_q8(i, 8);
-        voice_env_init(&g_voices[i], 100000, 1);
+        voice_env_init(i, 100000, 1);
     }
 }

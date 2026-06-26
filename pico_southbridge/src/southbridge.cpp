@@ -157,8 +157,14 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   case CMD_AUDIO_ENABLE:
     // Audio.enable();
     break;
-  case CMD_AUDIO_PCM_DATA:
-    Audio.recv_bridge_data(msg->payload, msg->payload_size);
+  case CMD_AUDIO_NOTE_DATA:
+    Audio.recv_bridge_note_data(msg->payload, msg->payload_size);
+    break;
+  case CMD_AUDIO_SET_WAVE:
+    Audio.recv_bridge_set_wave(msg->payload, msg->payload_size);
+    break;
+  case CMD_AUDIO_SET_ENV:
+    Audio.recv_bridge_set_env(msg->payload, msg->payload_size);
     break;
   case CMD_AUDIO_DISABLE:
     // Audio.disable();

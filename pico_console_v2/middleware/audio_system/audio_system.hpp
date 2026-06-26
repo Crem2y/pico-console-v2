@@ -17,6 +17,17 @@ typedef struct _music_table_t { //placeholder
   music_note_t* notes;
 } music_table_t;
 
+typedef enum {
+  WAVE_SQUARE_12 = 0,
+  WAVE_SQUARE_25,
+  WAVE_SQUARE_50,
+  WAVE_SQUARE_75,
+  WAVE_TRIANGLE,
+  WAVE_SAWTOOTH,
+  WAVE_NOISE,
+  WAVE_SINE,
+} wave_t;
+
 class audioSystem {
   public:
     audioSystem(void);
@@ -26,7 +37,23 @@ class audioSystem {
 
     void play_music(music_table_t* music_table); //placeholder
 
-    void send_bridge_data(void);
+    void play_note(uint8_t ch, int8_t octave, uint8_t note) {
+      send_bridge_note_data(ch, sound_freq_table[octave][note]);
+    }
+    void play_wave(uint8_t ch, float freq) {
+      send_bridge_note_data(ch, freq);
+    }
+
+    void set_wave(uint8_t ch, wave_t w) {
+      send_bridge_set_wave(ch, w);
+    }
+    void set_env(uint8_t ch, uint32_t tick_us, uint8_t step) {
+      send_bridge_set_env(ch, tick_us, step);
+    }
+
+    void send_bridge_note_data(uint8_t ch, float freq);
+    void send_bridge_set_wave(uint8_t ch, wave_t w);
+    void send_bridge_set_env(uint8_t ch, uint32_t tick_us, uint8_t step);
 
   private:
     time_ms_t current_time_ms;

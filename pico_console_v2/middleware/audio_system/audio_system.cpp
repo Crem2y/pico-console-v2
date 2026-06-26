@@ -30,7 +30,7 @@ void audioSystem::update(void) {
     note_now = current_note[current_note_index];
     current_note_index++;
 
-    send_bridge_data();
+    play_note(note_now.channel, note_now.octave, note_now.note);
   }
 }
 
@@ -45,14 +45,33 @@ void audioSystem::play_music(music_table_t* music_table) {
   prev_note_time_ms = current_time_ms;
 }
 
-void audioSystem::send_bridge_data(void) {
+void audioSystem::send_bridge_note_data(uint8_t ch, float freq) {
   int payload_size = 5;
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];
-  
-  float freq = sound_freq_table[note_now.octave][note_now.note];
 
-  payload_buf[0] = note_now.channel;
+  payload_buf[0] = ch;
   memcpy(&payload_buf[1], &freq, sizeof(float));
 
-  Bridge.send(CMD_AUDIO_PCM_DATA, payload_size, payload_buf);
+  Bridge.send(CMD_AUDIO_NOTE_DATA, payload_size, payload_buf);
+}
+
+void audioSystem::send_bridge_set_wave(uint8_t ch, wave_t w) {
+  int payload_size = 2;
+  uint8_t payload_buf[PAYLOAD_MAX_SIZE];
+
+  payload_buf[0] = ch;
+  payload_buf[1] = w;
+
+  Bridge.send(CMD_AUDIO_SET_WAVE, payload_size, payload_buf);
+}
+
+void audioSystem::send_bridge_set_env(uint8_t ch, uint32_t tick_us, uint8_t step) {
+  int payload_size = 6;
+  uint8_t payload_buf[PAYLOAD_MAX_SIZE];
+
+  payload_buf[0] = ch;
+  memcpy(&payload_buf[1], &tick_us, sizeof(uint32_t));
+  payload_buf[5] = step;
+
+  Bridge.send(CMD_AUDIO_SET_ENV, payload_size, payload_buf);
 }
