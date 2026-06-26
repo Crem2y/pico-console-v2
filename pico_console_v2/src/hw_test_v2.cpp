@@ -184,8 +184,8 @@ void core1_entry() { // uses core 1 to main core
   // boot animation
   Lcd.setTextSize(2);
   for(int i=0; i<160; i+=1) {
-    Lcd.fillRect(140, i-1, (6*2*16), 1, LCD_BLACK);
-    Lcd.setCursor(140,i);
+    Lcd.fillRect(150, i-1, (6*2*15), 1, LCD_BLACK);
+    Lcd.setCursor(150,i);
     Lcd.print_5x8("PICO CONSOLE V2");
     sleep_ms(10);
   }
@@ -193,9 +193,9 @@ void core1_entry() { // uses core 1 to main core
   Lcd.setCursor(480-(6*2*9),320-(8*2));
   Lcd.print_5x8("by Crem2y");
   Lcd.setTextSize(1);
-  Lcd.setCursor(190,200);
+  Lcd.setCursor(206,200);
   Lcd.print_5x8("press START");
-  Lcd.setCursor(170,210);
+  Lcd.setCursor(183,210);
   Lcd.print_5x8("or touch the screen");
 
   Lcd.setCursor(0,0);
@@ -236,9 +236,9 @@ void core1_entry() { // uses core 1 to main core
     if(system_time_elapsed_ms(now_time, display_time_ms) > 1000) {
       display_time_ms = now_time;
       if(display_text) {
-        Lcd.fillRect(190,200,66,8,LCD_BLACK);
+        Lcd.fillRect(206,200,(6*11),8,LCD_BLACK);
       } else {
-        Lcd.setCursor(190,200);
+        Lcd.setCursor(206,200);
         Lcd.print_5x8("press START");
       }
       display_text = !display_text;
@@ -841,11 +841,11 @@ void menu_lcd_test(void) {
         break;
       case 4:
         Lcd.fillRect(0,16,480,(320-24),LCD_BLACK);
-        for(int i=0; i<28; i++) {
+        for(int i=0; i<30; i++) {
           Lcd.setTextColor(color, LCD_BLACK);
-          Lcd.setCursor(0+(i*10),16+(i*10));
+          Lcd.setCursor(0+(rand() % (480-(6*2*8))), 16+(rand() % (320-24-(8*2))));
           Lcd.print_5x8("LCD test");
-          color += 0x1234;
+          color = rand();
         }
         break;
     }
