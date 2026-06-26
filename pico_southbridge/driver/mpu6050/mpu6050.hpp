@@ -43,6 +43,10 @@ class mpu6050 {
     void set_accel_range(uint16_t range);
     void set_gyro_range(uint16_t range);
 
+    float get_temp_data(void) {
+      return temperature;
+    }
+
   private:
     i2c_inst_t* _i2c;
     int _pin_sda, _pin_scl, _pin_int;
