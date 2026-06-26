@@ -21,6 +21,7 @@ float AdcVSense::read_voltage(void) {
     adc_raw += adc_read();
   }
 
-  voltage = (((float)adc_raw * (3.3f/(4095*16))) / _ratio) + _offset_mv;
+  voltage = (((float)adc_raw * (3.3f/(4095*16))) / _ratio);
+  voltage += (_offset_mv / 1000.0f);
   return voltage;
 }
