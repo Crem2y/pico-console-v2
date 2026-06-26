@@ -11,7 +11,11 @@ class imu {
     void update(void);
 
     void set_enable(bool enable_accel, bool enable_gyro) {
-      send_bridge_enable(enable_accel, enable_gyro);
+      if(enable_accel || enable_gyro) {
+        send_bridge_enable(enable_accel, enable_gyro);
+      } else {
+        send_bridge_disable();
+      }
     }
 
     float get_accel_x();
