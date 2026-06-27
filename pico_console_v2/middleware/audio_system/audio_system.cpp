@@ -30,7 +30,7 @@ void audioSystem::update(void) {
     note_now = current_note[current_note_index];
     current_note_index++;
 
-    play_note(note_now.channel, note_now.octave, note_now.note);
+    play_note(note_now.channel, note_now.octave, note_now.note, note_now.volume);
   }
 }
 
@@ -45,12 +45,13 @@ void audioSystem::play_music(music_table_t* music_table) {
   prev_note_time_ms = current_time_ms;
 }
 
-void audioSystem::send_bridge_note_data(uint8_t ch, float freq) {
-  int payload_size = 5;
+void audioSystem::send_bridge_note_data(uint8_t ch, float freq, uint8_t volume) {
+  int payload_size = 6;
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];
 
   payload_buf[0] = ch;
   memcpy(&payload_buf[1], &freq, sizeof(float));
+  payload_buf[5] = volume;
 
   Bridge.send(CMD_AUDIO_NOTE_DATA, payload_size, payload_buf);
 }

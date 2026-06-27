@@ -9,6 +9,7 @@ typedef struct _music_note_t { //placeholder
   uint8_t channel;
   uint8_t octave;
   uint8_t note;
+  uint8_t volume;
 } music_note_t;
 
 typedef struct _music_table_t { //placeholder
@@ -37,11 +38,11 @@ class audioSystem {
 
     void play_music(music_table_t* music_table); //placeholder
 
-    void play_note(uint8_t ch, int8_t octave, uint8_t note) {
-      send_bridge_note_data(ch, sound_freq_table[octave][note]);
+    void play_note(uint8_t ch, uint8_t octave, uint8_t note, uint8_t volume) {
+      send_bridge_note_data(ch, sound_freq_table[octave][note], volume);
     }
-    void play_wave(uint8_t ch, float freq) {
-      send_bridge_note_data(ch, freq);
+    void play_wave(uint8_t ch, float freq, uint8_t volume) {
+      send_bridge_note_data(ch, freq, volume);
     }
 
     void set_wave(uint8_t ch, wave_t w) {
@@ -51,7 +52,7 @@ class audioSystem {
       send_bridge_set_env(ch, tick_us, step);
     }
 
-    void send_bridge_note_data(uint8_t ch, float freq);
+    void send_bridge_note_data(uint8_t ch, float freq, uint8_t volume);
     void send_bridge_set_wave(uint8_t ch, wave_t w);
     void send_bridge_set_env(uint8_t ch, uint32_t tick_us, uint8_t step);
 

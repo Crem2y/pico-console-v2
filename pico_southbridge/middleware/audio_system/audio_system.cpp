@@ -9,11 +9,11 @@ void audioSystem::init(void) {
 }
 
 void audioSystem::recv_bridge_note_data(const uint8_t* payload, uint8_t payload_size) {
-  if(payload_size < 5) return; //placeholder
+  if(payload_size < 6) return;
 
   float freq;
   memcpy(&freq, &payload[1], sizeof(float));
-  voice_note_on(payload[0], freq, g_voices[0].vol_q8);
+  voice_note_on(payload[0], freq, payload[5]);
 }
 
 void audioSystem::recv_bridge_set_wave(const uint8_t* payload, uint8_t payload_size) {

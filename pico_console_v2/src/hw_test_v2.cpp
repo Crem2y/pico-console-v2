@@ -265,8 +265,8 @@ void core1_entry() { // uses core 1 to main core
   LedCtrl.set_mode(LED_CONTROL_4, LED_DARKER);
 
   music_note_t boot_notes[2] = {
-    {0, 6, 0},   // C6
-    {0, 7, 0}    // C7
+    {0, 6, 0, 8},   // C6
+    {0, 7, 0, 8}    // C7
   };
 
   music_table_t boot_music = {
@@ -928,10 +928,10 @@ void menu_audio_test(void) {
   Lcd.print_5x8("press B to play sound");
 
   music_note_t test_notes[4] = {
-    {0, 4, 0},   // C4
-    {1, 4, 4},   // E4
-    {2, 4, 7},   // G4
-    {3, 5, 0}    // C5
+    {0, 4, 0, 8},   // C4
+    {1, 4, 4, 8},   // E4
+    {2, 4, 7, 8},   // G4
+    {3, 5, 0, 8}    // C5
   };
 
   music_table_t test_music = {
@@ -940,18 +940,90 @@ void menu_audio_test(void) {
     .notes = test_notes
   };
 
-  //test
-  Audio.set_wave(4, WAVE_NOISE);
-  Audio.set_env(4, 10000, 1);
+  uint8_t wave_vol = 8;
+  float wave_freq = 100.0f;
+  uint8_t wave_num = WAVE_SQUARE_12;
+
+  uint32_t env_tick = 100000;
+  uint8_t env_step = 1;
+
+  Audio.set_wave(4, (wave_t)wave_num);
+  Audio.set_env(4, env_tick, env_step);
 
   while(1) {
     sleep_ms(10);
+    char string_buf[32];
+
+    sprintf(string_buf, "wave: %d, freq: %.3f, vol: %d ", wave_num, wave_freq, wave_vol);
+    Lcd.setCursor(0,16*4);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "env_tick: %d, env_step: %d  ", env_tick, env_step);
+    Lcd.setCursor(0,16*5);
+    Lcd.print_5x8(string_buf);
+
+    int8_t joy1_x = Gamepad.get_joystick_data(JOY1_X);
+
+    if(joy1_x < -10) {
+      if(joy1_x < -64) {
+        if(wave_freq > 5) wave_freq = pow(wave_freq, 0.995);
+      } else {
+        if(wave_freq > 5) wave_freq = pow(wave_freq, 0.999);
+      }
+    } else if(joy1_x > 10) {
+      if(joy1_x > 64) {
+        if(wave_freq < 10000) wave_freq = pow(wave_freq, 1.005);
+      } else {
+        if(wave_freq < 10000) wave_freq = pow(wave_freq, 1.001);
+      }
+    }
+    if(Gamepad.is_btn_pressed(BTN_S1_UP)) {
+      wave_vol++;
+      sleep_ms(100);
+    }
+    if(Gamepad.is_btn_pressed(BTN_S1_DOWN)) {
+      wave_vol--;
+      sleep_ms(100);
+    }
+
+    if(Gamepad.is_btn_pressed(BTN_UP)) {
+      env_step++;
+      Audio.set_env(4, env_tick, env_step);
+      sleep_ms(100);
+    }
+    if(Gamepad.is_btn_pressed(BTN_DOWN)) {
+      env_step--;
+      Audio.set_env(4, env_tick, env_step);
+      sleep_ms(100);
+    }
+    if(Gamepad.is_btn_pressed(BTN_LEFT)) {
+      if(env_tick > 10) env_tick = pow(env_tick, 0.99);
+      Audio.set_env(4, env_tick, env_step);
+      sleep_ms(100);
+    }
+    if(Gamepad.is_btn_pressed(BTN_RIGHT)) {
+      if(env_tick < 10000000) env_tick = pow(env_tick, 1.01);
+      Audio.set_env(4, env_tick, env_step);
+      sleep_ms(100);
+    }
+
+    if(Gamepad.is_btn_pressed(BTN_SL)) {
+      if(wave_num == WAVE_SQUARE_12) wave_num = WAVE_SINE;
+      else wave_num--;
+      Audio.set_wave(4, (wave_t)wave_num);
+      sleep_ms(100);
+    }
+    if(Gamepad.is_btn_pressed(BTN_SR)) {
+      if(wave_num == WAVE_SINE) wave_num = WAVE_SQUARE_12;
+      else wave_num++;
+      Audio.set_wave(4, (wave_t)wave_num);
+      sleep_ms(100);
+    }
 
     if(Gamepad.is_btn_pressed(BTN_A)) {
       Audio.play_music(&test_music);
     }
     if(Gamepad.is_btn_pressed(BTN_B)) {
-      Audio.play_note(4, 3, 6); //test
+      Audio.play_wave(4, wave_freq, wave_vol);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
