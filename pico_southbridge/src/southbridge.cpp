@@ -43,12 +43,9 @@ int main() {
   uart_bridge_init(HW_BRIDGE_CH, PIN_BRIDGE_TX, PIN_BRIDGE_RX, HW_BRIDGE_BAUD);
   Bridge.set_cmd_handler(bridge_do_cmd);
 
-  audio_init(PIN_I2S_DATA, PIN_I2S_SCK);
+  audio_init(PIN_I2S_DATA, PIN_I2S_SCK, PIN_DAC_MUTE);
   Audio.init();
-  // Audio.enable();
-  gpio_init(PIN_DAC_MUTE); //placeholder for dac mute pin
-  gpio_set_dir(PIN_DAC_MUTE, GPIO_OUT);
-  gpio_put(PIN_DAC_MUTE, 1);
+  Audio.set_enable(true);
   Gamepad.init();
   Temperature.init();
   TempSensor.init();
@@ -155,7 +152,7 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
     Imu.enable_gyro_data(false);
     break;
   case CMD_AUDIO_ENABLE:
-    // Audio.enable();
+    Audio.set_enable(true);
     break;
   case CMD_AUDIO_NOTE_DATA:
     Audio.recv_bridge_note_data(msg->payload, msg->payload_size);
@@ -170,7 +167,7 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
     Audio.recv_bridge_set_master(msg->payload, msg->payload_size);
     break;
   case CMD_AUDIO_DISABLE:
-    // Audio.disable();
+    Audio.set_enable(false);
     break;
   case CMD_VIBRATION_ENABLE:
     Vibration.enable(true);

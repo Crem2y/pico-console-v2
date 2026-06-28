@@ -45,6 +45,13 @@ void audioSystem::play_music(music_table_t* music_table) {
   prev_note_time_ms = current_time_ms;
 }
 
+void audioSystem::set_enable(bool enable) {
+  if(enable)
+    Bridge.send(CMD_AUDIO_ENABLE, 0, NULL);
+  else
+    Bridge.send(CMD_AUDIO_DISABLE, 0, NULL);
+}
+
 void audioSystem::send_bridge_note_data(uint8_t ch, float freq, uint8_t volume) {
   int payload_size = 6;
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];

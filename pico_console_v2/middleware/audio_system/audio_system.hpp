@@ -45,6 +45,7 @@ class audioSystem {
       send_bridge_note_data(ch, freq, volume);
     }
 
+    void set_enable(bool enable);
     void set_wave(uint8_t ch, wave_t w) {
       send_bridge_set_wave(ch, w);
     }

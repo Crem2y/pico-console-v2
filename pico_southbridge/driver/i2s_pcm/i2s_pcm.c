@@ -21,6 +21,7 @@ static int16_t sine_wave_table[WAVE_TABLE_LEN];
 
 static int _data_pin;
 static int _clock_pin_base;
+static int _mute_pin;
 
 // -------------------- Wave tables --------------------
 static void make_wave_tables(void) {
@@ -216,6 +217,9 @@ static struct audio_buffer_pool *init_audio(void) {
     return producer_pool;
 }
 
+void set_mute(bool mute) {
+    gpio_put(_mute_pin, !mute);
+}
 
 void audio_loop(void) {
 
@@ -239,13 +243,17 @@ void audio_loop(void) {
  * @param clock_pin_base i2s clock pin base (clock_pin_base = bit clock, clock_pin_base+1 = word select)
  * @return struct audio_buffer_pool* 
  */
-void audio_init(int data_pin, int clock_pin_base) {
+void audio_init(int data_pin, int clock_pin_base, int mute_pin) {
     _data_pin = data_pin;
     _clock_pin_base = clock_pin_base;
+    _mute_pin = mute_pin;
+
+    gpio_init(_mute_pin);
+    gpio_set_dir(_mute_pin, GPIO_OUT);
+    set_mute(true);
+
     make_wave_tables();
-
     memset(g_voices, 0, sizeof(g_voices));
-
     set_master_volume(127);
 
     for (int i = 0; i < NUM_CHANNELS; i++) {
@@ -253,4 +261,6 @@ void audio_init(int data_pin, int clock_pin_base) {
         set_voice_volume_q8(i, 8);
         voice_env_init(i, 25000, 1);
     }
+
+
 }
