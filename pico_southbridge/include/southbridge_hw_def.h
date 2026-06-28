@@ -1,5 +1,11 @@
 #pragma once
 
+// hardware info
+#define HW_INFO_VERSION 0x0200 // V2.0.0
+
+// software info
+#define SW_INFO_VERSION 0x1000 // V1.0.00
+
 // pin definitions
 #define PIN_LOG_TX      0
 #define PIN_LOG_RX      1

@@ -55,6 +55,11 @@ static void card_detect_callback(uint gpio, uint32_t events) {
     card_det_int_pend = true;
 }
 
+uint16_t southbridge_hw_ver = 0;
+uint32_t southbridge_hw_support = 0;
+uint16_t southbridge_sw_ver = 0;
+uint32_t southbridge_sw_support = 0;
+
 time_ms_t last_bridge_cmd_time;
 time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
@@ -295,30 +300,20 @@ main_menu_loop:
 
   while (1) {
     Lcd.setTextSize(2);
-    Lcd.setCursor(16,0);
-    Lcd.print_5x8("Button test");
-    Lcd.setCursor(16,16);
-    Lcd.print_5x8("Joystick test");
-    Lcd.setCursor(16,32);
-    Lcd.print_5x8("LED test");
-    Lcd.setCursor(16,48);
-    Lcd.print_5x8("LCD test");
-    Lcd.setCursor(16,64);
-    Lcd.print_5x8("Touch test");
-    Lcd.setCursor(16,80);
-    Lcd.print_5x8("Audio test");
-    Lcd.setCursor(16,96);
-    Lcd.print_5x8("Vibration test");
-    Lcd.setCursor(16,112);
-    Lcd.print_5x8("Battery & Power test");
-    Lcd.setCursor(16,128);
-    Lcd.print_5x8("Temperature test");
-    Lcd.setCursor(16,144);
-    Lcd.print_5x8("IR comm test");
-    Lcd.setCursor(16,160);
-    Lcd.print_5x8("IMU test");
-    Lcd.setCursor(16,176);
-    Lcd.print_5x8("SD card test");
+    Lcd.setCursor(0,0);
+    Lcd.print_5x8(" Info\n");
+    Lcd.print_5x8(" Button test\n");
+    Lcd.print_5x8(" Joystick test\n");
+    Lcd.print_5x8(" LED test\n");
+    Lcd.print_5x8(" LCD test\n");
+    Lcd.print_5x8(" Touch test\n");
+    Lcd.print_5x8(" Audio test\n");
+    Lcd.print_5x8(" Vibration test\n");
+    Lcd.print_5x8(" Battery & Power test\n");
+    Lcd.print_5x8(" Temperature test\n");
+    Lcd.print_5x8(" IR comm test\n");
+    Lcd.print_5x8(" IMU test\n");
+    Lcd.print_5x8(" SD card test\n");
 
     Lcd.setTextSize(1);
     Lcd.setCursor(0,320-(8*2));
@@ -355,6 +350,9 @@ main_menu_loop:
         Lcd.fillScreen(LCD_BLACK);
         switch (cursor_x)
         {
+        case MAIN_INFO:
+          menu_info();
+          break;
         case MAIN_BTN_TEST:
           menu_btn_test();
           break;
@@ -399,6 +397,44 @@ main_menu_loop:
 }
 
 //////// test menus ////////
+
+void menu_info(void) {
+  Lcd.setTextSize(1);
+  Lcd.setCursor(0,320-8);
+  Lcd.print_5x8("press SELECT & START to exit menu");
+  Lcd.setTextSize(2);
+  Lcd.setCursor(0,0);
+  Lcd.print_5x8("Info");
+
+  Lcd.setCursor(480-(6*2*9),320-(8*2));
+  Lcd.print_5x8("by Crem2y");
+
+  while(1) {
+    sleep_ms(100);
+
+    char string_buf[32];
+
+    sprintf(string_buf, "HW version      : 0x%04X", southbridge_hw_ver);
+    Lcd.setCursor(0,16);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "HW support_flag : 0x%08X", southbridge_hw_support);
+    Lcd.setCursor(0,16*2);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "SW version(MAIN): 0x%04X", SW_INFO_VERSION);
+    Lcd.setCursor(0,16*3);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "SW version (SB) : 0x%04X", southbridge_sw_ver);
+    Lcd.setCursor(0,16*4);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "SW support_flag : 0x%08X", southbridge_sw_support);
+    Lcd.setCursor(0,16*5);
+    Lcd.print_5x8(string_buf);
+
+    if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
+      return;
+    }
+  }
+}
 
 void menu_btn_test(void) {
   Lcd.setTextSize(1);
@@ -1346,6 +1382,10 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
 
   switch (command)
   {
+  case CMD_HW_INFO_RES:
+    break;
+  case CMD_SW_INFO_RES:
+    break;
   case CMD_TEMPERATURE_DATA:
     Temperature.recv_bridge_data(msg->payload, msg->payload_size);
     break;

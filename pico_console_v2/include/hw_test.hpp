@@ -37,6 +37,7 @@
 #include "ir_link.hpp"
 
 enum menu_main {
+  MAIN_INFO,
   MAIN_BTN_TEST,
   MAIN_JOYSTICK_TEST,
   MAIN_LED_TEST,
@@ -51,6 +52,7 @@ enum menu_main {
   MAIN_SD_TEST,
 };
 
+void menu_info();
 void menu_btn_test();
 void menu_joystick_test();
 void menu_led_test();

@@ -118,6 +118,10 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   enum bridge_cmd command = (enum bridge_cmd)msg->cmd;
   switch (command)
   {
+  case CMD_HW_INFO_REQ:
+    break;
+  case CMD_SW_INFO_REQ:
+    break;
   case CMD_POWER_CONTROL:
     break;
   case CMD_BATTERY_CONTROL:
