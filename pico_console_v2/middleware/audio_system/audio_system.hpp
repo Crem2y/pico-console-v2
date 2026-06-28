@@ -51,10 +51,14 @@ class audioSystem {
     void set_env(uint8_t ch, uint32_t tick_us, uint8_t step) {
       send_bridge_set_env(ch, tick_us, step);
     }
+    void set_master_config(uint8_t volume) {
+      send_bridge_set_master(volume);
+    }
 
     void send_bridge_note_data(uint8_t ch, float freq, uint8_t volume);
     void send_bridge_set_wave(uint8_t ch, wave_t w);
     void send_bridge_set_env(uint8_t ch, uint32_t tick_us, uint8_t step);
+    void send_bridge_set_master(uint8_t volume);
 
   private:
     time_ms_t current_time_ms;

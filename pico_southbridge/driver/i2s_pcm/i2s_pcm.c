@@ -58,6 +58,11 @@ static inline uint32_t step_from_hz(float f_hz, uint32_t fs_hz) {
 // -------------------- Simple synth state --------------------
 
 voice_t g_voices[NUM_CHANNELS];
+int32_t master_volume;
+
+void set_master_volume(uint8_t vol) {
+    master_volume = vol;
+}
 
 void voice_env_set(int voice_idx, uint32_t tick_us, int32_t decay_step_q8) {
     g_voices[voice_idx].env_tick_us = tick_us;
@@ -122,7 +127,8 @@ static void render_buffer_mono_mix(int16_t *dst, uint32_t count) {
 
         // Simple headroom to reduce clipping when multiple voices stack.
         // For NUM_CHANNELS=4, shifting by 2 approximates /4.
-        acc >>= 2;
+        acc >>= 4; // acc /= 16
+        acc = (acc * master_volume) / 256;
 
         // Clip to int16 range
         if (acc > 32767) acc = 32767;
@@ -240,9 +246,11 @@ void audio_init(int data_pin, int clock_pin_base) {
 
     memset(g_voices, 0, sizeof(g_voices));
 
+    set_master_volume(127);
+
     for (int i = 0; i < NUM_CHANNELS; i++) {
         set_voice_waveform(i, WAVE_SQUARE_50);
         set_voice_volume_q8(i, 8);
-        voice_env_init(i, 100000, 1);
+        voice_env_init(i, 25000, 1);
     }
 }

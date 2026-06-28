@@ -166,6 +166,9 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   case CMD_AUDIO_SET_ENV:
     Audio.recv_bridge_set_env(msg->payload, msg->payload_size);
     break;
+  case CMD_AUDIO_SET_MASTER:
+    Audio.recv_bridge_set_master(msg->payload, msg->payload_size);
+    break;
   case CMD_AUDIO_DISABLE:
     // Audio.disable();
     break;

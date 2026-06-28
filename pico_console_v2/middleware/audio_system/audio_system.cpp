@@ -76,3 +76,12 @@ void audioSystem::send_bridge_set_env(uint8_t ch, uint32_t tick_us, uint8_t step
 
   Bridge.send(CMD_AUDIO_SET_ENV, payload_size, payload_buf);
 }
+
+void audioSystem::send_bridge_set_master(uint8_t volume) {
+  int payload_size = 1;
+  uint8_t payload_buf[PAYLOAD_MAX_SIZE];
+
+  payload_buf[0] = volume;
+
+  Bridge.send(CMD_AUDIO_SET_MASTER, payload_size, payload_buf);
+}
