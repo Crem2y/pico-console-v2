@@ -9,6 +9,7 @@ xpt2046 Touch = xpt2046(HW_TOUCH_CH, PIN_TOUCH_MOSI, PIN_TOUCH_SCK, PIN_TOUCH_MI
 
 // middleware lib init
 bridgeProtocol Bridge = bridgeProtocol();
+bridgeControl SouthBridge = bridgeControl();
 power Power = power();
 charger Charger = charger();
 ledControl LedCtrl = ledControl(&Led);
@@ -55,12 +56,7 @@ static void card_detect_callback(uint gpio, uint32_t events) {
     card_det_int_pend = true;
 }
 
-uint16_t southbridge_hw_ver = 0;
-uint32_t southbridge_hw_support = 0;
-uint16_t southbridge_sw_ver = 0;
-uint32_t southbridge_sw_support = 0;
-
-time_ms_t last_bridge_cmd_time;
+time_ms_t bridge_timer;
 time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
 time_ms_t audio_timer;
@@ -75,7 +71,7 @@ int main() { // uses core 0 to sub core
   bridge_transport_t transport = {uart_bridge_readable, uart_bridge_read, uart_bridge_writable, uart_bridge_write};
   Bridge.set_transport_handler(&transport);
   Bridge.set_cmd_handler(bridge_do_cmd);
-  last_bridge_cmd_time = 0;
+  SouthBridge.init();
   sleep_ms(100);
 
   LedCtrl.init();
@@ -152,6 +148,10 @@ int main() { // uses core 0 to sub core
     Bridge.process_io();
     Bridge.dispatch_rx();
 
+    if(system_time_elapsed_ms(now_time, bridge_timer) > 1000) {
+      bridge_timer = now_time;
+      SouthBridge.update();
+    }
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
       Gamepad.update();
@@ -250,15 +250,15 @@ void core1_entry() { // uses core 1 to main core
     }
 
     // to remove flickering
-    if(system_time_elapsed_ms(get_system_time_ms(), last_bridge_cmd_time) > 500) {
+    if(!SouthBridge.connected) {
       if(!display_bridge_status) {
-        Lcd.setCursor(150,240);
+        Lcd.setCursor(162,240);
         Lcd.print_5x8("southbridge disconnected!");
         display_bridge_status = true;
       }
     } else {
       if(display_bridge_status) {
-        Lcd.fillRect(150,240,(26*6),8,LCD_BLACK);
+        Lcd.fillRect(162,240,(26*6),8,LCD_BLACK);
         display_bridge_status = false;
       }
     }
@@ -301,7 +301,7 @@ main_menu_loop:
   while (1) {
     Lcd.setTextSize(2);
     Lcd.setCursor(0,0);
-    Lcd.print_5x8(" Info\n");
+    Lcd.print_5x8(" System info\n");
     Lcd.print_5x8(" Button test\n");
     Lcd.print_5x8(" Joystick test\n");
     Lcd.print_5x8(" LED test\n");
@@ -404,7 +404,7 @@ void menu_info(void) {
   Lcd.print_5x8("press SELECT & START to exit menu");
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
-  Lcd.print_5x8("Info");
+  Lcd.print_5x8("System info");
 
   Lcd.setCursor(480-(6*2*9),320-(8*2));
   Lcd.print_5x8("by Crem2y");
@@ -414,21 +414,27 @@ void menu_info(void) {
 
     char string_buf[32];
 
-    sprintf(string_buf, "HW version      : 0x%04X", southbridge_hw_ver);
+    sprintf(string_buf, "SB Connected : %s", SouthBridge.connected ? "Yes" : "No ");
     Lcd.setCursor(0,16);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "HW support_flag : 0x%08X", southbridge_hw_support);
+    sprintf(string_buf, "HW version      : 0x%04X", SouthBridge.info.hw_ver);
     Lcd.setCursor(0,16*2);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "SW version(MAIN): 0x%04X", SW_INFO_VERSION);
+    sprintf(string_buf, "HW support_flag : 0x%08X", SouthBridge.info.hw_support);
     Lcd.setCursor(0,16*3);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "SW version (SB) : 0x%04X", southbridge_sw_ver);
+    sprintf(string_buf, "SW version(MAIN): 0x%04X", SW_INFO_VERSION);
     Lcd.setCursor(0,16*4);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "SW support_flag : 0x%08X", southbridge_sw_support);
+    sprintf(string_buf, "SW version (SB) : 0x%04X", SouthBridge.info.sw_ver);
     Lcd.setCursor(0,16*5);
     Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "SW support_flag : 0x%08X", SouthBridge.info.sw_support);
+    Lcd.setCursor(0,16*6);
+    Lcd.print_5x8(string_buf);
+
+    SouthBridge.read_hw_info();
+    SouthBridge.read_sw_info();
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       return;
@@ -1175,13 +1181,13 @@ void menu_bat_test(void) {
     Lcd.setCursor(0,16);
     Lcd.print_5x8(string_buf);
 
-    sprintf(string_buf, "Battery : %s", Charger.get_battery_exist() ? "Yes" : "No");
+    sprintf(string_buf, "Battery : %s", Charger.get_battery_exist() ? "Yes" : "No ");
     Lcd.setCursor(0,16*2);
     Lcd.print_5x8(string_buf);
     sprintf(string_buf, "Level : % 3.1f%% (%01.3fV)", Charger.get_bat_level(), Charger.get_bat_voltage());
     Lcd.setCursor(0,16*3);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "Charging : %s | Fault : 0x%02X\n", Charger.get_charging_status() ? "Yes" : "No", Charger.get_fault_status());
+    sprintf(string_buf, "Charging : %s | Fault : 0x%02X", Charger.get_charging_status() ? "Yes" : "No ", Charger.get_fault_status());
     Lcd.setCursor(0,16*4);
     Lcd.print_5x8(string_buf);
 
@@ -1202,13 +1208,13 @@ void menu_temp_test(void) {
   while(1) {
     sleep_ms(100);
     char string_buf[32];
-    sprintf(string_buf, "TEMP_BUILTIN     : %.1fC", Temperature.get_temp(TEMP_BUILTIN));
+    sprintf(string_buf, "TEMP_BUILTIN     : %.1f'C", Temperature.get_temp(TEMP_BUILTIN));
     Lcd.setCursor(0,16);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "TEMP_SOUTHBRIDGE : %.1fC", Temperature.get_temp(TEMP_SOUTHBRIDGE));
+    sprintf(string_buf, "TEMP_SOUTHBRIDGE : %.1f'C", Temperature.get_temp(TEMP_SOUTHBRIDGE));
     Lcd.setCursor(0,16*2);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "TEMP_NTC         : %.1fC", Temperature.get_temp(TEMP_NTC));
+    sprintf(string_buf, "TEMP_NTC         : %.1f'C", Temperature.get_temp(TEMP_NTC));
     Lcd.setCursor(0,16*3);
     Lcd.print_5x8(string_buf);
 
@@ -1378,13 +1384,15 @@ void menu_sd_test(void) {
 
 void bridge_do_cmd(const bridge_msg_t* msg) {
   enum bridge_cmd command = (enum bridge_cmd)msg->cmd;
-  last_bridge_cmd_time = get_system_time_ms();
+  SouthBridge.update_last_comm_time();
 
   switch (command)
   {
   case CMD_HW_INFO_RES:
+    SouthBridge.recv_bridge_hw_info_res(msg->payload, msg->payload_size);
     break;
   case CMD_SW_INFO_RES:
+    SouthBridge.recv_bridge_sw_info_res(msg->payload, msg->payload_size);
     break;
   case CMD_TEMPERATURE_DATA:
     Temperature.recv_bridge_data(msg->payload, msg->payload_size);

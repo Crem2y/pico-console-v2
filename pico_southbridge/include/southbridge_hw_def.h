@@ -2,9 +2,11 @@
 
 // hardware info
 #define HW_INFO_VERSION 0x0200 // V2.0.0
+#define HW_INFO_SUPPORT 0x00000000 //placeholder
 
 // software info
 #define SW_INFO_VERSION 0x1000 // V1.0.00
+#define SW_INFO_SUPPORT 0x00000000 //placeholder
 
 // pin definitions
 #define PIN_LOG_TX      0

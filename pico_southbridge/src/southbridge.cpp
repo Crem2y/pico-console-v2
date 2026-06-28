@@ -17,6 +17,7 @@ ir_tx_t ir_tx;
 
 // middleware lib init
 bridgeProtocol Bridge = bridgeProtocol();
+bridgeControl MainBridge = bridgeControl();
 power Power = power(&VSenseVIN);
 charger Charger = charger(&VSenseVBAT, &Bq25619);
 gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, &Joy2);
@@ -29,6 +30,7 @@ irLink Ir = irLink(&ir_rx, &ir_tx);
 void core1_entry(void);
 void bridge_do_cmd(const bridge_msg_t* msg);
 
+time_ms_t bridge_timer;
 time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
 time_ms_t imu_timer;
@@ -42,6 +44,11 @@ int main() {
   stdio_init_all();
   uart_bridge_init(HW_BRIDGE_CH, PIN_BRIDGE_TX, PIN_BRIDGE_RX, HW_BRIDGE_BAUD);
   Bridge.set_cmd_handler(bridge_do_cmd);
+  MainBridge.init();
+  MainBridge.my_info.hw_ver = HW_INFO_VERSION;
+  MainBridge.my_info.hw_support = HW_INFO_SUPPORT;
+  MainBridge.my_info.sw_ver = SW_INFO_VERSION;
+  MainBridge.my_info.sw_support = SW_INFO_SUPPORT;
 
   audio_init(PIN_I2S_DATA, PIN_I2S_SCK, PIN_DAC_MUTE);
   Audio.init();
@@ -78,6 +85,10 @@ int main() {
     Bridge.process_io();
     Bridge.dispatch_rx();
 
+    if(system_time_elapsed_ms(now_time, bridge_timer) > 1000) {
+      bridge_timer = now_time;
+      MainBridge.update();
+    }
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
       Gamepad.update();
@@ -119,8 +130,10 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   switch (command)
   {
   case CMD_HW_INFO_REQ:
+    MainBridge.send_bridge_hw_info_res();
     break;
   case CMD_SW_INFO_REQ:
+    MainBridge.send_bridge_sw_info_res();
     break;
   case CMD_POWER_CONTROL:
     break;

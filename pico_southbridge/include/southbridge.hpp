@@ -24,6 +24,7 @@
 
 // middlewares
 #include "bridge_protocol.hpp"
+#include "bridge_control.hpp"
 #include "power.hpp"
 #include "charger.hpp"
 #include "audio_system.hpp"
