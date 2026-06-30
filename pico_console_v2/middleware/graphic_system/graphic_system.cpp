@@ -4,7 +4,9 @@
 static g_color_t* frame_buffer = (g_color_t*)PSRAM_BASE;
 static const size_t frame_buffer_size = (ILI9488_TFTWIDTH * ILI9488_TFTHEIGHT * sizeof(g_color_t));
 
+#if USE_TEXT_BUFFER
 static g_color_t text_draw_buffer[512];
+#endif
 
 graphicSystem::graphicSystem(ili9488_40* display) {
   _display = display;
@@ -14,7 +16,12 @@ void graphicSystem::init(void) {
   _display->begin();
   _width = ILI9488_TFTHEIGHT;
   _height = ILI9488_TFTWIDTH;
-  textsize = 1;
+
+  cursor = {.x = 0, .y = 0};
+  textcolor = GC_WHITE;
+  textbgcolor = GC_BLACK;
+  textsize = 8;
+  text_font = G_FONT_5X8;
 }
 
 void graphicSystem::update_full(void) {
@@ -119,11 +126,16 @@ void graphicSystem::set_font(enum g_font font) {
 
 void graphicSystem::print(const char *s) {
   switch(text_font) {
-    case G_FONT_5X8: 
-    default:
-      print_5x8(s);
-      break;
-  } 
+  case G_FONT_5X8:
+    print_5x8(s);
+    break;
+  case G_FONT_16:
+    //print_16(s);
+    break;
+  default:
+    print_5x8(s);
+    break;
+  }
 }
 
 void graphicSystem::print_5x8(const char *s) {
@@ -152,13 +164,13 @@ size_t graphicSystem::write_5x8(const uint8_t c) {
 }
 
 void graphicSystem::draw_char_5x8(g_pos_t pos, unsigned char c, g_color_t color, g_color_t bg, uint8_t size) {
-
   if((pos.x >= _width)            || // Clip right
      (pos.y >= _height)           || // Clip bottom
      ((pos.x + 6 * size - 1) < 0) || // Clip left
      ((pos.y + 8 * size - 1) < 0))   // Clip top
     return;
 
+#if USE_TEXT_BUFFER
   for (int8_t i=0; i<6; i++ ) {
     uint8_t line;
     if (i == 5) 
@@ -194,4 +206,29 @@ void graphicSystem::draw_char_5x8(g_pos_t pos, unsigned char c, g_color_t color,
   g_area_t fill_area = {size*6, size*8};
   draw_picture(pos, fill_area, text_draw_buffer);
   //_display->drawPicture(pos.x, pos.y, text_draw_buffer, size*6, size*8);
+#else
+  for (int8_t i=0; i<6; i++ ) {
+    uint8_t line;
+    if (i == 5) 
+      line = 0x0;
+    else 
+      line = font[(c*5)+i];
+    for (int8_t j = 0; j<8; j++) {
+      if (line & 0x1) {
+        if (size == 1) // default size
+          drawPixel(pos.x+i, pos.y+j, color);
+        else {  // big size
+          fillRect(pos.x+(i*size), pos.y+(j*size), size, size, color);
+        } 
+      } else if (bg != color) { // if bg == color, transparent background
+        if (size == 1) // default size
+          drawPixel(pos.x+i, pos.y+j, bg);
+        else {  // big size
+          fillRect(pos.x+(i*size), pos.y+(j*size), size, size, bg);
+        }
+      }
+      line >>= 1;
+    }
+  }
+#endif
 }

@@ -4,7 +4,8 @@
 #include "ili9488_40_hstx.hpp"
 #include "psram_apsxx04.h"
 
-#define ENABLE_ADAFRUIT_GFX_COMPATIBLE 1
+#define ENABLE_ADAFRUIT_GFX_COMPATIBLE 1 // Enables Adafruit GFX compatible functions.
+#define USE_TEXT_BUFFER 1 // Use a buffer for text output. Print speed is improved by approximately 20%, but transparent backgrounds cannot be used in this mode.
 
 #define GRAPHIC_BLOCK_SIZE 16
 #define GRAPHIC_BLOCK_COUNT_H (ILI9488_TFTWIDTH / GRAPHIC_BLOCK_SIZE)
