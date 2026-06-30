@@ -127,7 +127,8 @@ bool psram_init(int cs_pin) {
   _cs_pin = cs_pin;
   bool ok = apsxx04_init_psram_cs1();
   if(ok) {
-    psram_size = psram_read_size();
+    //psram_size = psram_read_size(); // not working...
+    psram_size = (2 * 1024 * 1024);
   } else {
     psram_size = 0;
   }
@@ -135,10 +136,10 @@ bool psram_init(int cs_pin) {
 }
 
 uint32_t psram_read_size(void) {
-  volatile uint8_t* p16 = PSRAM_BASE + APS1604_MAX_ADDR;
-  volatile uint8_t* p32 = PSRAM_BASE + APS3204_MAX_ADDR;
-  volatile uint8_t* p64 = PSRAM_BASE + APS6404_MAX_ADDR;
-  volatile uint8_t* p128 = PSRAM_BASE + APS12804_MAX_ADDR;
+  volatile uint8_t* p16 = PSRAM_BASE_UNCACHED + APS1604_MAX_ADDR;
+  volatile uint8_t* p32 = PSRAM_BASE_UNCACHED + APS3204_MAX_ADDR;
+  volatile uint8_t* p64 = PSRAM_BASE_UNCACHED + APS6404_MAX_ADDR;
+  volatile uint8_t* p128 = PSRAM_BASE_UNCACHED + APS12804_MAX_ADDR;
 
   p16[0] = 0x16;
   p32[0] = 0x32;
