@@ -14,6 +14,7 @@ power Power = power();
 charger Charger = charger();
 ledControl LedCtrl = ledControl(&Led);
 gamepad Gamepad = gamepad();
+graphicSystem Graphic = graphicSystem(&Lcd);
 audioSystem Audio = audioSystem();
 temperature Temperature = temperature();
 vibration Vibration = vibration();
