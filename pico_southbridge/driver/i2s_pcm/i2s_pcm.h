@@ -6,10 +6,10 @@
 // -------------------- Configuration --------------------
 #define WAVE_TABLE_LEN      2048
 #define SAMPLES_PER_BUFFER  256
-#define NUM_CHANNELS        16
+#define NUM_CHANNELS        16    // MAX 64
 
 // Choose output sample rate here (must match audio_format.sample_freq)
-#define AUDIO_FS_HZ         24000
+#define AUDIO_FS_HZ         24000 // MAX 96000
 
 #ifdef __cplusplus
 extern "C" {

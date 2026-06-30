@@ -24,8 +24,19 @@ static int _clock_pin_base;
 static int _mute_pin;
 
 // -------------------- Wave tables --------------------
+static uint32_t xorshift32(uint32_t *state)
+{
+    uint32_t x = *state;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    *state = x;
+    return x;
+}
+
 static void make_wave_tables(void) {
     int16_t noise_temp = -32768;
+    uint32_t rng = 0x12345678;
 
     for (int i = 0; i < WAVE_TABLE_LEN; i++) {
         square_12_wave_table[i] = (i < WAVE_TABLE_LEN / 8) ? 32767 : -32768;
@@ -39,8 +50,7 @@ static void make_wave_tables(void) {
             triangle_wave_table[i] = (int16_t)((((WAVE_TABLE_LEN - i) * 65535) / (WAVE_TABLE_LEN / 2)) - 32768);
         }
         sawtooth_wave_table[i] = (int16_t)((( (WAVE_TABLE_LEN - i) * 65535) / WAVE_TABLE_LEN) - 32768);
-        if ((i+1) % 8 == 0) noise_temp = (rand() & 1) ? 32767 : -32768;
-        noise_wave_table[i] = noise_temp;
+        noise_wave_table[i] = (xorshift32(&rng) & 1) ? 32767 : -32768;
         sine_wave_table[i] = (int16_t)(32767.0f * cosf((float)i * 2.0f * (float)(M_PI / WAVE_TABLE_LEN)));
     }
 }
