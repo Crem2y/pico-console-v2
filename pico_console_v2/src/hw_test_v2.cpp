@@ -92,51 +92,51 @@ int main() { // uses core 0 to sub core
   LedCtrl.set_config(LED_CONTROL_4, led_config);
   LedCtrl.update();
   LOG_PRINTF("LED ok\n");
-  Lcd.begin();
-  Lcd.fillScreen(LCD_BLACK);
-  Lcd.set_bright(750);
-  Lcd.setTextColor(LCD_WHITE, LCD_BLACK);
-  Lcd.setTextSize(1);
+  Graphic.begin();
+  Graphic.fillScreen(LCD_BLACK);
+  Graphic.set_bright(750);
+  Graphic.setTextColor(LCD_WHITE, LCD_BLACK);
+  Graphic.setTextSize(1);
   LOG_PRINTF("LCD ok\n");
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("PSRAM init...");
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("PSRAM init...");
   if(!psram_init(PIN_PSRAM_CS)) while(1);
   LOG_PRINTF("PSRAM ok\n");
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("Touch init...");
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("Touch init...");
   Touchscreen.init();
   Touchscreen.set_screen_size(480, 320);
   Touchscreen.set_calibration(200, 3800, 200, 3800); //placeholder
   Touchscreen.set_rotation(0);
   LOG_PRINTF("Touch ok\n");
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("Gamepad init...");
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("Gamepad init...");
   Gamepad.init();
   Gamepad.set_enable(true, false);
   LOG_PRINTF("Gamepad ok\n");
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("TEMP init...");
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("TEMP init...");
   Temperature.init();
   LOG_PRINTF("TEMP ok\n");
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("LRA init...");
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("LRA init...");
   Vibration.init();
   LOG_PRINTF("Vibration ok\n");
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("IMU init...");
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("IMU init...");
   Imu.init();
   LOG_PRINTF("IMU ok\n");
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("IR init...");
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("IR init...");
   Ir.init();
   LOG_PRINTF("IR ok\n");
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("SD init...");
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("SD init...");
   sd_init_driver();
   sd_card_t *sd_card_p = sd_get_by_num(0);
   LOG_PRINTF("SD ok\n");
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("               ");
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("               ");
   LOG_PRINTF("all HWs ok!\n");
   LOG_PRINTF("core freq = %ld hz\n", SYS_CLK_KHZ * 1000);
   // hardware initalized
@@ -192,24 +192,24 @@ void core1_entry() { // uses core 1 to main core
   multicore_fifo_pop_blocking(); // wait until boot process is done
 
   // boot animation
-  Lcd.setTextSize(2);
+  Graphic.setTextSize(2);
   for(int i=0; i<160; i+=1) {
-    Lcd.fillRect(150, i-1, (6*2*15), 1, LCD_BLACK);
-    Lcd.setCursor(150,i);
-    Lcd.print_5x8("PICO CONSOLE V2");
+    Graphic.fillRect(150, i-1, (6*2*15), 1, LCD_BLACK);
+    Graphic.setCursor(150,i);
+    Graphic.print_5x8("PICO CONSOLE V2");
     sleep_ms(10);
   }
 
-  Lcd.setCursor(480-(6*2*9),320-(8*2));
-  Lcd.print_5x8("by Crem2y");
-  Lcd.setTextSize(1);
-  Lcd.setCursor(206,200);
-  Lcd.print_5x8("press START");
-  Lcd.setCursor(183,210);
-  Lcd.print_5x8("or touch the screen");
+  Graphic.setCursor(480-(6*2*9),320-(8*2));
+  Graphic.print_5x8("by Crem2y");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(206,200);
+  Graphic.print_5x8("press START");
+  Graphic.setCursor(183,210);
+  Graphic.print_5x8("or touch the screen");
 
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("press L/R to change bright");
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("press L/R to change bright");
 
   time_ms_t btn_time_ms = 0;
   time_ms_t display_time_ms = 0;
@@ -224,32 +224,32 @@ void core1_entry() { // uses core 1 to main core
       btn_time_ms = now_time;
       char string_buf[32];
 
-      uint16_t bright = Lcd.get_bright();
+      uint16_t bright = Graphic.get_bright();
       if(Gamepad.is_btn_pressed(BTN_SL) && bright > 50) {
-        Lcd.set_bright(bright - 50);
+        Graphic.set_bright(bright - 50);
         sprintf(string_buf, "bright : %d ", bright - 50);
-        Lcd.setCursor(0,8);
-        Lcd.print_5x8(string_buf);
+        Graphic.setCursor(0,8);
+        Graphic.print_5x8(string_buf);
       }
       if(Gamepad.is_btn_pressed(BTN_SR) && bright < 1000) {
-        Lcd.set_bright(bright + 50);
+        Graphic.set_bright(bright + 50);
         sprintf(string_buf, "bright : %d ", bright + 50);
-        Lcd.setCursor(0,8);
-        Lcd.print_5x8(string_buf);
+        Graphic.setCursor(0,8);
+        Graphic.print_5x8(string_buf);
       }
 
       sprintf(string_buf, "BAT:% 3.1f%%", Charger.get_bat_level());
-      Lcd.setCursor(480-66,0);
-      Lcd.print_5x8(string_buf);
+      Graphic.setCursor(480-66,0);
+      Graphic.print_5x8(string_buf);
     }
 
     if(system_time_elapsed_ms(now_time, display_time_ms) > 1000) {
       display_time_ms = now_time;
       if(display_text) {
-        Lcd.fillRect(206,200,(6*11),8,LCD_BLACK);
+        Graphic.fillRect(206,200,(6*11),8,LCD_BLACK);
       } else {
-        Lcd.setCursor(206,200);
-        Lcd.print_5x8("press START");
+        Graphic.setCursor(206,200);
+        Graphic.print_5x8("press START");
       }
       display_text = !display_text;
     }
@@ -257,13 +257,13 @@ void core1_entry() { // uses core 1 to main core
     // to remove flickering
     if(!SouthBridge.connected) {
       if(!display_bridge_status) {
-        Lcd.setCursor(162,240);
-        Lcd.print_5x8("southbridge disconnected!");
+        Graphic.setCursor(162,240);
+        Graphic.print_5x8("southbridge disconnected!");
         display_bridge_status = true;
       }
     } else {
       if(display_bridge_status) {
-        Lcd.fillRect(162,240,(26*6),8,LCD_BLACK);
+        Graphic.fillRect(162,240,(26*6),8,LCD_BLACK);
         display_bridge_status = false;
       }
     }
@@ -300,47 +300,47 @@ void core1_entry() { // uses core 1 to main core
   uint8_t cursor_x_old = 0;
 
 main_menu_loop:
-  Lcd.fillScreen(LCD_BLACK);
-  Lcd.setTextColor(LCD_WHITE, LCD_BLACK);
+  Graphic.fillScreen(LCD_BLACK);
+  Graphic.setTextColor(LCD_WHITE, LCD_BLACK);
 
   while (1) {
-    Lcd.setTextSize(2);
-    Lcd.setCursor(0,0);
-    Lcd.print_5x8(" System info\n");
-    Lcd.print_5x8(" Button test\n");
-    Lcd.print_5x8(" Joystick test\n");
-    Lcd.print_5x8(" LED test\n");
-    Lcd.print_5x8(" LCD test\n");
-    Lcd.print_5x8(" Touch test\n");
-    Lcd.print_5x8(" Audio test\n");
-    Lcd.print_5x8(" Vibration test\n");
-    Lcd.print_5x8(" Battery & Power test\n");
-    Lcd.print_5x8(" Temperature test\n");
-    Lcd.print_5x8(" IR comm test\n");
-    Lcd.print_5x8(" IMU test\n");
-    Lcd.print_5x8(" SD card test\n");
+    Graphic.setTextSize(2);
+    Graphic.setCursor(0,0);
+    Graphic.print_5x8(" System info\n");
+    Graphic.print_5x8(" Button test\n");
+    Graphic.print_5x8(" Joystick test\n");
+    Graphic.print_5x8(" LED test\n");
+    Graphic.print_5x8(" LCD test\n");
+    Graphic.print_5x8(" Touch test\n");
+    Graphic.print_5x8(" Audio test\n");
+    Graphic.print_5x8(" Vibration test\n");
+    Graphic.print_5x8(" Battery & Power test\n");
+    Graphic.print_5x8(" Temperature test\n");
+    Graphic.print_5x8(" IR comm test\n");
+    Graphic.print_5x8(" IMU test\n");
+    Graphic.print_5x8(" SD card test\n");
 
-    Lcd.setTextSize(1);
-    Lcd.setCursor(0,320-(8*2));
-    Lcd.print_5x8("press up/down to move cursor");
-    Lcd.setCursor(0,320-(8*1));
-    Lcd.print_5x8("press A or START to select");
+    Graphic.setTextSize(1);
+    Graphic.setCursor(0,320-(8*2));
+    Graphic.print_5x8("press up/down to move cursor");
+    Graphic.setCursor(0,320-(8*1));
+    Graphic.print_5x8("press A or START to select");
 
     while(1) {
       sleep_ms(100);
 
-      Lcd.setTextSize(1);
+      Graphic.setTextSize(1);
       sprintf(string_buf, "BAT:% 3.1f%%", Charger.get_bat_level());
-      Lcd.setCursor(480-66,0);
-      Lcd.print_5x8(string_buf);
+      Graphic.setCursor(480-66,0);
+      Graphic.print_5x8(string_buf);
 
-      Lcd.setTextSize(2);
+      Graphic.setTextSize(2);
       if(cursor_x_old != cursor_x) {
-        Lcd.setCursor(0,cursor_x_old * 16);
-        Lcd.print_5x8(" ");
+        Graphic.setCursor(0,cursor_x_old * 16);
+        Graphic.print_5x8(" ");
       }
-      Lcd.setCursor(0,cursor_x * 16);
-      Lcd.print_5x8("-");
+      Graphic.setCursor(0,cursor_x * 16);
+      Graphic.print_5x8("-");
 
       cursor_x_old = cursor_x;
 
@@ -352,7 +352,7 @@ main_menu_loop:
       }
 
       if(!Gamepad.is_btn_pressed(BTN_SELECT) && (Gamepad.is_btn_pressed(BTN_A) || Gamepad.is_btn_pressed(BTN_START))) {
-        Lcd.fillScreen(LCD_BLACK);
+        Graphic.fillScreen(LCD_BLACK);
         switch (cursor_x)
         {
         case MAIN_INFO:
@@ -404,37 +404,37 @@ main_menu_loop:
 //////// test menus ////////
 
 void menu_info(void) {
-  Lcd.setTextSize(1);
-  Lcd.setCursor(0,320-8);
-  Lcd.print_5x8("press SELECT & START to exit menu");
-  Lcd.setTextSize(2);
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("System info");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("System info");
 
-  Lcd.setCursor(480-(6*2*9),320-(8*2));
-  Lcd.print_5x8("by Crem2y");
+  Graphic.setCursor(480-(6*2*9),320-(8*2));
+  Graphic.print_5x8("by Crem2y");
 
   while(1) {
     sleep_ms(100);
 
     char string_buf[32];
 
-    Lcd.setTextSize(1);
-    Lcd.setCursor(0,16);
+    Graphic.setTextSize(1);
+    Graphic.setCursor(0,16);
     sprintf(string_buf, "PSRAM size : %d MB\n\n", (psram_size / (1024*1024)));
-    Lcd.print_5x8(string_buf);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "SB Connected : %s\n", SouthBridge.connected ? "Yes" : "No ");
-    Lcd.print_5x8(string_buf);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "HW version      : 0x%04X\n", SouthBridge.info.hw_ver);
-    Lcd.print_5x8(string_buf);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "HW support_flag : 0x%08X\n", SouthBridge.info.hw_support);
-    Lcd.print_5x8(string_buf);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "SW version(MAIN): 0x%04X\n", SW_INFO_VERSION);
-    Lcd.print_5x8(string_buf);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "SW version (SB) : 0x%04X\n", SouthBridge.info.sw_ver);
-    Lcd.print_5x8(string_buf);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "SW support_flag : 0x%08X\n", SouthBridge.info.sw_support);
-    Lcd.print_5x8(string_buf);
+    Graphic.print_5x8(string_buf);
 
     SouthBridge.read_hw_info();
     SouthBridge.read_sw_info();
@@ -446,282 +446,282 @@ void menu_info(void) {
 }
 
 void menu_btn_test(void) {
-  Lcd.setTextSize(1);
-  Lcd.setCursor(0,320-8);
-  Lcd.print_5x8("press SELECT & START to exit menu");
-  Lcd.setTextSize(2);
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("Button test");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("Button test");
   
-  Lcd.drawRect(20,64,280,156,LCD_WHITE);
-  Lcd.drawRect(152,200,16,16,LCD_RED);
+  Graphic.drawRect(20,64,280,156,LCD_WHITE);
+  Graphic.drawRect(152,200,16,16,LCD_RED);
 
   while(1) {
     sleep_ms(10);
     
     if(Gamepad.is_btn_pressed(BTN_SL)) {
       if(Gamepad.get_btn_pressed_duration(BTN_SL) > 1000) {
-        Lcd.fillRect(20,46,16,16,LCD_YELLOW);
+        Graphic.fillRect(20,46,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(20,46,16,16,LCD_WHITE);
+        Graphic.fillRect(20,46,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(21,47,14,14,LCD_BLACK);
-      Lcd.drawRect(20,46,16,16,LCD_WHITE);
+      Graphic.fillRect(21,47,14,14,LCD_BLACK);
+      Graphic.drawRect(20,46,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_SR)) {
       if(Gamepad.get_btn_pressed_duration(BTN_SR) > 1000) {
-        Lcd.fillRect(284,46,16,16,LCD_YELLOW);
+        Graphic.fillRect(284,46,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(284,46,16,16,LCD_WHITE);
+        Graphic.fillRect(284,46,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(285,47,14,14,LCD_BLACK);
-      Lcd.drawRect(284,46,16,16,LCD_WHITE);
+      Graphic.fillRect(285,47,14,14,LCD_BLACK);
+      Graphic.drawRect(284,46,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_ZL)) {
       if(Gamepad.get_btn_pressed_duration(BTN_ZL) > 1000) {
-        Lcd.fillRect(60,46,16,16,LCD_YELLOW);
+        Graphic.fillRect(60,46,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(60,46,16,16,LCD_WHITE);
+        Graphic.fillRect(60,46,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(61,47,14,14,LCD_BLACK);
-      Lcd.drawRect(60,46,16,16,LCD_WHITE);
+      Graphic.fillRect(61,47,14,14,LCD_BLACK);
+      Graphic.drawRect(60,46,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_ZR)) {
       if(Gamepad.get_btn_pressed_duration(BTN_ZR) > 1000) {
-        Lcd.fillRect(244,46,16,16,LCD_YELLOW);
+        Graphic.fillRect(244,46,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(244,46,16,16,LCD_WHITE);
+        Graphic.fillRect(244,46,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(245,47,14,14,LCD_BLACK);
-      Lcd.drawRect(244,46,16,16,LCD_WHITE);
+      Graphic.fillRect(245,47,14,14,LCD_BLACK);
+      Graphic.drawRect(244,46,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_SELECT)) {
       if(Gamepad.get_btn_pressed_duration(BTN_SELECT) > 1000) {
-        Lcd.fillRect(100,74,16,16,LCD_YELLOW);
+        Graphic.fillRect(100,74,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(100,74,16,16,LCD_WHITE);
+        Graphic.fillRect(100,74,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(101,75,14,14,LCD_BLACK);
-      Lcd.drawRect(100,74,16,16,LCD_WHITE);
+      Graphic.fillRect(101,75,14,14,LCD_BLACK);
+      Graphic.drawRect(100,74,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_START)) {
       if(Gamepad.get_btn_pressed_duration(BTN_START) > 1000) {
-        Lcd.fillRect(205,74,16,16,LCD_YELLOW);
+        Graphic.fillRect(205,74,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(205,74,16,16,LCD_WHITE);
+        Graphic.fillRect(205,74,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(206,75,14,14,LCD_BLACK);
-      Lcd.drawRect(205,74,16,16,LCD_WHITE);
+      Graphic.fillRect(206,75,14,14,LCD_BLACK);
+      Graphic.drawRect(205,74,16,16,LCD_WHITE);
     }
 
     if(Gamepad.is_btn_pressed(BTN_S1_CENTER)) {
       if(Gamepad.get_btn_pressed_duration(BTN_S1_CENTER) > 1000) {
-        Lcd.fillRect(50,94,16,16,LCD_YELLOW);
+        Graphic.fillRect(50,94,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(50,94,16,16,LCD_WHITE);
+        Graphic.fillRect(50,94,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(51,95,14,14,LCD_BLACK);
-      Lcd.drawRect(50,94,16,16,LCD_WHITE);
+      Graphic.fillRect(51,95,14,14,LCD_BLACK);
+      Graphic.drawRect(50,94,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_S1_UP)) {
       if(Gamepad.get_btn_pressed_duration(BTN_S1_UP) > 1000) {
-        Lcd.fillRect(50,74,16,16,LCD_YELLOW);
+        Graphic.fillRect(50,74,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(50,74,16,16,LCD_WHITE);
+        Graphic.fillRect(50,74,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(51,75,14,14,LCD_BLACK);
-      Lcd.drawRect(50,74,16,16,LCD_WHITE);
+      Graphic.fillRect(51,75,14,14,LCD_BLACK);
+      Graphic.drawRect(50,74,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_S1_DOWN)) {
       if(Gamepad.get_btn_pressed_duration(BTN_S1_DOWN) > 1000) {
-        Lcd.fillRect(50,114,16,16,LCD_YELLOW);
+        Graphic.fillRect(50,114,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(50,114,16,16,LCD_WHITE);
+        Graphic.fillRect(50,114,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(51,115,14,14,LCD_BLACK);
-      Lcd.drawRect(50,114,16,16,LCD_WHITE);
+      Graphic.fillRect(51,115,14,14,LCD_BLACK);
+      Graphic.drawRect(50,114,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_S1_LEFT)) {
       if(Gamepad.get_btn_pressed_duration(BTN_S1_LEFT) > 1000) {
-        Lcd.fillRect(30,94,16,16,LCD_YELLOW);
+        Graphic.fillRect(30,94,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(30,94,16,16,LCD_WHITE);
+        Graphic.fillRect(30,94,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(31,95,14,14,LCD_BLACK);
-      Lcd.drawRect(30,94,16,16,LCD_WHITE);
+      Graphic.fillRect(31,95,14,14,LCD_BLACK);
+      Graphic.drawRect(30,94,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_S1_RIGHT)) {
       if(Gamepad.get_btn_pressed_duration(BTN_S1_RIGHT) > 1000) {
-        Lcd.fillRect(70,94,16,16,LCD_YELLOW);
+        Graphic.fillRect(70,94,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(70,94,16,16,LCD_WHITE);
+        Graphic.fillRect(70,94,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(71,95,14,14,LCD_BLACK);
-      Lcd.drawRect(70,94,16,16,LCD_WHITE);
+      Graphic.fillRect(71,95,14,14,LCD_BLACK);
+      Graphic.drawRect(70,94,16,16,LCD_WHITE);
     }
 
     if(Gamepad.is_btn_pressed(BTN_UP)) {
       if(Gamepad.get_btn_pressed_duration(BTN_UP) > 1000) {
-        Lcd.fillRect(50,154,16,16,LCD_YELLOW);
+        Graphic.fillRect(50,154,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(50,154,16,16,LCD_WHITE);
+        Graphic.fillRect(50,154,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(51,155,14,14,LCD_BLACK);
-      Lcd.drawRect(50,154,16,16,LCD_WHITE);
+      Graphic.fillRect(51,155,14,14,LCD_BLACK);
+      Graphic.drawRect(50,154,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_DOWN)) {
       if(Gamepad.get_btn_pressed_duration(BTN_DOWN) > 1000) {
-        Lcd.fillRect(50,194,16,16,LCD_YELLOW);
+        Graphic.fillRect(50,194,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(50,194,16,16,LCD_WHITE);
+        Graphic.fillRect(50,194,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(51,195,14,14,LCD_BLACK);
-      Lcd.drawRect(50,194,16,16,LCD_WHITE);
+      Graphic.fillRect(51,195,14,14,LCD_BLACK);
+      Graphic.drawRect(50,194,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_LEFT)) {
       if(Gamepad.get_btn_pressed_duration(BTN_LEFT) > 1000) {
-        Lcd.fillRect(30,174,16,16,LCD_YELLOW);
+        Graphic.fillRect(30,174,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(30,174,16,16,LCD_WHITE);
+        Graphic.fillRect(30,174,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(31,175,14,14,LCD_BLACK);
-      Lcd.drawRect(30,174,16,16,LCD_WHITE);
+      Graphic.fillRect(31,175,14,14,LCD_BLACK);
+      Graphic.drawRect(30,174,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_RIGHT)) {
       if(Gamepad.get_btn_pressed_duration(BTN_RIGHT) > 1000) {
-        Lcd.fillRect(70,174,16,16,LCD_YELLOW);
+        Graphic.fillRect(70,174,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(70,174,16,16,LCD_WHITE);
+        Graphic.fillRect(70,174,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(71,175,14,14,LCD_BLACK);
-      Lcd.drawRect(70,174,16,16,LCD_WHITE);
+      Graphic.fillRect(71,175,14,14,LCD_BLACK);
+      Graphic.drawRect(70,174,16,16,LCD_WHITE);
     }
 
     if(Gamepad.is_btn_pressed(BTN_S2_CENTER)) {
       if(Gamepad.get_btn_pressed_duration(BTN_S2_CENTER) > 1000) {
-        Lcd.fillRect(255,174,16,16,LCD_YELLOW);
+        Graphic.fillRect(255,174,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(255,174,16,16,LCD_WHITE);
+        Graphic.fillRect(255,174,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(256,175,14,14,LCD_BLACK);
-      Lcd.drawRect(255,174,16,16,LCD_WHITE);
+      Graphic.fillRect(256,175,14,14,LCD_BLACK);
+      Graphic.drawRect(255,174,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_X)) {
       if(Gamepad.get_btn_pressed_duration(BTN_X) > 1000) {
-        Lcd.fillRect(255,74,16,16,LCD_YELLOW);
+        Graphic.fillRect(255,74,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(255,74,16,16,LCD_WHITE);
+        Graphic.fillRect(255,74,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(256,75,14,14,LCD_BLACK);
-      Lcd.drawRect(255,74,16,16,LCD_WHITE);
+      Graphic.fillRect(256,75,14,14,LCD_BLACK);
+      Graphic.drawRect(255,74,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_B)) {
       if(Gamepad.get_btn_pressed_duration(BTN_B) > 1000) {
-        Lcd.fillRect(255,114,16,16,LCD_YELLOW);
+        Graphic.fillRect(255,114,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(255,114,16,16,LCD_WHITE);
+        Graphic.fillRect(255,114,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(256,115,14,14,LCD_BLACK);
-      Lcd.drawRect(255,114,16,16,LCD_WHITE);
+      Graphic.fillRect(256,115,14,14,LCD_BLACK);
+      Graphic.drawRect(255,114,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_Y)) {
       if(Gamepad.get_btn_pressed_duration(BTN_Y) > 1000) {
-        Lcd.fillRect(235,94,16,16,LCD_YELLOW);
+        Graphic.fillRect(235,94,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(235,94,16,16,LCD_WHITE);
+        Graphic.fillRect(235,94,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(236,95,14,14,LCD_BLACK);
-      Lcd.drawRect(235,94,16,16,LCD_WHITE);
+      Graphic.fillRect(236,95,14,14,LCD_BLACK);
+      Graphic.drawRect(235,94,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_A)) {
       if(Gamepad.get_btn_pressed_duration(BTN_A) > 1000) {
-        Lcd.fillRect(274,94,16,16,LCD_YELLOW);
+        Graphic.fillRect(274,94,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(274,94,16,16,LCD_WHITE);
+        Graphic.fillRect(274,94,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(275,95,14,14,LCD_BLACK);
-      Lcd.drawRect(274,94,16,16,LCD_WHITE);
+      Graphic.fillRect(275,95,14,14,LCD_BLACK);
+      Graphic.drawRect(274,94,16,16,LCD_WHITE);
     }
         if(Gamepad.is_btn_pressed(BTN_SUB1)) {
       if(Gamepad.get_btn_pressed_duration(BTN_SUB1) > 1000) {
-        Lcd.fillRect(100,194,16,16,LCD_YELLOW);
+        Graphic.fillRect(100,194,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(100,194,16,16,LCD_WHITE);
+        Graphic.fillRect(100,194,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(101,195,14,14,LCD_BLACK);
-      Lcd.drawRect(100,194,16,16,LCD_WHITE);
+      Graphic.fillRect(101,195,14,14,LCD_BLACK);
+      Graphic.drawRect(100,194,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_SUB2)) {
       if(Gamepad.get_btn_pressed_duration(BTN_SUB2) > 1000) {
-        Lcd.fillRect(205,194,16,16,LCD_YELLOW);
+        Graphic.fillRect(205,194,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(205,194,16,16,LCD_WHITE);
+        Graphic.fillRect(205,194,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(206,195,14,14,LCD_BLACK);
-      Lcd.drawRect(205,194,16,16,LCD_WHITE);
+      Graphic.fillRect(206,195,14,14,LCD_BLACK);
+      Graphic.drawRect(205,194,16,16,LCD_WHITE);
     }
 
     if(Gamepad.is_btn_pressed(BTN_S2_UP)) {
       if(Gamepad.get_btn_pressed_duration(BTN_S2_UP) > 1000) {
-        Lcd.fillRect(255,154,16,16,LCD_YELLOW);
+        Graphic.fillRect(255,154,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(255,154,16,16,LCD_WHITE);
+        Graphic.fillRect(255,154,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(256,155,14,14,LCD_BLACK);
-      Lcd.drawRect(255,154,16,16,LCD_WHITE);
+      Graphic.fillRect(256,155,14,14,LCD_BLACK);
+      Graphic.drawRect(255,154,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_S2_DOWN)) {
       if(Gamepad.get_btn_pressed_duration(BTN_S2_DOWN) > 1000) {
-        Lcd.fillRect(255,194,16,16,LCD_YELLOW);
+        Graphic.fillRect(255,194,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(255,194,16,16,LCD_WHITE);
+        Graphic.fillRect(255,194,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(256,195,14,14,LCD_BLACK);
-      Lcd.drawRect(255,194,16,16,LCD_WHITE);
+      Graphic.fillRect(256,195,14,14,LCD_BLACK);
+      Graphic.drawRect(255,194,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_S2_LEFT)) {
       if(Gamepad.get_btn_pressed_duration(BTN_S2_LEFT) > 1000) {
-        Lcd.fillRect(235,174,16,16,LCD_YELLOW);
+        Graphic.fillRect(235,174,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(235,174,16,16,LCD_WHITE);
+        Graphic.fillRect(235,174,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(236,175,14,14,LCD_BLACK);
-      Lcd.drawRect(235,174,16,16,LCD_WHITE);
+      Graphic.fillRect(236,175,14,14,LCD_BLACK);
+      Graphic.drawRect(235,174,16,16,LCD_WHITE);
     }
     if(Gamepad.is_btn_pressed(BTN_S2_RIGHT)) {
       if(Gamepad.get_btn_pressed_duration(BTN_S2_RIGHT) > 1000) {
-        Lcd.fillRect(274,174,16,16,LCD_YELLOW);
+        Graphic.fillRect(274,174,16,16,LCD_YELLOW);
       } else {
-        Lcd.fillRect(274,174,16,16,LCD_WHITE);
+        Graphic.fillRect(274,174,16,16,LCD_WHITE);
       }
     } else {
-      Lcd.fillRect(275,175,14,14,LCD_BLACK);
-      Lcd.drawRect(274,174,16,16,LCD_WHITE);
+      Graphic.fillRect(275,175,14,14,LCD_BLACK);
+      Graphic.drawRect(274,174,16,16,LCD_WHITE);
     }
 
 
@@ -732,18 +732,18 @@ void menu_btn_test(void) {
 }
 
 void menu_joystick_test(void) {
-  Lcd.setTextSize(1);
-  Lcd.setCursor(0,320-8);
-  Lcd.print_5x8("press SELECT & START to exit menu");
-  Lcd.setTextSize(2);
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("Joystick test");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("Joystick test");
 
   uint16_t prev_pos1_x, prev_pos1_y;
   uint16_t prev_pos2_x, prev_pos2_y;
 
-  Lcd.drawRect(160-72, 160-72, 128+15, 128+15, LCD_WHITE);
-  Lcd.drawRect(320-72, 160-72, 128+15, 128+15, LCD_WHITE);
+  Graphic.drawRect(160-72, 160-72, 128+15, 128+15, LCD_WHITE);
+  Graphic.drawRect(320-72, 160-72, 128+15, 128+15, LCD_WHITE);
 
   Gamepad.set_enable(true, true);
 
@@ -758,20 +758,20 @@ void menu_joystick_test(void) {
     uint16_t pos1_y = 160 + (joy1_y >> 1);
 
     if(pos1_x != prev_pos1_x || pos1_y != prev_pos1_y) {
-      Lcd.fillRect(prev_pos1_x-7,prev_pos1_y-7,14,14,LCD_BLACK);
-      Lcd.drawCircle(159,159,71,LCD_WHITE);
-      Lcd.drawLine(88,160,88+128+15,160,LCD_WHITE);
-      Lcd.drawLine(160,88,160,88+128+15,LCD_WHITE);
-      Lcd.fillRect(pos1_x-7,pos1_y-7,14,14,LCD_WHITE);
+      Graphic.fillRect(prev_pos1_x-7,prev_pos1_y-7,14,14,LCD_BLACK);
+      Graphic.drawCircle(159,159,71,LCD_WHITE);
+      Graphic.drawLine(88,160,88+128+15,160,LCD_WHITE);
+      Graphic.drawLine(160,88,160,88+128+15,LCD_WHITE);
+      Graphic.fillRect(pos1_x-7,pos1_y-7,14,14,LCD_WHITE);
       prev_pos1_x = pos1_x;
       prev_pos1_y = pos1_y;
 
       sprintf(string_buf, "L stick : % 4d, % 4d", joy1_x, joy1_y);
-      Lcd.setCursor(0,16);
-      Lcd.print_5x8(string_buf);
+      Graphic.setCursor(0,16);
+      Graphic.print_5x8(string_buf);
       sprintf(string_buf, "L raw   :% 5d,% 5d", Gamepad.get_joystick_raw(JOY1_X), Gamepad.get_joystick_raw(JOY1_Y));
-      Lcd.setCursor(0,16*2);
-      Lcd.print_5x8(string_buf);
+      Graphic.setCursor(0,16*2);
+      Graphic.print_5x8(string_buf);
     }
 
     int8_t joy2_x = Gamepad.get_joystick_data(JOY2_X);
@@ -781,20 +781,20 @@ void menu_joystick_test(void) {
     uint16_t pos2_y = 160 + (joy2_y >> 1);
 
     if(pos2_x != prev_pos2_x || pos2_y != prev_pos2_y) {
-      Lcd.fillRect(prev_pos2_x-7,prev_pos2_y-7,14,14,LCD_BLACK);
-      Lcd.drawCircle(319,159,71,LCD_WHITE);
-      Lcd.drawLine(248,160,248+128+15,160,LCD_WHITE);
-      Lcd.drawLine(320,88,320,88+128+15,LCD_WHITE);
-      Lcd.fillRect(pos2_x-7,pos2_y-7,14,14,LCD_WHITE);
+      Graphic.fillRect(prev_pos2_x-7,prev_pos2_y-7,14,14,LCD_BLACK);
+      Graphic.drawCircle(319,159,71,LCD_WHITE);
+      Graphic.drawLine(248,160,248+128+15,160,LCD_WHITE);
+      Graphic.drawLine(320,88,320,88+128+15,LCD_WHITE);
+      Graphic.fillRect(pos2_x-7,pos2_y-7,14,14,LCD_WHITE);
       prev_pos2_x = pos2_x;
       prev_pos2_y = pos2_y;
 
       sprintf(string_buf, "R stick : % 4d, % 4d", joy2_x, joy2_y);
-      Lcd.setCursor(0,16*3);
-      Lcd.print_5x8(string_buf);
+      Graphic.setCursor(0,16*3);
+      Graphic.print_5x8(string_buf);
       sprintf(string_buf, "R raw   :% 5d,% 5d", Gamepad.get_joystick_raw(JOY2_X), Gamepad.get_joystick_raw(JOY2_Y));
-      Lcd.setCursor(0,16*4);
-      Lcd.print_5x8(string_buf);
+      Graphic.setCursor(0,16*4);
+      Graphic.print_5x8(string_buf);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
@@ -805,12 +805,12 @@ void menu_joystick_test(void) {
 }
 
 void menu_led_test(void) {
-  Lcd.setTextSize(1);
-  Lcd.setCursor(0,320-8);
-  Lcd.print_5x8("press SELECT & START to exit menu");
-  Lcd.setTextSize(2);
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("LED test");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("LED test");
 
   int now_mode = LED_OFF;
   const char* led_mode_string[] = {
@@ -846,8 +846,8 @@ void menu_led_test(void) {
     }
 
     sprintf(string_buf, "LED mode : %s", led_mode_string[now_mode]);
-    Lcd.setCursor(0,16);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16);
+    Graphic.print_5x8(string_buf);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       LedCtrl.set_mode(LED_CONTROL_1, LED_OFF);
@@ -860,12 +860,12 @@ void menu_led_test(void) {
 }
 
 void menu_lcd_test(void) {
-  Lcd.setTextSize(1);
-  Lcd.setCursor(0,320-8);
-  Lcd.print_5x8("press SELECT & START to exit menu");
-  Lcd.setTextSize(2);
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("LCD test");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("LCD test");
 
   int count = 0;
   uint16_t color = 0x0000;
@@ -878,57 +878,57 @@ void menu_lcd_test(void) {
 
     switch(count) {
       case 0:
-        Lcd.fillRect(0,16,480,(320-24),LCD_WHITE);
+        Graphic.fillRect(0,16,480,(320-24),LCD_WHITE);
         break;
       case 1:
-        Lcd.fillRect(0,16,480,(320-24),LCD_RED);
+        Graphic.fillRect(0,16,480,(320-24),LCD_RED);
         break;
       case 2:
-        Lcd.fillRect(0,16,480,(320-24),LCD_GREEN);
+        Graphic.fillRect(0,16,480,(320-24),LCD_GREEN);
         break;
       case 3:
-        Lcd.fillRect(0,16,480,(320-24),LCD_BLUE);
+        Graphic.fillRect(0,16,480,(320-24),LCD_BLUE);
         break;
       case 4:
-        Lcd.fillRect(0,16,480,(320-24),LCD_BLACK);
+        Graphic.fillRect(0,16,480,(320-24),LCD_BLACK);
         for(int i=0; i<30; i++) {
-          Lcd.setTextColor(color, LCD_BLACK);
-          Lcd.setCursor(0+(rand() % (480-(6*2*8))), 16+(rand() % (320-24-(8*2))));
-          Lcd.print_5x8("LCD test");
+          Graphic.setTextColor(color, LCD_BLACK);
+          Graphic.setCursor(0+(rand() % (480-(6*2*8))), 16+(rand() % (320-24-(8*2))));
+          Graphic.print_5x8("LCD test");
           color = rand();
         }
         break;
     }
 
-    Lcd.setTextColor(LCD_WHITE, LCD_BLACK);
-    Lcd.setCursor((480-(6*2*12)), 0);
+    Graphic.setTextColor(LCD_WHITE, LCD_BLACK);
+    Graphic.setCursor((480-(6*2*12)), 0);
     sprintf(string_buf, "% 3.3f fps ", (1000000.0f / system_time_elapsed_us(get_system_time_us(), start_time)));
-    Lcd.print_5x8(string_buf);
+    Graphic.print_5x8(string_buf);
 
     count++;
     if(count > 4) count = 0;
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
-      Lcd.setTextColor(LCD_WHITE, LCD_BLACK);
+      Graphic.setTextColor(LCD_WHITE, LCD_BLACK);
       return;
     }
   }
 }
 
 void menu_touch_test(void) {
-  Lcd.setTextSize(1);
-  Lcd.setCursor(0,320-8);
-  Lcd.print_5x8("press SELECT & START to exit menu");
-  Lcd.setTextSize(2);
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("Touch test");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("Touch test");
 
   time_ms_t touch_timer;
   char string_buf[32];
 
   sprintf(string_buf, "x:    0, y:    0");
-  Lcd.setCursor(0,16);
-  Lcd.print_5x8(string_buf);
+  Graphic.setCursor(0,16);
+  Graphic.print_5x8(string_buf);
 
   touch_point_t point;
   touch_point_t prev_point = {.x = -1, .y = -1};
@@ -940,13 +940,13 @@ void menu_touch_test(void) {
       point = Touchscreen.get_touch_point();
       if(point.y >= 32 && point.y < (320-8)) {
         sprintf(string_buf, "x: % 4d, y: % 4d", point.x, point.y);
-        Lcd.setCursor(0,16);
-        Lcd.print_5x8(string_buf);
+        Graphic.setCursor(0,16);
+        Graphic.print_5x8(string_buf);
         if(prev_point.x != -1 && prev_point.y != -1) {
-          Lcd.drawLine(prev_point.x, prev_point.y, point.x, point.y, LCD_WHITE);
+          Graphic.drawLine(prev_point.x, prev_point.y, point.x, point.y, LCD_WHITE);
         } else {
           //Lcd.fillCircle(point.x, point.y, 1, LCD_WHITE);
-          Lcd.drawPixel(point.x, point.y, LCD_WHITE);
+          Graphic.drawPixel(point.x, point.y, LCD_WHITE);
         }
         prev_point = point;
       }
@@ -955,7 +955,7 @@ void menu_touch_test(void) {
     }
 
     if(Gamepad.is_btn_pressed(BTN_START)) {
-      Lcd.fillRect(0,32,480,(320-40),LCD_BLACK);
+      Graphic.fillRect(0,32,480,(320-40),LCD_BLACK);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
@@ -965,15 +965,15 @@ void menu_touch_test(void) {
 }
 
 void menu_audio_test(void) {
-  Lcd.setTextSize(1);
-  Lcd.setCursor(0,320-8);
-  Lcd.print_5x8("press SELECT & START to exit menu");
-  Lcd.setTextSize(2);
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("Audio test");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("Audio test");
 
-  Lcd.setCursor(0,16);
-  Lcd.print_5x8("A : play music, B : play sound");
+  Graphic.setCursor(0,16);
+  Graphic.print_5x8("A : play music, B : play sound");
 
   music_note_t test_notes[4] = {
     {0, 4, 0, 32},   // C4
@@ -1009,14 +1009,14 @@ void menu_audio_test(void) {
     char string_buf[32];
 
     sprintf(string_buf, "master_vol: %d ", master_vol);
-    Lcd.setCursor(0,16*3);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16*3);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "wave: %d, freq: %.3f, vol: %d ", wave_num, wave_freq, wave_vol);
-    Lcd.setCursor(0,16*4);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16*4);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "env_tick: %d, env_step: %d  ", env_tick, env_step);
-    Lcd.setCursor(0,16*5);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16*5);
+    Graphic.print_5x8(string_buf);
 
     int8_t joy1_x = Gamepad.get_joystick_data(JOY1_X);
 
@@ -1101,12 +1101,12 @@ void menu_audio_test(void) {
 }
 
 void menu_vibration_test(void) {
-  Lcd.setTextSize(1);
-  Lcd.setCursor(0,320-8);
-  Lcd.print_5x8("press SELECT & START to exit menu");
-  Lcd.setTextSize(2);
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("Vibration test");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("Vibration test");
 
   uint16_t freq_l = 200, freq_r = 200;
   uint8_t power_l = 20, power_r = 20;
@@ -1116,11 +1116,11 @@ void menu_vibration_test(void) {
     char string_buf[32];
 
     sprintf(string_buf, "LRA(L) : freq: % 5d, power: % 4d", freq_l, power_l);
-    Lcd.setCursor(0,16);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "LRA(R) : freq: % 5d, power: % 4d", freq_r, power_r);
-    Lcd.setCursor(0,32);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,32);
+    Graphic.print_5x8(string_buf);
 
     if(Gamepad.is_btn_pressed(BTN_S1_UP)) {
       if(freq_l < 4000) freq_l += 10;
@@ -1169,30 +1169,30 @@ void menu_vibration_test(void) {
 }
 
 void menu_bat_test(void) {
-  Lcd.setTextSize(1);
-  Lcd.setCursor(0,320-8);
-  Lcd.print_5x8("press SELECT & START to exit menu");
-  Lcd.setTextSize(2);
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("Battery & Power test");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("Battery & Power test");
 
   while(1) {
     sleep_ms(100);
     char string_buf[32];
 
     sprintf(string_buf, "Vin : %01.3fV", Power.get_input_voltage());
-    Lcd.setCursor(0,16);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16);
+    Graphic.print_5x8(string_buf);
 
     sprintf(string_buf, "Battery : %s", Charger.get_battery_exist() ? "Yes" : "No ");
-    Lcd.setCursor(0,16*2);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16*2);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "Level : % 3.1f%% (%01.3fV)", Charger.get_bat_level(), Charger.get_bat_voltage());
-    Lcd.setCursor(0,16*3);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16*3);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "Charging : %s | Fault : 0x%02X", Charger.get_charging_status() ? "Yes" : "No ", Charger.get_fault_status());
-    Lcd.setCursor(0,16*4);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16*4);
+    Graphic.print_5x8(string_buf);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       return;
@@ -1201,25 +1201,25 @@ void menu_bat_test(void) {
 }
 
 void menu_temp_test(void) {
-  Lcd.setTextSize(1);
-  Lcd.setCursor(0,320-8);
-  Lcd.print_5x8("press SELECT & START to exit menu");
-  Lcd.setTextSize(2);
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("Temperature test");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("Temperature test");
 
   while(1) {
     sleep_ms(100);
     char string_buf[32];
     sprintf(string_buf, "TEMP_BUILTIN     : %.1f'C", Temperature.get_temp(TEMP_BUILTIN));
-    Lcd.setCursor(0,16);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "TEMP_SOUTHBRIDGE : %.1f'C", Temperature.get_temp(TEMP_SOUTHBRIDGE));
-    Lcd.setCursor(0,16*2);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16*2);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "TEMP_NTC         : %.1f'C", Temperature.get_temp(TEMP_NTC));
-    Lcd.setCursor(0,16*3);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16*3);
+    Graphic.print_5x8(string_buf);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       return;
@@ -1228,15 +1228,15 @@ void menu_temp_test(void) {
 }
 
 void menu_ir_test(void) {
-  Lcd.setTextSize(1);
-  Lcd.setCursor(0,320-8);
-  Lcd.print_5x8("press SELECT & START to exit menu");
-  Lcd.setTextSize(2);
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("IR comm test");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("IR comm test");
 
-  Lcd.setCursor(0,16);
-  Lcd.print_5x8("press START to change format");
+  Graphic.setCursor(0,16);
+  Graphic.print_5x8("press START to change format");
 
   led_config_t led_config = {.mode = LED_OFF, .brightness = 255, .blink_interval_ms = 100};
   LedCtrl.set_config(LED_CONTROL_1, led_config); // RX indicator
@@ -1250,26 +1250,26 @@ void menu_ir_test(void) {
     char string_buf[32];
 
     sprintf(string_buf, "format setting: %s", Ir.get_rx_format() == IR_FORMAT_NEC ? "NEC" : "RAW");
-    Lcd.setCursor(0,16*2);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16*2);
+    Graphic.print_5x8(string_buf);
     if(Ir.is_data_ready() && Ir.get_rx_format() == Ir.get_rx_data_format()) {
       if(Ir.get_rx_data_format() == IR_FORMAT_MANUAL) {
         sprintf(string_buf, "data: %d pulses", Ir.get_raw_data_pulses());
-        Lcd.setCursor(0,16*3);
-        Lcd.print_5x8(string_buf);
+        Graphic.setCursor(0,16*3);
+        Graphic.print_5x8(string_buf);
         sprintf(string_buf, "%d, %d, %d, %d ... ", ((uint16_t*)Ir.rx_data_buf)[0], ((uint16_t*)Ir.rx_data_buf)[1], ((uint16_t*)Ir.rx_data_buf)[2], ((uint16_t*)Ir.rx_data_buf)[3]);
-        Lcd.setCursor(0,16*4);
-        Lcd.print_5x8(string_buf);
-        // Lcd.setCursor(0,16*5);
-        // Lcd.print_5x8("press A to send data");
+        Graphic.setCursor(0,16*4);
+        Graphic.print_5x8(string_buf);
+        // Graphic.setCursor(0,16*5);
+        // Graphic.print_5x8("press A to send data");
       } else if (Ir.get_rx_data_format() == IR_FORMAT_NEC) {
-        Lcd.setCursor(0,16*3);
-        Lcd.print_5x8("data:");
+        Graphic.setCursor(0,16*3);
+        Graphic.print_5x8("data:");
         sprintf(string_buf, "%02X %02X %02X %02X", Ir.rx_data_buf[0], Ir.rx_data_buf[1], Ir.rx_data_buf[2], Ir.rx_data_buf[3]);
-        Lcd.setCursor(0,16*4);
-        Lcd.print_5x8(string_buf);
-        Lcd.setCursor(0,16*5);
-        Lcd.print_5x8("press A to send data");
+        Graphic.setCursor(0,16*4);
+        Graphic.print_5x8(string_buf);
+        Graphic.setCursor(0,16*5);
+        Graphic.print_5x8("press A to send data");
       }
     }
 
@@ -1278,7 +1278,7 @@ void menu_ir_test(void) {
       temp++;
       if(temp > IR_FORMAT_NEC) temp = IR_FORMAT_MANUAL;
       Ir.set_enable_rx(true, (enum ir_format)temp);
-      Lcd.fillRect(0,16*3,480,(320-56),LCD_BLACK);
+      Graphic.fillRect(0,16*3,480,(320-56),LCD_BLACK);
     }
 
     if(Gamepad.is_btn_pressed(BTN_A)) {
@@ -1298,12 +1298,12 @@ void menu_ir_test(void) {
 }
 
 void menu_imu_test(void) {
-  Lcd.setTextSize(1);
-  Lcd.setCursor(0,320-8);
-  Lcd.print_5x8("press SELECT & START to exit menu");
-  Lcd.setTextSize(2);
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("IMU test");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("IMU test");
 
   Imu.set_enable(true, true);
 
@@ -1312,24 +1312,24 @@ void menu_imu_test(void) {
     char string_buf[32];
 
     sprintf(string_buf, "accel x: %2.4f ", Imu.get_accel_x());
-    Lcd.setCursor(0,16);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "accel y: %2.4f ", Imu.get_accel_y());
-    Lcd.setCursor(0,32);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,32);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "accel z: %2.4f ", Imu.get_accel_z());
-    Lcd.setCursor(0,48);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,48);
+    Graphic.print_5x8(string_buf);
 
     sprintf(string_buf, "gyro x: %4.2f ", Imu.get_gyro_x());
-    Lcd.setCursor(0,64);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,64);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "gyro y: %4.2f ", Imu.get_gyro_y());
-    Lcd.setCursor(0,80);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,80);
+    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "gyro z: %4.2f ", Imu.get_gyro_z());
-    Lcd.setCursor(0,96);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,96);
+    Graphic.print_5x8(string_buf);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       Imu.set_enable(false, false);
@@ -1339,15 +1339,15 @@ void menu_imu_test(void) {
 }
 
 void menu_sd_test(void) {
-  Lcd.setTextSize(1);
-  Lcd.setCursor(0,320-8);
-  Lcd.print_5x8("press SELECT & START to exit menu");
-  Lcd.setTextSize(2);
-  Lcd.setCursor(0,0);
-  Lcd.print_5x8("SD card test");
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("SD card test");
 
-  Lcd.setCursor(0,16);
-  Lcd.print_5x8("Loading...");
+  Graphic.setCursor(0,16);
+  Graphic.print_5x8("Loading...");
   char string_buf[32];
 
   sd_card_t *sd_card_p = sd_get_by_num(0);
@@ -1364,19 +1364,19 @@ void menu_sd_test(void) {
     sleep_ms(100);
 
     sprintf(string_buf, "SD card : %s", (STA_NODISK & ds) ? "not inserted" : "inserted    ");
-    Lcd.setCursor(0,16);
-    Lcd.print_5x8(string_buf);
+    Graphic.setCursor(0,16);
+    Graphic.print_5x8(string_buf);
     if(ok) {
       sprintf(string_buf, "mount : %s", sd_card_p->state.mounted ? "not mounted" : "mounted    ");
-      Lcd.setCursor(0,16*2);
-      Lcd.print_5x8(string_buf);
+      Graphic.setCursor(0,16*2);
+      Graphic.print_5x8(string_buf);
       if(au_size_bytes > (1<<20)) {
         sprintf(string_buf, "size : %zu MB (%zu sectors)", au_size_bytes / (1<<20), au_size_bytes / sd_block_size);
       } else {
         sprintf(string_buf, "size : %zu bytes (%zu sectors)", au_size_bytes, au_size_bytes / sd_block_size);
       }
-      Lcd.setCursor(0,16*3);
-      Lcd.print_5x8(string_buf);
+      Graphic.setCursor(0,16*3);
+      Graphic.print_5x8(string_buf);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
