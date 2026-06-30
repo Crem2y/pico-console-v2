@@ -30,6 +30,7 @@
 #include "power.hpp"
 #include "charger.hpp"
 #include "gamepad.hpp"
+#include "graphic_system.hpp"
 #include "audio_system.hpp"
 #include "led_control.hpp"
 #include "temperature.hpp"
