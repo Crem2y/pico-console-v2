@@ -13,6 +13,7 @@
 #include "uart_bridge.h"
 #include "led_builtin.h"
 #include "led_status.hpp"
+#include "psram_apsxx04.h"
 #include "ili9488_40_hstx.hpp"
 #include "system_time.h"
 #include "temp_builtin.h"

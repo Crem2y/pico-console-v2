@@ -98,6 +98,10 @@ int main() { // uses core 0 to sub core
   Lcd.setTextSize(1);
   LOG_PRINTF("LCD ok\n");
   Lcd.setCursor(0,0);
+  Lcd.print_5x8("PSRAM init...");
+  if(!psram_init(PIN_PSRAM_CS)) while(1);
+  LOG_PRINTF("PSRAM ok\n");
+  Lcd.setCursor(0,0);
   Lcd.print_5x8("Touch init...");
   Touchscreen.init();
   Touchscreen.set_screen_size(480, 320);
@@ -414,23 +418,21 @@ void menu_info(void) {
 
     char string_buf[32];
 
-    sprintf(string_buf, "SB Connected : %s", SouthBridge.connected ? "Yes" : "No ");
+    Lcd.setTextSize(1);
     Lcd.setCursor(0,16);
+    sprintf(string_buf, "PSRAM size : %d MB\n\n", (psram_size / (1024*1024)));
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "HW version      : 0x%04X", SouthBridge.info.hw_ver);
-    Lcd.setCursor(0,16*2);
+    sprintf(string_buf, "SB Connected : %s\n", SouthBridge.connected ? "Yes" : "No ");
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "HW support_flag : 0x%08X", SouthBridge.info.hw_support);
-    Lcd.setCursor(0,16*3);
+    sprintf(string_buf, "HW version      : 0x%04X\n", SouthBridge.info.hw_ver);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "SW version(MAIN): 0x%04X", SW_INFO_VERSION);
-    Lcd.setCursor(0,16*4);
+    sprintf(string_buf, "HW support_flag : 0x%08X\n", SouthBridge.info.hw_support);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "SW version (SB) : 0x%04X", SouthBridge.info.sw_ver);
-    Lcd.setCursor(0,16*5);
+    sprintf(string_buf, "SW version(MAIN): 0x%04X\n", SW_INFO_VERSION);
     Lcd.print_5x8(string_buf);
-    sprintf(string_buf, "SW support_flag : 0x%08X", SouthBridge.info.sw_support);
-    Lcd.setCursor(0,16*6);
+    sprintf(string_buf, "SW version (SB) : 0x%04X\n", SouthBridge.info.sw_ver);
+    Lcd.print_5x8(string_buf);
+    sprintf(string_buf, "SW support_flag : 0x%08X\n", SouthBridge.info.sw_support);
     Lcd.print_5x8(string_buf);
 
     SouthBridge.read_hw_info();
