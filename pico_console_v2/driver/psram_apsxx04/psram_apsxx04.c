@@ -115,7 +115,7 @@ bool __no_inline_not_in_flash_func(apsxx04_init_psram_cs1)(void) {
     xip_ctrl_hw->ctrl |= XIP_CTRL_WRITABLE_M1_BITS;
 
     // operation test
-    volatile uint32_t *p = (volatile uint32_t *)PSRAM_BASE;
+    volatile uint32_t *p = PSRAM_BASE;
     p[0] = 0x12345678u;
     p[1] = 0xA5A55A5Au;
     __compiler_memory_barrier();

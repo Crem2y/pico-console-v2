@@ -5,8 +5,8 @@
 #include "hardware/structs/qmi.h"
 #include "hardware/structs/xip.h"
 
-#define PSRAM_BASE_CACHED   ((volatile uint8_t *)0x11000000u)
-#define PSRAM_BASE_UNCACHED ((volatile uint8_t *)0x15000000u)
+#define PSRAM_BASE_CACHED   ((void *)0x11000000u)
+#define PSRAM_BASE_UNCACHED ((void *)0x15000000u)
 #define PSRAM_BASE          PSRAM_BASE_CACHED
 
 #define APSXX04_MAX_HZ 133000000u
