@@ -14,7 +14,6 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
-#include "hardware/dma.h"
 #include "hardware/clocks.h"
 
 #include "hardware/resets.h"
@@ -25,11 +24,6 @@
 #define LCD_SPI_FAST (50*1000*1000)
 
 /////////////////////////////////////////////////////////////////////
-
-#ifndef _ADAFRUIT_ILI9488H_
-#define _ADAFRUIT_ILI9488H_
-
-#include "Adafruit_GFX_E.hpp"
 
 #define ILI9488_TFTWIDTH   320      ///< ILI9488 max TFT width
 #define ILI9488_TFTHEIGHT  480      ///< ILI9488 max TFT height
@@ -121,39 +115,42 @@
 
 #define LCD_BACKLIGHT_MAX 1000
 
-class ili9488_40 : public Adafruit_GFX {
+class ili9488_40 {
+  public:
+    int16_t WIDTH, HEIGHT;   // This is the 'raw' display w/h - never changes
+    int16_t _width, _height;
 
-public:
-  ili9488_40(int pin_tx, int pin_sck, int pin_cs, int pin_dc, int pin_reset, int pin_led);
+    ili9488_40(int pin_tx, int pin_sck, int pin_cs, int pin_dc, int pin_reset, int pin_led);
 
-  void     begin(void),
-           setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1),
-           pushColor(uint16_t color),
-           fillScreen(uint16_t color),
-           drawPixel(int16_t x, int16_t y, uint16_t color),
-           drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color),
-           drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color),
-           fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
-             uint16_t color),
-           drawPicture(int16_t x, int16_t y, const uint16_t *picture, int16_t w, int16_t h),
-           setRotation(uint8_t r),
-           invertDisplay(bool i);
-  uint16_t Color565(uint8_t r, uint8_t g, uint8_t b);
+    void init(void);
+    void begin(void);
 
-  void     writecommand(uint8_t cmd),
-           writedata(uint8_t d);
+    void draw_pixel(int16_t x, int16_t y, uint16_t color);
+    void draw_fast_line_v(int16_t x, int16_t y, int16_t h, uint16_t color);
+    void draw_fast_line_h(int16_t x, int16_t y, int16_t w, uint16_t color);
+    void fill_rect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
+    void fill_screen(uint16_t color);
+    void draw_picture(int16_t x, int16_t y, int16_t w, int16_t h, const uint16_t *picture);
 
-  void set_bright(uint32_t bright);
-  uint32_t get_bright(void);
+    uint16_t convert_color(uint8_t r, uint8_t g, uint8_t b);
 
-private:
-  uint8_t  tabcolor;
-  int _pin_tx, _pin_sck, _pin_cs, _pin_dc;
-  int _pin_reset, _pin_led;
-  uint32_t _bright;
-  int slice_num, led_pwm_ch;
+  // display setting
+    void set_rotation(uint8_t r);
+    void invert_display(bool i);
 
-  uint dma_lcd;
+    void set_bright(uint32_t bright);
+    uint32_t get_bright(void);
+
+  private:
+    uint8_t  tabcolor;
+    int _pin_tx, _pin_sck, _pin_cs, _pin_dc;
+    int _pin_reset, _pin_led;
+    uint32_t _bright;
+    int slice_num, led_pwm_ch;
+
+    void write_command(uint8_t cmd);
+    void write_data(uint8_t d);
+
+    void set_addr_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
+    void push_color(uint16_t color);
 };
-
-#endif

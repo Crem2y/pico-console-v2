@@ -405,6 +405,9 @@ main_menu_loop:
         case MAIN_SD_TEST:
           menu_sd_test();
           break;
+        default:
+          cursor_x = 0;
+          break;
         }
         goto main_menu_loop;
       }

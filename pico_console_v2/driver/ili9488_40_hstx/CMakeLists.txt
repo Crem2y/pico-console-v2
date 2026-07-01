@@ -4,7 +4,7 @@ message(STATUS "building lib \"${LIB_NAME}\"...")
 
 set(OUTPUT_STATIC_LIB ${LIB_NAME})
 
-add_library(${OUTPUT_STATIC_LIB} ${LIB_NAME}.cpp Adafruit_GFX_E.cpp)
+add_library(${OUTPUT_STATIC_LIB} ${LIB_NAME}.cpp)
 
 target_include_directories(${OUTPUT_STATIC_LIB} PUBLIC 
   ${CMAKE_CURRENT_SOURCE_DIR}

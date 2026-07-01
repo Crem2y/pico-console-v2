@@ -85,7 +85,7 @@ static inline void lcd_start_pixels(void) {
 
 // Constructor when using hardware SPI.  Faster, but must use SPI pins
 // specific to each board type (e.g. 11,13 for Uno, 51,52 for Mega, etc.)
-ili9488_40::ili9488_40(int pin_tx, int pin_sck, int pin_cs, int pin_dc, int pin_reset, int pin_led) : Adafruit_GFX(ILI9488_TFTWIDTH, ILI9488_TFTHEIGHT) {
+ili9488_40::ili9488_40(int pin_tx, int pin_sck, int pin_cs, int pin_dc, int pin_reset, int pin_led) {
   // These can be any permutation of HSTX-capable pins:
   _pin_tx = pin_tx;
   _pin_sck = pin_sck;
@@ -96,13 +96,21 @@ ili9488_40::ili9488_40(int pin_tx, int pin_sck, int pin_cs, int pin_dc, int pin_
   _pin_led = pin_led;
 }
 
-void ili9488_40::writecommand(uint8_t cmd) {
+void ili9488_40::write_command(uint8_t cmd) {
   lcd_start_cmd(cmd);
 }
 
-void ili9488_40::writedata(uint8_t d) {
+void ili9488_40::write_data(uint8_t d) {
   lcd_put_data(d);
 } 
+
+
+void ili9488_40::init(void) {
+  WIDTH   = ILI9488_TFTHEIGHT;
+  HEIGHT  = ILI9488_TFTWIDTH;
+  _width  = WIDTH;
+  _height = HEIGHT;
+}
 
 void ili9488_40::begin(void) {
   gpio_init(_pin_reset);
@@ -155,8 +163,8 @@ void ili9488_40::begin(void) {
 
   lcd_init(ili9488_init_seq);
 
-  writecommand(ILI9488_INVON);
-  setRotation(3);
+  write_command(ILI9488_INVON);
+  set_rotation(3);
 
   // pwm initialize
   gpio_set_function(_pin_led, GPIO_FUNC_PWM);
@@ -170,26 +178,26 @@ void ili9488_40::begin(void) {
 }
 
 
-void ili9488_40::setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1,
+void ili9488_40::set_addr_window(uint16_t x0, uint16_t y0, uint16_t x1,
   uint16_t y1) {
 
-  writecommand(ILI9488_CASET); // Column addr set
-  writedata(x0 >> 8);
-  writedata(x0 & 0xFF);     // XSTART 
-  writedata(x1 >> 8);
-  writedata(x1 & 0xFF);     // XEND
+  write_command(ILI9488_CASET); // Column addr set
+  write_data(x0 >> 8);
+  write_data(x0 & 0xFF);     // XSTART 
+  write_data(x1 >> 8);
+  write_data(x1 & 0xFF);     // XEND
 
-  writecommand(ILI9488_PASET); // Row addr set
-  writedata(y0>>8);
-  writedata(y0);     // YSTART
-  writedata(y1>>8);
-  writedata(y1);     // YEND
+  write_command(ILI9488_PASET); // Row addr set
+  write_data(y0>>8);
+  write_data(y0);     // YSTART
+  write_data(y1>>8);
+  write_data(y1);     // YEND
 
-  writecommand(ILI9488_RAMWR); // write to RAM
+  write_command(ILI9488_RAMWR); // write to RAM
 }
 
 
-void ili9488_40::pushColor(uint16_t color) {
+void ili9488_40::push_color(uint16_t color) {
   uint8_t temp[3];
   temp[0]   = (color & 0x1f) << 3;         // blue
   temp[1] = ((color >> 5) & 0x3f) << 2;  // green
@@ -200,63 +208,63 @@ void ili9488_40::pushColor(uint16_t color) {
   lcd_put_data(temp[2]);
 }
 
-void ili9488_40::drawPixel(int16_t x, int16_t y, uint16_t color) {
+void ili9488_40::draw_pixel(int16_t x, int16_t y, uint16_t color) {
 
   if((x < 0) ||(x >= _width) || (y < 0) || (y >= _height)) return;
 
-  setAddrWindow(x,y,x+1,y+1);
-  pushColor(color);
+  set_addr_window(x,y,x+1,y+1);
+  push_color(color);
 }
 
 
-void ili9488_40::drawFastVLine(int16_t x, int16_t y, int16_t h,
+void ili9488_40::draw_fast_line_v(int16_t x, int16_t y, int16_t h,
   uint16_t color) {
 
   // Rudimentary clipping
   if((x >= _width) || (y >= _height)) return;
   if((y+h-1) >= _height) h = _height-y;
 
-  setAddrWindow(x, y, x, y+h-1);
+  set_addr_window(x, y, x, y+h-1);
   
   while (h--) {
-    pushColor(color);
+    push_color(color);
   }
 }
 
 
-void ili9488_40::drawFastHLine(int16_t x, int16_t y, int16_t w,
+void ili9488_40::draw_fast_line_h(int16_t x, int16_t y, int16_t w,
   uint16_t color) {
 
   // Rudimentary clipping
   if((x >= _width) || (y >= _height)) return;
   if((x+w-1) >= _width)  w = _width-x;
 
-  setAddrWindow(x, y, x+w-1, y);
+  set_addr_window(x, y, x+w-1, y);
 
   while (w--) {
-    pushColor(color);
+    push_color(color);
   }
 }
 
-void ili9488_40::drawPicture(int16_t x, int16_t y, const uint16_t *picture, int16_t w, int16_t h) {
+void ili9488_40::draw_picture(int16_t x, int16_t y, int16_t w, int16_t h, const uint16_t *picture) {
   int16_t i, j, color;
 
-  setAddrWindow(x, y, x+w-1, y+h-1);
+  set_addr_window(x, y, x+w-1, y+h-1);
 
   for(j=0; j<h; j++) {
     for(i=0; i<w; i++) {
       color = (picture[i + (j * w)]);
-      pushColor(color);
+      push_color(color);
     }
   }
 }
 
-void ili9488_40::fillScreen(uint16_t color) {
-  fillRect(0, 0,  _width, _height, color);
+void ili9488_40::fill_screen(uint16_t color) {
+  fill_rect(0, 0,  _width, _height, color);
 }
 
 // fill a rectangle
-void ili9488_40::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
+void ili9488_40::fill_rect(int16_t x, int16_t y, int16_t w, int16_t h,
   uint16_t color) {
 
   // rudimentary clipping (drawChar w/big text requires this)
@@ -264,52 +272,52 @@ void ili9488_40::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
   if((x + w - 1) >= _width)  w = _width  - x;
   if((y + h - 1) >= _height) h = _height - y;
 
-  setAddrWindow(x, y, x+w-1, y+h-1);
+  set_addr_window(x, y, x+w-1, y+h-1);
 
   for(y=h; y>0; y--) {
     for(x=w; x>0; x--) {
-      pushColor(color);
+      push_color(color);
     }
   }
 }
 
 
 // Pass 8-bit (each) R,G,B, get back 16-bit packed color
-uint16_t ili9488_40::Color565(uint8_t r, uint8_t g, uint8_t b) {
+uint16_t ili9488_40::convert_color(uint8_t r, uint8_t g, uint8_t b) {
   return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
 }
 
 
-void ili9488_40::setRotation(uint8_t m) {
+void ili9488_40::set_rotation(uint8_t m) {
 
-  writecommand(ILI9488_MADCTL);
-  rotation = m % 4; // can't be higher than 3
-  switch (rotation) {
+  write_command(ILI9488_MADCTL);
+  m = m % 4; // can't be higher than 3s
+  switch (m) {
   case 0:
-    writedata(ILI9488_MADCTL_MX);
+    write_data(ILI9488_MADCTL_MX);
     _width  = ILI9488_TFTWIDTH;
     _height = ILI9488_TFTHEIGHT;
     break;
   case 1:
-    writedata(ILI9488_MADCTL_MV);
+    write_data(ILI9488_MADCTL_MV);
     _width  = ILI9488_TFTHEIGHT;
     _height = ILI9488_TFTWIDTH;
     break;
   case 2:
-    writedata(ILI9488_MADCTL_MY);
+    write_data(ILI9488_MADCTL_MY);
     _width  = ILI9488_TFTWIDTH;
     _height = ILI9488_TFTHEIGHT;
   break;
   case 3:
-    writedata(ILI9488_MADCTL_MV | ILI9488_MADCTL_MY | ILI9488_MADCTL_MX);
+    write_data(ILI9488_MADCTL_MV | ILI9488_MADCTL_MY | ILI9488_MADCTL_MX);
     _width  = ILI9488_TFTHEIGHT;
     _height = ILI9488_TFTWIDTH;
     break;
   }
 }
 
-void ili9488_40::invertDisplay(bool i) {
-  writecommand(i ? ILI9488_INVON : ILI9488_INVOFF);
+void ili9488_40::invert_display(bool i) {
+  write_command(i ? ILI9488_INVON : ILI9488_INVOFF);
 }
 
 void ili9488_40::set_bright(uint32_t bright) {
