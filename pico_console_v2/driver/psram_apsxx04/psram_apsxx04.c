@@ -41,9 +41,9 @@ static void __no_inline_not_in_flash_func(apsxx04_calc_timing)(uint32_t sys_hz,
     uint32_t divisor = (sys_hz + APSXX04_MAX_HZ - 1u) / APSXX04_MAX_HZ;
     if (divisor == 0) divisor = 1;
 
-    if (divisor == 1 && sys_hz > 100000000u) {
-        divisor = 2;
-    }
+    // if (divisor == 1 && sys_hz > 100000000u) {
+    //     divisor = 2;
+    // }
 
     uint32_t rxdelay = divisor;
     if ((sys_hz / divisor) > 100000000u) {
@@ -72,7 +72,7 @@ static void __no_inline_not_in_flash_func(apsxx04_calc_timing)(uint32_t sys_hz,
 }
 
 bool __no_inline_not_in_flash_func(apsxx04_init_psram_cs1)(void) {
-    gpio_set_function(8, _cs_pin);
+    gpio_set_function(_cs_pin, GPIO_FUNC_XIP_CS1);
     qmi_wait_busy_clear();
     psram_direct_cmd_cs1(0x35, 10);
 
@@ -114,25 +114,41 @@ bool __no_inline_not_in_flash_func(apsxx04_init_psram_cs1)(void) {
 
     xip_ctrl_hw->ctrl |= XIP_CTRL_WRITABLE_M1_BITS;
 
-    // operation test
-    volatile uint32_t *p = PSRAM_BASE;
-    p[0] = 0x12345678u;
-    p[1] = 0xA5A55A5Au;
-    __compiler_memory_barrier();
-
-    return (p[0] == 0x12345678u) && (p[1] == 0xA5A55A5Au);
+    return true;
 }
 
-bool psram_init(int cs_pin) {
+int32_t psram_init(int cs_pin) {
   _cs_pin = cs_pin;
-  bool ok = apsxx04_init_psram_cs1();
-  if(ok) {
-    //psram_size = psram_read_size(); // not working...
-    psram_size = (2 * 1024 * 1024);
-  } else {
+
+  if (!apsxx04_init_psram_cs1()) {
     psram_size = 0;
+    return -1;
   }
-  return ok;
+  
+  int32_t ret = psram_test();
+  if(ret < 0) {
+    psram_size = 0;
+    return ret;
+  }
+
+  psram_size = psram_read_size();
+  //psram_size = (2 * 1024 * 1024);
+  return 0;
+}
+
+int32_t psram_test(void) {
+  volatile uint8_t *p = PSRAM_BASE_UNCACHED;
+  const uint32_t test_size = 1 * 1024 * 1024;
+  uint8_t test_data = 0x10;
+
+  for(uint32_t i=0; i<test_size; i++) {
+      p[i] = (uint8_t)(test_data + i);
+  }
+  for(uint32_t i=0; i<test_size; i++) {
+    if(p[i] != (uint8_t)(test_data + i)) return -((int32_t)i + 100000000);
+  }
+
+  return 0;
 }
 
 uint32_t psram_read_size(void) {

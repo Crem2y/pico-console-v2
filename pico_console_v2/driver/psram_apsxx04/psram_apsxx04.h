@@ -21,7 +21,8 @@ extern "C" {
 
 extern uint32_t psram_size;
 
-bool psram_init(int cs_pin);
+int32_t psram_init(int cs_pin);
+int32_t psram_test(void);
 uint32_t psram_read_size(void);
 
 #ifdef __cplusplus

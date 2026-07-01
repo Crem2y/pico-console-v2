@@ -100,7 +100,14 @@ int main() { // uses core 0 to sub core
   LOG_PRINTF("LCD ok\n");
   Graphic.setCursor(0,0);
   Graphic.print_5x8("PSRAM init...");
-  if(!psram_init(PIN_PSRAM_CS)) while(1);
+  int32_t ret = psram_init(PIN_PSRAM_CS);
+  if(ret < 0) {
+    char string_buf[32];
+    sprintf(string_buf, "error : %d ", ret);
+    Graphic.setCursor(0,8);
+    Graphic.print_5x8(string_buf);
+    while(1);
+  }
   LOG_PRINTF("PSRAM ok\n");
   Graphic.setCursor(0,0);
   Graphic.print_5x8("Touch init...");
