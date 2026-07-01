@@ -317,6 +317,7 @@ main_menu_loop:
     Graphic.print_5x8(" Button test\n");
     Graphic.print_5x8(" Joystick test\n");
     Graphic.print_5x8(" LED test\n");
+    Graphic.print_5x8(" PSRAM test\n");
     Graphic.print_5x8(" LCD test\n");
     Graphic.print_5x8(" Touch test\n");
     Graphic.print_5x8(" Audio test\n");
@@ -362,8 +363,8 @@ main_menu_loop:
         Graphic.fillScreen(LCD_BLACK);
         switch (cursor_x)
         {
-        case MAIN_INFO:
-          menu_info();
+        case MAIN_SYSTEM_INFO:
+          menu_system_info();
           break;
         case MAIN_BTN_TEST:
           menu_btn_test();
@@ -373,6 +374,9 @@ main_menu_loop:
           break;
         case MAIN_LED_TEST:
           menu_led_test();
+          break;
+        case MAIN_PSRAM_TEST:
+          menu_psram_test();
           break;
         case MAIN_LCD_TEST:
           menu_lcd_test();
@@ -410,7 +414,7 @@ main_menu_loop:
 
 //////// test menus ////////
 
-void menu_info(void) {
+void menu_system_info(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
   Graphic.print_5x8("press SELECT & START to exit menu");
@@ -861,6 +865,87 @@ void menu_led_test(void) {
       LedCtrl.set_mode(LED_CONTROL_2, LED_OFF);
       LedCtrl.set_mode(LED_CONTROL_3, LED_OFF);
       LedCtrl.set_mode(LED_CONTROL_4, LED_OFF);
+      return;
+    }
+  }
+}
+
+void menu_psram_test(void) {
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print_5x8("PSRAM test");
+
+  char string_buf[32];
+  const size_t benchmark_size = 128 * 1024;
+  const size_t benchmark_times = 8;
+
+  sprintf(string_buf, "PSRAM clock : %d MHz, size : %d MB", (APSXX04_MAX_HZ / 1000000), (psram_size / (1024*1024)));
+  Graphic.setCursor(0,16);
+  Graphic.print_5x8(string_buf);
+  sprintf(string_buf, "press A to benchmark SRAM & PSRAM");
+  Graphic.setCursor(0,16*2);
+  Graphic.print_5x8(string_buf);
+  sprintf(string_buf, "(%d kB x %d times)", (benchmark_size / 1024), benchmark_times);
+  Graphic.setCursor(0,16*3);
+  Graphic.print_5x8(string_buf);
+
+  time_us_t sram_time = 0;
+  time_us_t psram_time = 0;
+  uint8_t* sram_buffer;
+  uint8_t* psram_buffer = (uint8_t*)PSRAM_BASE;
+
+  while(1) {
+    sleep_ms(100);
+
+    sprintf(string_buf, "SRAM  : %d us", sram_time);
+    Graphic.setCursor(0,16*4);
+    Graphic.print_5x8(string_buf);
+    sprintf(string_buf, "PSRAM : %d us", psram_time);
+    Graphic.setCursor(0,16*5);
+    Graphic.print_5x8(string_buf);
+
+    if(Gamepad.is_btn_pressed(BTN_A)) {
+      uint8_t test_data = 0xA5;
+
+      sram_buffer = (uint8_t*)malloc(benchmark_size);
+      if(sram_buffer == NULL) continue;
+
+      sram_time = get_system_time_us();
+      for(int i=0; i<benchmark_times; i++) {
+        for(uint32_t j=0; j<benchmark_size; j++) {
+            sram_buffer[j] = (uint8_t)(test_data + j);
+        }
+        for(uint32_t j=0; j<benchmark_size; j++) {
+          if(sram_buffer[j] != (uint8_t)(test_data + j)) {
+            sram_time = 0;
+            free(sram_buffer);
+            continue;
+          }
+        }
+      }
+      sram_time = system_time_elapsed_us(get_system_time_us(), sram_time);
+      free(sram_buffer);
+
+      if(psram_size == 0) continue;
+      psram_time = get_system_time_us();
+      for(int i=0; i<benchmark_times; i++) {
+        for(uint32_t j=0; j<benchmark_size; j++) {
+            psram_buffer[j] = (uint8_t)(test_data + j);
+        }
+        for(uint32_t j=0; j<benchmark_size; j++) {
+          if(psram_buffer[j] != (uint8_t)(test_data + j)) {
+            psram_time = 0;
+            continue;
+          }
+        }
+      }
+      psram_time = system_time_elapsed_us(get_system_time_us(), psram_time);
+    }
+
+    if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       return;
     }
   }

@@ -40,10 +40,11 @@
 #include "ir_link.hpp"
 
 enum menu_main {
-  MAIN_INFO,
+  MAIN_SYSTEM_INFO,
   MAIN_BTN_TEST,
   MAIN_JOYSTICK_TEST,
   MAIN_LED_TEST,
+  MAIN_PSRAM_TEST,
   MAIN_LCD_TEST,
   MAIN_TOUCH_TEST,
   MAIN_AUDIO_TEST,
@@ -55,10 +56,11 @@ enum menu_main {
   MAIN_SD_TEST,
 };
 
-void menu_info();
+void menu_system_info();
 void menu_btn_test();
 void menu_joystick_test();
 void menu_led_test();
+void menu_psram_test();
 void menu_lcd_test();
 void menu_touch_test();
 void menu_audio_test();
