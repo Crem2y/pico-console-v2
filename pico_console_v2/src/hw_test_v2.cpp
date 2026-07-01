@@ -432,13 +432,11 @@ void menu_system_info(void) {
 
     Graphic.setTextSize(1);
     Graphic.setCursor(0,16);
-    sprintf(string_buf, "PSRAM size : %d MB\n\n", (psram_size / (1024*1024)));
-    Graphic.print_5x8(string_buf);
     sprintf(string_buf, "SB Connected : %s\n", SouthBridge.connected ? "Yes" : "No ");
     Graphic.print_5x8(string_buf);
     sprintf(string_buf, "HW version      : 0x%04X\n", SouthBridge.info.hw_ver);
     Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "HW support_flag : 0x%08X\n", SouthBridge.info.hw_support);
+    sprintf(string_buf, "HW support_flag : 0x%08X\n\n", SouthBridge.info.hw_support);
     Graphic.print_5x8(string_buf);
     sprintf(string_buf, "SW version(MAIN): 0x%04X\n", SW_INFO_VERSION);
     Graphic.print_5x8(string_buf);
@@ -892,18 +890,21 @@ void menu_psram_test(void) {
   Graphic.setCursor(0,16*3);
   Graphic.print_5x8(string_buf);
 
-  time_us_t sram_time = 0;
-  time_us_t psram_time = 0;
+  time_us_t sram_time_r = 0;
+  time_us_t sram_time_w = 0;
+  time_us_t psram_time_r = 0;
+  time_us_t psram_time_w = 0;
+
   uint8_t* sram_buffer;
   uint8_t* psram_buffer = (uint8_t*)PSRAM_BASE;
 
   while(1) {
     sleep_ms(100);
 
-    sprintf(string_buf, "SRAM  : %d us", sram_time);
+    sprintf(string_buf, "SRAM  R : %d us, W : %d us", sram_time_r, sram_time_w);
     Graphic.setCursor(0,16*4);
     Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "PSRAM : %d us", psram_time);
+    sprintf(string_buf, "PSRAM R : %d us, W : %d us", psram_time_r, psram_time_w);
     Graphic.setCursor(0,16*5);
     Graphic.print_5x8(string_buf);
 
@@ -913,36 +914,44 @@ void menu_psram_test(void) {
       sram_buffer = (uint8_t*)malloc(benchmark_size);
       if(sram_buffer == NULL) continue;
 
-      sram_time = get_system_time_us();
-      for(int i=0; i<benchmark_times; i++) {
+      sram_time_w = get_system_time_us();
+      for(volatile int i=0; i<benchmark_times; i++) {
         for(uint32_t j=0; j<benchmark_size; j++) {
             sram_buffer[j] = (uint8_t)(test_data + j);
         }
+      }
+      sram_time_w = system_time_elapsed_us(get_system_time_us(), sram_time_w);
+      sram_time_r = get_system_time_us();
+      for(volatile int i=0; i<benchmark_times; i++) {
         for(uint32_t j=0; j<benchmark_size; j++) {
           if(sram_buffer[j] != (uint8_t)(test_data + j)) {
-            sram_time = 0;
+            sram_time_r = 0;
             free(sram_buffer);
             continue;
           }
         }
       }
-      sram_time = system_time_elapsed_us(get_system_time_us(), sram_time);
+      sram_time_r = system_time_elapsed_us(get_system_time_us(), sram_time_r);
       free(sram_buffer);
 
       if(psram_size == 0) continue;
-      psram_time = get_system_time_us();
-      for(int i=0; i<benchmark_times; i++) {
+      psram_time_w = get_system_time_us();
+      for(volatile int i=0; i<benchmark_times; i++) {
         for(uint32_t j=0; j<benchmark_size; j++) {
             psram_buffer[j] = (uint8_t)(test_data + j);
         }
+      }
+      psram_time_w = system_time_elapsed_us(get_system_time_us(), psram_time_w);
+      psram_time_r = get_system_time_us();
+      for(volatile int i=0; i<benchmark_times; i++) {
         for(uint32_t j=0; j<benchmark_size; j++) {
           if(psram_buffer[j] != (uint8_t)(test_data + j)) {
-            psram_time = 0;
+            psram_time_r = 0;
             continue;
           }
         }
       }
-      psram_time = system_time_elapsed_us(get_system_time_us(), psram_time);
+      psram_time_r = system_time_elapsed_us(get_system_time_us(), psram_time_r);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
