@@ -36,7 +36,8 @@ POSSIBILITY OF SUCH DAMAGE.
 // Most of the drawing code in this library is from Adafruit GFX.
 
 #include "graphic_system.hpp"
-#include "glcdfont.h"
+#include "glcdfont.h" // 5x8 font (ascii only)
+#include "font_16.h"  // 16x16 font (ascii + hangle)
 
 #if USE_FRAME_BUFFER
 static g_color_t* frame_buffer = (g_color_t*)PSRAM_BASE;
