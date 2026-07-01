@@ -1,5 +1,7 @@
 # pico-console V2
 
+![Front view](doc/front.jpg)
+
 A custom-built handheld console platform based on a multi-MCU architecture.
 
 The system is built around two RP2350 microcontrollers:
