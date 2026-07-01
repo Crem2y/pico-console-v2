@@ -1,16 +1,24 @@
 #include "temp_ntc.hpp"
 
-#define NTC_TABLE_LEN 4
+#define NTC_TABLE_LEN 11
 
+// NTC-10KD-5J
 static float ntc_table[NTC_TABLE_LEN][2] = {
+  { 0, 33270},
+  { 5, 25856},
+  {10, 20215},
+  {15, 15897},
   {20, 12573},
   {25, 10000}, // T0
-  {30, 7996},
-  {35, 6429}
+  {30,  7996},
+  {35,  6429},
+  {40,  5195},
+  {45,  4220},
+  {50,  3444},
 };
 
 tempNTC::tempNTC(int ntc_pin, float r_upper) {
-  _ntc_pin = ntc_pin;
+  _ntc_pin = ntc_pin; 
   _adc_channel = ntc_pin - ADC_BASE_PIN;
   _r_upper = r_upper;
 }
