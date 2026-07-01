@@ -5,6 +5,7 @@
 #include "psram_apsxx04.h"
 
 #define ENABLE_ADAFRUIT_GFX_COMPATIBLE 1 // Enables Adafruit GFX compatible functions.
+#define USE_FRAME_BUFFER 0
 #define USE_TEXT_BUFFER 1 // Use a buffer for text output. Print speed is improved by approximately 20%, but transparent backgrounds cannot be used in this mode.
 
 #define GRAPHIC_BLOCK_SIZE 16

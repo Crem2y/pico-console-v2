@@ -1,11 +1,14 @@
 #include "graphic_system.hpp"
 #include "glcdfont.h"
 
+#if USE_FRAME_BUFFER
 static g_color_t* frame_buffer = (g_color_t*)PSRAM_BASE;
 static const size_t frame_buffer_size = (ILI9488_TFTWIDTH * ILI9488_TFTHEIGHT * sizeof(g_color_t));
+#endif
 
 #if USE_TEXT_BUFFER
 static g_color_t text_draw_buffer[512];
+//static g_color_t* text_draw_buffer = (g_color_t*)PSRAM_BASE;
 #endif
 
 graphicSystem::graphicSystem(ili9488_40* display) {
@@ -22,40 +25,91 @@ void graphicSystem::init(void) {
   textbgcolor = GC_BLACK;
   textsize = 8;
   text_font = G_FONT_5X8;
+
+#if USE_FRAME_BUFFER
+  for(uint32_t i=0; i<frame_buffer_size/2; i++) {
+    frame_buffer[i] = GC_BLACK;
+  }
+  update_full();
+#endif
 }
 
 void graphicSystem::update_full(void) {
-  g_pos_t pos = {0, 0};
-  g_area_t fill_area = {_width, _height};
-  draw_picture(pos, fill_area, frame_buffer);
+#if USE_FRAME_BUFFER
+  _display->drawPicture(0, 0, frame_buffer, _width, _height);
+#endif
 }
 
 void graphicSystem::update_dirty(void) {
-
+#if USE_FRAME_BUFFER
+  _display->drawPicture(0, 0, frame_buffer, _width, _height);
+#endif
 }
 
 void graphicSystem::draw_pixel(g_pos_t pos, g_color_t color) {
+#if USE_FRAME_BUFFER
+  frame_buffer[pos.x + pos.y * _width] = color;
+#else
   _display->drawPixel(pos.x, pos.y, color);
+#endif
 }
 
 void graphicSystem::draw_line(g_pos_t pos0, g_pos_t pos1, g_color_t color) {
+#if USE_FRAME_BUFFER
+
+#else
   _display->drawLine(pos0.x, pos0.y, pos1.x, pos1.y, color);
+#endif
 }
 
 void graphicSystem::draw_rect(g_pos_t pos, g_area_t fill_area, g_color_t color) {
+#if USE_FRAME_BUFFER
+  for(int16_t y=0; y<fill_area.h; y++) {
+    for(int16_t x=0; x<fill_area.w; x++) {
+      if(y==0 || y==(fill_area.h-1) || x==0 || x==(fill_area.w-1)) {
+        frame_buffer[(pos.x + x) + (pos.y + y) * _width] = color;
+      }
+    }
+  }
+#else
   _display->drawRect(pos.x, pos.y, fill_area.w, fill_area.h, color);
+#endif
 }
 
 void graphicSystem::fill_rect(g_pos_t pos, g_area_t fill_area, g_color_t color) {
+#if USE_FRAME_BUFFER
+  for(int16_t y=0; y<fill_area.h; y++) {
+    for(int16_t x=0; x<fill_area.w; x++) {
+      frame_buffer[(pos.x + x) + (pos.y + y) * _width] = color;
+    }
+  }
+#else
   _display->fillRect(pos.x, pos.y, fill_area.w, fill_area.h, color);
+#endif
 }
 
 void graphicSystem::fill_screen(g_color_t color) {
+#if USE_FRAME_BUFFER
+  for(int16_t y=0; y<_height; y++) {
+    for(int16_t x=0; x<_width; x++) {
+      frame_buffer[x + y * _width] = color;
+    }
+  }
+#else
   _display->fillScreen(color);
+#endif
 }
 
 void graphicSystem::draw_picture(g_pos_t pos, g_area_t fill_area, const g_color_t *picture) {
+#if USE_FRAME_BUFFER
+  for(int16_t y=0; y<fill_area.h; y++) {
+    for(int16_t x=0; x<fill_area.w; x++) {
+      frame_buffer[(pos.x + x) + (pos.y + y) * fill_area.w] = picture[x + y * fill_area.w];
+    }
+  }
+#else
   _display->drawPicture(pos.x, pos.y, picture, fill_area.w, fill_area.h);
+#endif
 }
 
 void graphicSystem::draw_triangle(g_pos_t pos0, g_pos_t pos1, g_pos_t pos2, g_color_t color) {
