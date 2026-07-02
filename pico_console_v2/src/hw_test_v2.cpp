@@ -92,6 +92,12 @@ int main() { // uses core 0 to sub core
   LedCtrl.set_config(LED_CONTROL_4, led_config);
   LedCtrl.update();
   LOG_PRINTF("LED ok\n");
+  int32_t ret = psram_init(PIN_PSRAM_CS);
+  if(ret < 0) {
+    LOG_PRINTF("PSRAM error : %d", ret);
+    while(1);
+  }
+  LOG_PRINTF("PSRAM ok\n");
   Graphic.begin();
   Graphic.fillScreen(LCD_BLACK);
   Graphic.set_bright(750);
@@ -99,15 +105,6 @@ int main() { // uses core 0 to sub core
   Graphic.setTextSize(1);
   Graphic.set_font(G_FONT_5X8);
   LOG_PRINTF("LCD ok\n");
-  Graphic.setCursor(0,0);
-  Graphic.print("PSRAM init...");
-  int32_t ret = psram_init(PIN_PSRAM_CS);
-  if(ret < 0) {
-    Graphic.setCursor(0,8);
-    Graphic.printf("error : %d ", ret);
-    while(1);
-  }
-  LOG_PRINTF("PSRAM ok\n");
   Graphic.setCursor(0,0);
   Graphic.print("Touch init...");
   Touchscreen.init();
