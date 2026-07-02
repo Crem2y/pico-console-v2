@@ -11,6 +11,7 @@
 
 #define USE_FRAME_BUFFER 0
 #define USE_TEXT_BUFFER 1 // Use a buffer for text output. Print speed is improved by approximately 20%, but transparent backgrounds cannot be used in this mode.
+#define GRAPHIC_PRINTF_BUFFER_SIZE 256
 
 #define ENABLE_ADAFRUIT_GFX_COMPATIBLE 1 // Enables Adafruit GFX compatible functions.
 #if ENABLE_ADAFRUIT_GFX_COMPATIBLE
@@ -119,6 +120,7 @@ class graphicSystem {
     void set_text_size(uint8_t s);
     void set_font(enum g_font font);
     void print(const char *s);
+    int printf(const char *format, ...);
 
     void print_5x8(const char *s);
     size_t write_5x8(unicode_bmp_t C);

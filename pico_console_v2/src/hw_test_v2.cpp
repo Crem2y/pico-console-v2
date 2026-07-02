@@ -97,53 +97,52 @@ int main() { // uses core 0 to sub core
   Graphic.set_bright(750);
   Graphic.setTextColor(LCD_WHITE, LCD_BLACK);
   Graphic.setTextSize(1);
+  Graphic.set_font(G_FONT_5X8);
   LOG_PRINTF("LCD ok\n");
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("PSRAM init...");
+  Graphic.print("PSRAM init...");
   int32_t ret = psram_init(PIN_PSRAM_CS);
   if(ret < 0) {
-    char string_buf[32];
-    sprintf(string_buf, "error : %d ", ret);
     Graphic.setCursor(0,8);
-    Graphic.print_5x8(string_buf);
+    Graphic.printf("error : %d ", ret);
     while(1);
   }
   LOG_PRINTF("PSRAM ok\n");
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("Touch init...");
+  Graphic.print("Touch init...");
   Touchscreen.init();
   Touchscreen.set_screen_size(480, 320);
   Touchscreen.set_calibration(200, 3800, 200, 3800); //placeholder
   Touchscreen.set_rotation(0);
   LOG_PRINTF("Touch ok\n");
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("Gamepad init...");
+  Graphic.print("Gamepad init...");
   Gamepad.init();
   Gamepad.set_enable(true, false);
   LOG_PRINTF("Gamepad ok\n");
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("TEMP init...");
+  Graphic.print("TEMP init...");
   Temperature.init();
   LOG_PRINTF("TEMP ok\n");
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("LRA init...");
+  Graphic.print("LRA init...");
   Vibration.init();
   LOG_PRINTF("Vibration ok\n");
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("IMU init...");
+  Graphic.print("IMU init...");
   Imu.init();
   LOG_PRINTF("IMU ok\n");
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("IR init...");
+  Graphic.print("IR init...");
   Ir.init();
   LOG_PRINTF("IR ok\n");
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("SD init...");
+  Graphic.print("SD init...");
   sd_init_driver();
   sd_card_t *sd_card_p = sd_get_by_num(0);
   LOG_PRINTF("SD ok\n");
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("               ");
+  Graphic.print("               ");
   LOG_PRINTF("all HWs ok!\n");
   LOG_PRINTF("core freq = %ld hz\n", SYS_CLK_KHZ * 1000);
   // hardware initalized
@@ -203,20 +202,20 @@ void core1_entry() { // uses core 1 to main core
   for(int i=0; i<160; i+=1) {
     Graphic.fillRect(150, i-1, (6*2*15), 1, LCD_BLACK);
     Graphic.setCursor(150,i);
-    Graphic.print_5x8("PICO CONSOLE V2");
+    Graphic.print("PICO CONSOLE V2");
     sleep_ms(10);
   }
 
   Graphic.setCursor(480-(6*2*9),320-(8*2));
-  Graphic.print_5x8("by Crem2y");
+  Graphic.print("by Crem2y");
   Graphic.setTextSize(1);
   Graphic.setCursor(206,200);
-  Graphic.print_5x8("press START");
+  Graphic.print("press START");
   Graphic.setCursor(183,210);
-  Graphic.print_5x8("or touch the screen");
+  Graphic.print("or touch the screen");
 
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("press L/R to change bright");
+  Graphic.print("press L/R to change bright");
 
   time_ms_t btn_time_ms = 0;
   time_ms_t display_time_ms = 0;
@@ -229,25 +228,21 @@ void core1_entry() { // uses core 1 to main core
 
     if(system_time_elapsed_ms(now_time, btn_time_ms) > 200) {
       btn_time_ms = now_time;
-      char string_buf[32];
 
       uint16_t bright = Graphic.get_bright();
       if(Gamepad.is_btn_pressed(BTN_SL) && bright > 50) {
         Graphic.set_bright(bright - 50);
-        sprintf(string_buf, "bright : %d ", bright - 50);
         Graphic.setCursor(0,8);
-        Graphic.print_5x8(string_buf);
+        Graphic.printf("bright : %d ", bright - 50);
       }
       if(Gamepad.is_btn_pressed(BTN_SR) && bright < 1000) {
         Graphic.set_bright(bright + 50);
-        sprintf(string_buf, "bright : %d ", bright + 50);
         Graphic.setCursor(0,8);
-        Graphic.print_5x8(string_buf);
+        Graphic.printf("bright : %d ", bright + 50);
       }
 
-      sprintf(string_buf, "BAT:% 3.1f%%", Charger.get_bat_level());
       Graphic.setCursor(480-66,0);
-      Graphic.print_5x8(string_buf);
+      Graphic.printf("BAT:% 3.1f%%", Charger.get_bat_level());
     }
 
     if(system_time_elapsed_ms(now_time, display_time_ms) > 1000) {
@@ -256,7 +251,7 @@ void core1_entry() { // uses core 1 to main core
         Graphic.fillRect(206,200,(6*11),8,LCD_BLACK);
       } else {
         Graphic.setCursor(206,200);
-        Graphic.print_5x8("press START");
+        Graphic.print("press START");
       }
       display_text = !display_text;
     }
@@ -265,7 +260,7 @@ void core1_entry() { // uses core 1 to main core
     if(!SouthBridge.connected) {
       if(!display_bridge_status) {
         Graphic.setCursor(162,240);
-        Graphic.print_5x8("southbridge disconnected!");
+        Graphic.print("southbridge disconnected!");
         display_bridge_status = true;
       }
     } else {
@@ -302,7 +297,6 @@ void core1_entry() { // uses core 1 to main core
     Audio.play_music(&boot_music);
   }
 
-  char string_buf[32];
   uint8_t cursor_x = 0;
   uint8_t cursor_x_old = 0;
 
@@ -313,42 +307,41 @@ main_menu_loop:
   while (1) {
     Graphic.setTextSize(2);
     Graphic.setCursor(0,0);
-    Graphic.print_5x8(" System info\n");
-    Graphic.print_5x8(" Button test\n");
-    Graphic.print_5x8(" Joystick test\n");
-    Graphic.print_5x8(" LED test\n");
-    Graphic.print_5x8(" PSRAM test\n");
-    Graphic.print_5x8(" LCD test\n");
-    Graphic.print_5x8(" Touch test\n");
-    Graphic.print_5x8(" Audio test\n");
-    Graphic.print_5x8(" Vibration test\n");
-    Graphic.print_5x8(" Battery & Power test\n");
-    Graphic.print_5x8(" Temperature test\n");
-    Graphic.print_5x8(" IR comm test\n");
-    Graphic.print_5x8(" IMU test\n");
-    Graphic.print_5x8(" SD card test\n");
+    Graphic.print(" System info\n");
+    Graphic.print(" Button test\n");
+    Graphic.print(" Joystick test\n");
+    Graphic.print(" LED test\n");
+    Graphic.print(" PSRAM test\n");
+    Graphic.print(" LCD test\n");
+    Graphic.print(" Touch test\n");
+    Graphic.print(" Audio test\n");
+    Graphic.print(" Vibration test\n");
+    Graphic.print(" Battery & Power test\n");
+    Graphic.print(" Temperature test\n");
+    Graphic.print(" IR comm test\n");
+    Graphic.print(" IMU test\n");
+    Graphic.print(" SD card test\n");
 
     Graphic.setTextSize(1);
     Graphic.setCursor(0,320-(8*2));
-    Graphic.print_5x8("press up/down to move cursor");
+    Graphic.print("press up/down to move cursor");
     Graphic.setCursor(0,320-(8*1));
-    Graphic.print_5x8("press A or START to select");
+    Graphic.print("press A or START to select");
 
     while(1) {
       sleep_ms(100);
 
       Graphic.setTextSize(1);
-      sprintf(string_buf, "BAT:% 3.1f%%", Charger.get_bat_level());
       Graphic.setCursor(480-66,0);
-      Graphic.print_5x8(string_buf);
+      Graphic.printf("BAT:% 3.1f%%", Charger.get_bat_level());
 
       Graphic.setTextSize(2);
       if(cursor_x_old != cursor_x) {
         Graphic.setCursor(0,cursor_x_old * 16);
-        Graphic.print_5x8(" ");
+        Graphic.print(" ");
       }
       Graphic.setCursor(0,cursor_x * 16);
-      Graphic.print_5x8("-");
+      Graphic.print("-");
 
       cursor_x_old = cursor_x;
 
@@ -420,33 +413,25 @@ main_menu_loop:
 void menu_system_info(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("System info");
+  Graphic.print("System info");
 
   Graphic.setCursor(480-(6*2*9),320-(8*2));
-  Graphic.print_5x8("by Crem2y");
+  Graphic.print("by Crem2y");
 
   while(1) {
     sleep_ms(100);
 
-    char string_buf[32];
-
     Graphic.setTextSize(1);
     Graphic.setCursor(0,16);
-    sprintf(string_buf, "SB Connected : %s\n", SouthBridge.connected ? "Yes" : "No ");
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "HW version      : 0x%04X\n", SouthBridge.info.hw_ver);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "HW support_flag : 0x%08X\n\n", SouthBridge.info.hw_support);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "SW version(MAIN): 0x%04X\n", SW_INFO_VERSION);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "SW version (SB) : 0x%04X\n", SouthBridge.info.sw_ver);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "SW support_flag : 0x%08X\n", SouthBridge.info.sw_support);
-    Graphic.print_5x8(string_buf);
+    Graphic.printf("SB Connected : %s\n", SouthBridge.connected ? "Yes" : "No ");
+    Graphic.printf("HW version      : 0x%04X\n", SouthBridge.info.hw_ver);
+    Graphic.printf("HW support_flag : 0x%08X\n\n", SouthBridge.info.hw_support);
+    Graphic.printf("SW version(MAIN): 0x%04X, date:%02d%02d%02d %02d%02d%02d\n", SW_INFO_VERSION, DATE_YY, DATE_MM, DATE_DD, TIME_HH, TIME_MM, TIME_SS);
+    Graphic.printf("SW version (SB) : 0x%04X, date:%02d%02d%02d %02d%02d%02d\n", SouthBridge.info.sw_ver, 0,0,0, 0,0,0);
+    Graphic.printf("SW support_flag : 0x%08X\n", SouthBridge.info.sw_support);
 
     SouthBridge.read_hw_info();
     SouthBridge.read_sw_info();
@@ -460,10 +445,10 @@ void menu_system_info(void) {
 void menu_btn_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("Button test");
+  Graphic.print("Button test");
   
   Graphic.drawRect(20,64,280,156,LCD_WHITE);
   Graphic.drawRect(152,200,16,16,LCD_RED);
@@ -746,10 +731,10 @@ void menu_btn_test(void) {
 void menu_joystick_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("Joystick test");
+  Graphic.print("Joystick test");
 
   uint16_t prev_pos1_x, prev_pos1_y;
   uint16_t prev_pos2_x, prev_pos2_y;
@@ -761,7 +746,6 @@ void menu_joystick_test(void) {
 
   while(1) {
     sleep_ms(10);
-    char string_buf[32];
 
     int8_t joy1_x = Gamepad.get_joystick_data(JOY1_X);
     int8_t joy1_y = Gamepad.get_joystick_data(JOY1_Y);
@@ -778,12 +762,9 @@ void menu_joystick_test(void) {
       prev_pos1_x = pos1_x;
       prev_pos1_y = pos1_y;
 
-      sprintf(string_buf, "L stick : % 4d, % 4d", joy1_x, joy1_y);
       Graphic.setCursor(0,16);
-      Graphic.print_5x8(string_buf);
-      sprintf(string_buf, "L raw   :% 5d,% 5d", Gamepad.get_joystick_raw(JOY1_X), Gamepad.get_joystick_raw(JOY1_Y));
-      Graphic.setCursor(0,16*2);
-      Graphic.print_5x8(string_buf);
+      Graphic.printf("L stick : % 4d, % 4d\n", joy1_x, joy1_y);
+      Graphic.printf("L raw   :% 5d,% 5d\n", Gamepad.get_joystick_raw(JOY1_X), Gamepad.get_joystick_raw(JOY1_Y));
     }
 
     int8_t joy2_x = Gamepad.get_joystick_data(JOY2_X);
@@ -801,12 +782,9 @@ void menu_joystick_test(void) {
       prev_pos2_x = pos2_x;
       prev_pos2_y = pos2_y;
 
-      sprintf(string_buf, "R stick : % 4d, % 4d", joy2_x, joy2_y);
       Graphic.setCursor(0,16*3);
-      Graphic.print_5x8(string_buf);
-      sprintf(string_buf, "R raw   :% 5d,% 5d", Gamepad.get_joystick_raw(JOY2_X), Gamepad.get_joystick_raw(JOY2_Y));
-      Graphic.setCursor(0,16*4);
-      Graphic.print_5x8(string_buf);
+      Graphic.printf("R stick : % 4d, % 4d\n", joy2_x, joy2_y);
+      Graphic.printf("R raw   :% 5d,% 5d\n", Gamepad.get_joystick_raw(JOY2_X), Gamepad.get_joystick_raw(JOY2_Y));
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
@@ -819,10 +797,10 @@ void menu_joystick_test(void) {
 void menu_led_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("LED test");
+  Graphic.print("LED test");
 
   int now_mode = LED_OFF;
   const char* led_mode_string[] = {
@@ -845,8 +823,6 @@ void menu_led_test(void) {
   while(1) {
     sleep_ms(100);
 
-    char string_buf[32];
-
     if(Gamepad.get_btn_released_duration(BTN_START) && Gamepad.get_btn_released_duration(BTN_START) < 100) {
       now_mode++;
       if(now_mode > LED_BREATHING_REPEAT) now_mode = (int)LED_OFF;
@@ -856,10 +832,8 @@ void menu_led_test(void) {
       LedCtrl.set_mode(LED_CONTROL_3, (enum led_ctrl_mode)now_mode);
       LedCtrl.set_mode(LED_CONTROL_4, (enum led_ctrl_mode)now_mode);
     }
-
-    sprintf(string_buf, "LED mode : %s", led_mode_string[now_mode]);
     Graphic.setCursor(0,16);
-    Graphic.print_5x8(string_buf);
+    Graphic.printf("LED mode : %s", led_mode_string[now_mode]);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       LedCtrl.set_mode(LED_CONTROL_1, LED_OFF);
@@ -874,24 +848,18 @@ void menu_led_test(void) {
 void menu_psram_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("PSRAM test");
+  Graphic.print("PSRAM test");
 
-  char string_buf[32];
   const size_t benchmark_size = 128 * 1024;
   const size_t benchmark_times = 8;
 
-  sprintf(string_buf, "PSRAM clock : %d MHz, size : %d MB", (APSXX04_MAX_HZ / 1000000), (psram_size / (1024*1024)));
   Graphic.setCursor(0,16);
-  Graphic.print_5x8(string_buf);
-  sprintf(string_buf, "press A to benchmark SRAM & PSRAM");
-  Graphic.setCursor(0,16*2);
-  Graphic.print_5x8(string_buf);
-  sprintf(string_buf, "(%d kB x %d times)", (benchmark_size / 1024), benchmark_times);
-  Graphic.setCursor(0,16*3);
-  Graphic.print_5x8(string_buf);
+  Graphic.printf("PSRAM clock : %d MHz, size : %d MB\n", (APSXX04_MAX_HZ / 1000000), (psram_size / (1024*1024)));
+  Graphic.printf("press A to benchmark SRAM & PSRAM\n");
+  Graphic.printf("(%d kB x %d times)", (benchmark_size / 1024), benchmark_times);
 
   time_us_t sram_time_r = 0;
   time_us_t sram_time_w = 0;
@@ -904,12 +872,9 @@ void menu_psram_test(void) {
   while(1) {
     sleep_ms(100);
 
-    sprintf(string_buf, "SRAM  R : %d us, W : %d us", sram_time_r, sram_time_w);
     Graphic.setCursor(0,16*4);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "PSRAM R : %d us, W : %d us", psram_time_r, psram_time_w);
-    Graphic.setCursor(0,16*5);
-    Graphic.print_5x8(string_buf);
+    Graphic.printf("SRAM  R : %d us, W : %d us\n", sram_time_r, sram_time_w);
+    Graphic.printf("PSRAM R : %d us, W : %d us", psram_time_r, psram_time_w);
 
     if(Gamepad.is_btn_pressed(BTN_A)) {
       uint8_t test_data = 0xA5;
@@ -966,10 +931,10 @@ void menu_psram_test(void) {
 void menu_lcd_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("LCD test");
+  Graphic.print("LCD test");
 
   int count = 0;
   uint16_t color = 0x0000;
@@ -977,7 +942,6 @@ void menu_lcd_test(void) {
   while(1) {
     sleep_ms(500);
 
-    char string_buf[32];
     time_us_t start_time = get_system_time_us();
 
     switch(count) {
@@ -998,7 +962,7 @@ void menu_lcd_test(void) {
         for(int i=0; i<30; i++) {
           Graphic.setTextColor(color, LCD_BLACK);
           Graphic.setCursor(0+(rand() % (480-(6*2*8))), 16+(rand() % (320-24-(8*2))));
-          Graphic.print_5x8("LCD test");
+          Graphic.print("LCD test");
           color = rand();
         }
         break;
@@ -1006,8 +970,7 @@ void menu_lcd_test(void) {
 
     Graphic.setTextColor(LCD_WHITE, LCD_BLACK);
     Graphic.setCursor((480-(6*2*12)), 0);
-    sprintf(string_buf, "% 3.3f fps ", (1000000.0f / system_time_elapsed_us(get_system_time_us(), start_time)));
-    Graphic.print_5x8(string_buf);
+    Graphic.printf("% 3.3f fps ", (1000000.0f / system_time_elapsed_us(get_system_time_us(), start_time)));
 
     count++;
     if(count > 4) count = 0;
@@ -1022,17 +985,15 @@ void menu_lcd_test(void) {
 void menu_touch_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("Touch test");
+  Graphic.print("Touch test");
 
   time_ms_t touch_timer;
-  char string_buf[32];
 
-  sprintf(string_buf, "x:    0, y:    0");
   Graphic.setCursor(0,16);
-  Graphic.print_5x8(string_buf);
+  Graphic.print("x:    0, y:    0");
 
   touch_point_t point;
   touch_point_t prev_point = {.x = -1, .y = -1};
@@ -1043,9 +1004,8 @@ void menu_touch_test(void) {
     if(Touchscreen.is_touched()) {
       point = Touchscreen.get_touch_point();
       if(point.y >= 32 && point.y < (320-8)) {
-        sprintf(string_buf, "x: % 4d, y: % 4d", point.x, point.y);
         Graphic.setCursor(0,16);
-        Graphic.print_5x8(string_buf);
+        Graphic.printf("x: % 4d, y: % 4d", point.x, point.y);
         if(prev_point.x != -1 && prev_point.y != -1) {
           Graphic.drawLine(prev_point.x, prev_point.y, point.x, point.y, LCD_WHITE);
         } else {
@@ -1071,13 +1031,13 @@ void menu_touch_test(void) {
 void menu_audio_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("Audio test");
+  Graphic.print("Audio test");
 
   Graphic.setCursor(0,16);
-  Graphic.print_5x8("A : play music, B : play sound");
+  Graphic.print("A : play music, B : play sound");
 
   music_note_t test_notes[4] = {
     {0, 4, 0, 32},   // C4
@@ -1110,17 +1070,13 @@ void menu_audio_test(void) {
 
   while(1) {
     sleep_ms(10);
-    char string_buf[32];
 
-    sprintf(string_buf, "master_vol: %d ", master_vol);
     Graphic.setCursor(0,16*3);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "wave: %d, freq: %.3f, vol: %d ", wave_num, wave_freq, wave_vol);
+    Graphic.printf("master_vol: %d ", master_vol);
     Graphic.setCursor(0,16*4);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "env_tick: %d, env_step: %d  ", env_tick, env_step);
+    Graphic.printf("wave: %d, freq: %.3f, vol: %d ", wave_num, wave_freq, wave_vol);
     Graphic.setCursor(0,16*5);
-    Graphic.print_5x8(string_buf);
+    Graphic.printf("env_tick: %d, env_step: %d  ", env_tick, env_step);
 
     int8_t joy1_x = Gamepad.get_joystick_data(JOY1_X);
 
@@ -1207,24 +1163,20 @@ void menu_audio_test(void) {
 void menu_vibration_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("Vibration test");
+  Graphic.print("Vibration test");
 
   uint16_t freq_l = 200, freq_r = 200;
   uint8_t power_l = 20, power_r = 20;
 
   while(1) {
     sleep_ms(100);
-    char string_buf[32];
 
-    sprintf(string_buf, "LRA(L) : freq: % 5d, power: % 4d", freq_l, power_l);
     Graphic.setCursor(0,16);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "LRA(R) : freq: % 5d, power: % 4d", freq_r, power_r);
-    Graphic.setCursor(0,32);
-    Graphic.print_5x8(string_buf);
+    Graphic.printf("LRA(L) : freq: % 5d, power: % 4d\n", freq_l, power_l);
+    Graphic.printf("LRA(R) : freq: % 5d, power: % 4d\n", freq_r, power_r);
 
     if(Gamepad.is_btn_pressed(BTN_S1_UP)) {
       if(freq_l < 4000) freq_l += 10;
@@ -1275,28 +1227,19 @@ void menu_vibration_test(void) {
 void menu_bat_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("Battery & Power test");
+  Graphic.print("Battery & Power test");
 
   while(1) {
     sleep_ms(100);
-    char string_buf[32];
 
-    sprintf(string_buf, "Vin : %01.3fV", Power.get_input_voltage());
     Graphic.setCursor(0,16);
-    Graphic.print_5x8(string_buf);
-
-    sprintf(string_buf, "Battery : %s", Charger.get_battery_exist() ? "Yes" : "No ");
-    Graphic.setCursor(0,16*2);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "Level : % 3.1f%% (%01.3fV)", Charger.get_bat_level(), Charger.get_bat_voltage());
-    Graphic.setCursor(0,16*3);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "Charging : %s | Fault : 0x%02X", Charger.get_charging_status() ? "Yes" : "No ", Charger.get_fault_status());
-    Graphic.setCursor(0,16*4);
-    Graphic.print_5x8(string_buf);
+    Graphic.printf("Vin : %01.3fV\n", Power.get_input_voltage());
+    Graphic.printf("Battery : %s\n", Charger.get_battery_exist() ? "Yes" : "No ");
+    Graphic.printf("Level : % 3.1f%% (%01.3fV)\n", Charger.get_bat_level(), Charger.get_bat_voltage());
+    Graphic.printf("Charging : %s | Fault : 0x%02X", Charger.get_charging_status() ? "Yes" : "No ", Charger.get_fault_status());
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       return;
@@ -1307,23 +1250,18 @@ void menu_bat_test(void) {
 void menu_temp_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("Temperature test");
+  Graphic.print("Temperature test");
 
   while(1) {
     sleep_ms(100);
-    char string_buf[32];
-    sprintf(string_buf, "TEMP_BUILTIN     : %.1f'C", Temperature.get_temp(TEMP_BUILTIN));
+
     Graphic.setCursor(0,16);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "TEMP_SOUTHBRIDGE : %.1f'C", Temperature.get_temp(TEMP_SOUTHBRIDGE));
-    Graphic.setCursor(0,16*2);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "TEMP_NTC         : %.1f'C", Temperature.get_temp(TEMP_NTC));
-    Graphic.setCursor(0,16*3);
-    Graphic.print_5x8(string_buf);
+    Graphic.printf("TEMP_BUILTIN     : %.1f'C\n", Temperature.get_temp(TEMP_BUILTIN));
+    Graphic.printf("TEMP_SOUTHBRIDGE : %.1f'C\n", Temperature.get_temp(TEMP_SOUTHBRIDGE));
+    Graphic.printf("TEMP_NTC         : %.1f'C\n", Temperature.get_temp(TEMP_NTC));
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       return;
@@ -1334,13 +1272,13 @@ void menu_temp_test(void) {
 void menu_ir_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("IR comm test");
+  Graphic.print("IR comm test");
 
   Graphic.setCursor(0,16);
-  Graphic.print_5x8("press START to change format");
+  Graphic.print("press START to change format");
 
   led_config_t led_config = {.mode = LED_OFF, .brightness = 255, .blink_interval_ms = 100};
   LedCtrl.set_config(LED_CONTROL_1, led_config); // RX indicator
@@ -1351,29 +1289,20 @@ void menu_ir_test(void) {
   
   while(1) {
     sleep_ms(100);
-    char string_buf[32];
 
-    sprintf(string_buf, "format setting: %s", Ir.get_rx_format() == IR_FORMAT_NEC ? "NEC" : "RAW");
     Graphic.setCursor(0,16*2);
-    Graphic.print_5x8(string_buf);
+    Graphic.printf("format setting: %s", Ir.get_rx_format() == IR_FORMAT_NEC ? "NEC" : "RAW");
     if(Ir.is_data_ready() && Ir.get_rx_format() == Ir.get_rx_data_format()) {
       if(Ir.get_rx_data_format() == IR_FORMAT_MANUAL) {
-        sprintf(string_buf, "data: %d pulses", Ir.get_raw_data_pulses());
         Graphic.setCursor(0,16*3);
-        Graphic.print_5x8(string_buf);
-        sprintf(string_buf, "%d, %d, %d, %d ... ", ((uint16_t*)Ir.rx_data_buf)[0], ((uint16_t*)Ir.rx_data_buf)[1], ((uint16_t*)Ir.rx_data_buf)[2], ((uint16_t*)Ir.rx_data_buf)[3]);
-        Graphic.setCursor(0,16*4);
-        Graphic.print_5x8(string_buf);
-        // Graphic.setCursor(0,16*5);
-        // Graphic.print_5x8("press A to send data");
+        Graphic.printf("data: %d pulses\n", Ir.get_raw_data_pulses());
+        Graphic.printf("%d, %d, %d, %d ... \n", ((uint16_t*)Ir.rx_data_buf)[0], ((uint16_t*)Ir.rx_data_buf)[1], ((uint16_t*)Ir.rx_data_buf)[2], ((uint16_t*)Ir.rx_data_buf)[3]);
+        Graphic.print("press A to send data");
       } else if (Ir.get_rx_data_format() == IR_FORMAT_NEC) {
         Graphic.setCursor(0,16*3);
-        Graphic.print_5x8("data:");
-        sprintf(string_buf, "%02X %02X %02X %02X", Ir.rx_data_buf[0], Ir.rx_data_buf[1], Ir.rx_data_buf[2], Ir.rx_data_buf[3]);
-        Graphic.setCursor(0,16*4);
-        Graphic.print_5x8(string_buf);
-        Graphic.setCursor(0,16*5);
-        Graphic.print_5x8("press A to send data");
+        Graphic.print("data:\n");
+        Graphic.printf("%02X %02X %02X %02X\n", Ir.rx_data_buf[0], Ir.rx_data_buf[1], Ir.rx_data_buf[2], Ir.rx_data_buf[3]);
+        Graphic.printf("press A to send data");
       }
     }
 
@@ -1404,36 +1333,24 @@ void menu_ir_test(void) {
 void menu_imu_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("IMU test");
+  Graphic.print("IMU test");
 
   Imu.set_enable(true, true);
 
   while(1) {
     sleep_ms(10);
-    char string_buf[32];
 
-    sprintf(string_buf, "accel x: %2.4f ", Imu.get_accel_x());
     Graphic.setCursor(0,16);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "accel y: %2.4f ", Imu.get_accel_y());
-    Graphic.setCursor(0,32);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "accel z: %2.4f ", Imu.get_accel_z());
-    Graphic.setCursor(0,48);
-    Graphic.print_5x8(string_buf);
+    Graphic.printf("accel x: %2.4f \n", Imu.get_accel_x());
+    Graphic.printf("accel y: %2.4f \n", Imu.get_accel_y());
+    Graphic.printf("accel z: %2.4f \n", Imu.get_accel_z());
 
-    sprintf(string_buf, "gyro x: %4.2f ", Imu.get_gyro_x());
-    Graphic.setCursor(0,64);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "gyro y: %4.2f ", Imu.get_gyro_y());
-    Graphic.setCursor(0,80);
-    Graphic.print_5x8(string_buf);
-    sprintf(string_buf, "gyro z: %4.2f ", Imu.get_gyro_z());
-    Graphic.setCursor(0,96);
-    Graphic.print_5x8(string_buf);
+    Graphic.printf("gyro x: %4.2f \n", Imu.get_gyro_x());
+    Graphic.printf("gyro y: %4.2f \n", Imu.get_gyro_y());
+    Graphic.printf("gyro z: %4.2f \n", Imu.get_gyro_z());
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       Imu.set_enable(false, false);
@@ -1442,17 +1359,26 @@ void menu_imu_test(void) {
   }
 }
 
+static int global_printer_wrapper(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  
+  int result = Graphic.printf(format, args); 
+  
+  va_end(args);
+  return result;
+}
+
 void menu_sd_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
-  Graphic.print_5x8("press SELECT & START to exit menu");
+  Graphic.print("press SELECT & START to exit menu");
   Graphic.setTextSize(2);
   Graphic.setCursor(0,0);
-  Graphic.print_5x8("SD card test");
+  Graphic.print("SD card test");
 
   Graphic.setCursor(0,16);
-  Graphic.print_5x8("Loading...");
-  char string_buf[32];
+  Graphic.print("Loading...");
 
   sd_card_t *sd_card_p = sd_get_by_num(0);
 
@@ -1467,20 +1393,13 @@ void menu_sd_test(void) {
   while(1) {
     sleep_ms(100);
 
-    sprintf(string_buf, "SD card : %s", (STA_NODISK & ds) ? "not inserted" : "inserted    ");
     Graphic.setCursor(0,16);
-    Graphic.print_5x8(string_buf);
+    Graphic.printf("SD card : %s", (STA_NODISK & ds) ? "not inserted" : "inserted    ");
     if(ok) {
-      sprintf(string_buf, "mount : %s", sd_card_p->state.mounted ? "not mounted" : "mounted    ");
-      Graphic.setCursor(0,16*2);
-      Graphic.print_5x8(string_buf);
-      if(au_size_bytes > (1<<20)) {
-        sprintf(string_buf, "size : %zu MB (%zu sectors)", au_size_bytes / (1<<20), au_size_bytes / sd_block_size);
-      } else {
-        sprintf(string_buf, "size : %zu bytes (%zu sectors)", au_size_bytes, au_size_bytes / sd_block_size);
-      }
-      Graphic.setCursor(0,16*3);
-      Graphic.print_5x8(string_buf);
+      Graphic.set_font(G_FONT_16);
+      cidDmp(sd_card_p, global_printer_wrapper);
+      csdDmp(sd_card_p, global_printer_wrapper);
+      Graphic.set_font(G_FONT_5X8);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {

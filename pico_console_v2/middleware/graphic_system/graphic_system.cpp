@@ -403,6 +403,22 @@ void graphicSystem::print(const char *s) {
   }
 }
 
+int graphicSystem::printf(const char *format, ...) {
+  va_list args;
+  va_start(args, format);
+
+  char string_buf[GRAPHIC_PRINTF_BUFFER_SIZE];
+  int len = vsnprintf(string_buf, sizeof(string_buf), format, args);
+
+  va_end(args);
+
+  if (len >= 0) {
+    print(string_buf);
+  }
+
+  return len;
+}
+
 void graphicSystem::print_5x8(const char *s) {
   while(*s) {
     write_5x8(*s);
