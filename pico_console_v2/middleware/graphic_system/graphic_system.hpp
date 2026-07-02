@@ -125,23 +125,22 @@ class graphicSystem {
 
     void print_5x8(const char *s);
     size_t write_5x8(unicode_bmp_t C);
-    void draw_char_5x8(int16_t x, int16_t y, unsigned char c, g_color_t color, g_color_t bg, uint8_t size);
+    void draw_char_5x8(int16_t x, int16_t y, unsigned char c);
 
     void print_16(const char *s);
     size_t write_16(unicode_bmp_t C);
-    void draw_char_16_eng(int16_t x, int16_t y, const unicode_bmp_t C, g_color_t color, g_color_t bg);
-    void draw_char_16_kor(int16_t x, int16_t y, const unicode_bmp_t C, g_color_t color, g_color_t bg);
+    void draw_char_16_eng(int16_t x, int16_t y, const unicode_bmp_t C);
+    void draw_char_16_kor(int16_t x, int16_t y, const unicode_bmp_t C);
 
 //// display configuration
-    void set_rotation(uint8_t r);
+    void set_rotation(uint8_t r) { rotation = (r % 4); _display->set_rotation(r); }
+    uint8_t get_rotation(void) { return rotation; }
     void set_bright(uint32_t bright) { _display->set_bright(bright); }
     uint32_t get_bright(void) { return _display->get_bright(); }
 
 #if ENABLE_ADAFRUIT_GFX_COMPATIBLE
 //// Adafruit GFX compatible layer ////
-    void begin(void) {
-      init();
-    }
+    void begin(void) { init(); }
 #endif
 
   private:
@@ -150,8 +149,8 @@ class graphicSystem {
     int16_t _width, _height;
     g_pos_t cursor;
 
-    g_color_t textcolor, textbgcolor;
-    uint8_t textsize;
+    g_color_t text_color, text_bg_color;
+    uint8_t text_size;
     enum g_font text_font;
     bool wrap;
 

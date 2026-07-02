@@ -61,9 +61,9 @@ void graphicSystem::init(void) {
   _height = ILI9488_TFTWIDTH;
 
   cursor = {.x = 0, .y = 0};
-  textcolor = GC_WHITE;
-  textbgcolor = GC_BLACK;
-  textsize = 1;
+  text_color = GC_WHITE;
+  text_bg_color = GC_BLACK;
+  text_size = 1;
   text_font = G_FONT_5X8;
   wrap      = true;
 
@@ -364,12 +364,12 @@ void graphicSystem::fill_circle(g_pos_t pos, int16_t r, g_color_t color) {
 }
 
 void graphicSystem::set_text_color(g_color_t c) {
-  textcolor = c;
+  text_color = c;
 }
 
 void graphicSystem::set_text_color(g_color_t c, g_color_t bg) {
-  textcolor = c;
-  textbgcolor = bg;
+  text_color = c;
+  text_bg_color = bg;
 }
 
 void graphicSystem::set_cursor(int16_t x, int16_t y) {
@@ -382,7 +382,7 @@ void graphicSystem::set_cursor(g_pos_t pos) {
 }
 
 void graphicSystem::set_text_size(uint8_t s) {
-  textsize = s;
+  text_size = s;
 }
 
 void graphicSystem::set_font(enum g_font font) {
@@ -438,7 +438,7 @@ void graphicSystem::print_5x8(const char *s) {
 
 size_t graphicSystem::write_5x8(unicode_bmp_t C) {
     if (C == '\n') {
-    cursor.y += textsize*8;
+    cursor.y += text_size*8;
     cursor.x  = 0;
   } else if (C == '\r') {
     // skip em
@@ -446,17 +446,21 @@ size_t graphicSystem::write_5x8(unicode_bmp_t C) {
     if (C > 0x80) {
       C = '?';
     }
-    draw_char_5x8(cursor.x, cursor.y, C, textcolor, textbgcolor, textsize);
-    cursor.x += textsize*6;
-    if (wrap && (cursor.x > (_width - textsize*6))) {
-      cursor.y += textsize*8;
+    draw_char_5x8(cursor.x, cursor.y, C);
+    cursor.x += text_size*6;
+    if (wrap && (cursor.x > (_width - text_size*6))) {
+      cursor.y += text_size*8;
       cursor.x = 0;
     }
   }
   return 1;
 }
 
-void graphicSystem::draw_char_5x8(int16_t x, int16_t y, unsigned char c, g_color_t color, g_color_t bg, uint8_t size) {
+void graphicSystem::draw_char_5x8(int16_t x, int16_t y, unsigned char c) {
+  g_color_t color = text_color;
+  g_color_t bg = text_bg_color;
+  uint8_t size = text_size;
+
   if((x >= _width)            || // Clip right
      (y >= _height)           || // Clip bottom
      ((x + 6 * size - 1) < 0) || // Clip left
@@ -540,10 +544,10 @@ void graphicSystem::print_16(const char *s) {
           if(!utf8_sequencing) {
             write_16(C);
           }
-        } else {
+        } else { // maybe not a utf-8 encoding
           write_16('?');
         }
-      } else if((c0 & 0xE0) == 0xC0) { // 0b110 - 2 bytes (0x80 - 0x7FF
+      } else if((c0 & 0xE0) == 0xC0) { // 0b110 - 2 bytes (0x80 - 0x7FF)
         utf8_sequencing = 1;
         C = (c0 & 0x1F);
       } else if((c0 & 0xF0) == 0xE0) { // 0b1110 - 3 bytes (0x800 - 0xFFFF)
@@ -569,14 +573,14 @@ size_t graphicSystem::write_16(unicode_bmp_t C) {
   } else if (C == '\r') {
     // skip em
   } else {
-    if (C < 0x0080) {
-      draw_char_16_eng(cursor.x, cursor.y, C, textcolor, textbgcolor);
+    if (C < 0x0080) { // default ascii character
+      draw_char_16_eng(cursor.x, cursor.y, C);
       cursor.x += 8;
-    } else if(C >= 0xAC00 && C <= 0xD7A3) {
-      draw_char_16_kor(cursor.x, cursor.y, C, textcolor, textbgcolor);
+    } else if(C >= 0xAC00 && C <= 0xD7A3) { // hangle ('가' - '힣')
+      draw_char_16_kor(cursor.x, cursor.y, C);
       cursor.x += 16;
     } else {
-      draw_char_16_eng(cursor.x, cursor.y, '?', textcolor, textbgcolor);
+      draw_char_16_eng(cursor.x, cursor.y, '?');
       cursor.x += 8;
     }
     if (wrap && (cursor.x > (_width - 16))) {
@@ -587,7 +591,10 @@ size_t graphicSystem::write_16(unicode_bmp_t C) {
   return 1;
 }
 
-void graphicSystem::draw_char_16_eng(int16_t x, int16_t y, const unicode_bmp_t C, g_color_t color, g_color_t bg) {
+void graphicSystem::draw_char_16_eng(int16_t x, int16_t y, const unicode_bmp_t C) {
+  g_color_t color = text_color;
+  g_color_t bg = text_bg_color;
+
   if((x >= _width)  || // Clip right
      (y >= _height) || // Clip bottom
      (x < 0)        || // Clip left
@@ -615,16 +622,19 @@ void graphicSystem::draw_char_16_eng(int16_t x, int16_t y, const unicode_bmp_t C
 
 
 // Draw a character (16x16, korean)
-void graphicSystem::draw_char_16_kor(int16_t x, int16_t y, const unicode_bmp_t C, g_color_t color, g_color_t bg) {
-  const unsigned char bul_cho1[22] = {0,0,0,0,0,0,0,0,0,1,3,3,3,1,2,4,4,4,2,1,3,0};
-  const unsigned char bul_cho2[22] = {0,5,5,5,5,5,5,5,5,6,7,7,7,6,6,7,7,7,6,6,7,5};
-  const unsigned char bul_jong[22] = {0,0,2,0,2,1,2,1,2,3,0,2,1,3,3,1,2,1,3,3,1,1};
+void graphicSystem::draw_char_16_kor(int16_t x, int16_t y, const unicode_bmp_t C) {
+  g_color_t color = text_color;
+  g_color_t bg = text_bg_color;
 
   if((x >= _width)  || // Clip right
      (y >= _height) || // Clip bottom
      (x < 0)        || // Clip left
      (y < 0))          // Clip top
     return;
+
+  const unsigned char bul_cho1[22] = {0,0,0,0,0,0,0,0,0,1,3,3,3,1,2,4,4,4,2,1,3,0};
+  const unsigned char bul_cho2[22] = {0,5,5,5,5,5,5,5,5,6,7,7,7,6,6,7,7,7,6,6,7,5};
+  const unsigned char bul_jong[22] = {0,0,2,0,2,1,2,1,2,3,0,2,1,3,3,1,2,1,3,3,1,1};
 
   uint32_t cho, jung, jong;
   uint16_t value = C - 0xAC00;
