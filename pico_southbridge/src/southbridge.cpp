@@ -47,6 +47,8 @@ int main() {
   MainBridge.init();
   MainBridge.my_info.hw_ver = HW_INFO_VERSION;
   MainBridge.my_info.hw_support = HW_INFO_SUPPORT;
+  MainBridge.my_info.build_date = DATE_YY*10000 + DATE_MM*100 + DATE_DD;
+  MainBridge.my_info.build_time = TIME_HH*10000 + TIME_MM*100 + TIME_SS;
   MainBridge.my_info.sw_ver = SW_INFO_VERSION;
   MainBridge.my_info.sw_support = SW_INFO_SUPPORT;
 

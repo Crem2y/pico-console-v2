@@ -6,6 +6,8 @@
 typedef struct _bridge_info_t {
   uint16_t hw_ver;
   uint16_t sw_ver;
+  uint32_t build_date;
+  uint32_t build_time;
   uint32_t hw_support;
   uint32_t sw_support;
 } bridge_info_t;

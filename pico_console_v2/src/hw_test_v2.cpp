@@ -421,13 +421,14 @@ void menu_system_info(void) {
   while(1) {
     sleep_ms(100);
 
-    Graphic.setTextSize(1);
     Graphic.setCursor(0,16);
     Graphic.printf("SB Connected : %s\n", SouthBridge.connected ? "Yes" : "No ");
     Graphic.printf("HW version      : 0x%04X\n", SouthBridge.info.hw_ver);
     Graphic.printf("HW support_flag : 0x%08X\n\n", SouthBridge.info.hw_support);
-    Graphic.printf("SW version(MAIN): 0x%04X, date:%02d%02d%02d %02d%02d%02d\n", SW_INFO_VERSION, DATE_YY, DATE_MM, DATE_DD, TIME_HH, TIME_MM, TIME_SS);
-    Graphic.printf("SW version (SB) : 0x%04X, date:%02d%02d%02d %02d%02d%02d\n", SouthBridge.info.sw_ver, 0,0,0, 0,0,0);
+    Graphic.printf("SW version(MAIN): 0x%04X\n", SW_INFO_VERSION);
+    Graphic.printf("date:%02d%02d%02d %02d%02d%02d\n", DATE_YY, DATE_MM, DATE_DD, TIME_HH, TIME_MM, TIME_SS);
+    Graphic.printf("SW version (SB) : 0x%04X\n", SouthBridge.info.sw_ver);
+    Graphic.printf("date:%02d %02d\n", SouthBridge.info.build_date, SouthBridge.info.build_time);
     Graphic.printf("SW support_flag : 0x%08X\n", SouthBridge.info.sw_support);
 
     SouthBridge.read_hw_info();

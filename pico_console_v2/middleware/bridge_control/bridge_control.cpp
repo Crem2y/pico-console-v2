@@ -41,8 +41,10 @@ void bridgeControl::recv_bridge_hw_info_res(const uint8_t* payload, uint8_t payl
 }
 
 void bridgeControl::recv_bridge_sw_info_res(const uint8_t* payload, uint8_t payload_size) {
-  if(payload_size < 6) return;
+  if(payload_size < 12) return;
 
   memcpy(&info.sw_ver, &payload[0], sizeof(uint16_t));
-  memcpy(&info.sw_support, &payload[2], sizeof(uint32_t));
+  memcpy(&info.build_date, &payload[2], 3);
+  memcpy(&info.build_time, &payload[5], 3);
+  memcpy(&info.sw_support, &payload[8], sizeof(uint32_t));
 }

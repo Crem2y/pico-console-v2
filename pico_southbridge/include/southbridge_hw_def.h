@@ -8,6 +8,23 @@
 #define SW_INFO_VERSION 0x1000 // V1.0.00
 #define SW_INFO_SUPPORT 0x00000000 //placeholder
 
+// build date
+#define DATE_YY ((__DATE__ [9] - '0') * 10 + (__DATE__ [10] - '0'))
+#define DATE_MM (__DATE__ [2] == 'n' ? (__DATE__ [1] == 'a' ? 1 : 6) \
+: __DATE__ [2] == 'b' ? 2 \
+: __DATE__ [2] == 'r' ? (__DATE__ [0] == 'M' ? 3 : 4) \
+: __DATE__ [2] == 'y' ? 5 \
+: __DATE__ [2] == 'l' ? 7 \
+: __DATE__ [2] == 'g' ? 8 \
+: __DATE__ [2] == 'p' ? 9 \
+: __DATE__ [2] == 't' ? 10 \
+: __DATE__ [2] == 'v' ? 11 : 12)
+#define DATE_DD ((__DATE__ [4] == ' ' ? 0 : __DATE__ [4] - '0') * 10 \
++ (__DATE__ [5] - '0'))
+#define TIME_HH ((__TIME__ [0] - '0') * 10 + (__TIME__ [1] - '0'))
+#define TIME_MM ((__TIME__ [3] - '0') * 10 + (__TIME__ [4] - '0'))
+#define TIME_SS ((__TIME__ [6] - '0') * 10 + (__TIME__ [7] - '0'))
+
 // pin definitions
 #define PIN_LOG_TX      0
 #define PIN_LOG_RX      1

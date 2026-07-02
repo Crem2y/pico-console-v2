@@ -27,11 +27,13 @@ void bridgeControl::send_bridge_hw_info_res(void) {
 }
 
 void bridgeControl::send_bridge_sw_info_res(void) {
-  int payload_size = 6;
+  int payload_size = 12;
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];
 
   memcpy(&payload_buf[0], &my_info.sw_ver, sizeof(uint16_t));
-  memcpy(&payload_buf[2], &my_info.sw_support, sizeof(uint32_t));
+  memcpy(&payload_buf[2], &my_info.build_date, 3);
+  memcpy(&payload_buf[5], &my_info.build_time, 3);
+  memcpy(&payload_buf[8], &my_info.sw_support, sizeof(uint32_t));
 
   Bridge.send(CMD_SW_INFO_RES, payload_size, payload_buf);
 }
