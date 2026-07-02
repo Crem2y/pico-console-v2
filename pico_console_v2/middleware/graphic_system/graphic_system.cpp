@@ -77,13 +77,13 @@ void graphicSystem::init(void) {
 
 void graphicSystem::update_full(void) {
 #if USE_FRAME_BUFFER
-  _display->draw_picture(0, 0, frame_buffer, _width, _height);
+  _display->draw_picture(0, 0, _width, _height, frame_buffer);
 #endif
 }
 
 void graphicSystem::update_dirty(void) {
 #if USE_FRAME_BUFFER
-  _display->draw_picture(0, 0, frame_buffer, _width, _height);
+  _display->draw_picture(0, 0, _width, _height, frame_buffer);
 #endif
 }
 
@@ -187,10 +187,20 @@ void graphicSystem::draw_line(g_pos_t pos0, g_pos_t pos1, g_color_t color) {
 }
 
 void graphicSystem::draw_rect(int16_t x, int16_t y, int16_t w, int16_t h, g_color_t color) {
+#if USE_FRAME_BUFFER
+  for(int16_t j=0; j<h; j++) {
+    for(int16_t i=0; i<w; i++) {
+      if(j==0 || j==(h-1) || i==0 || i==(w-1)) {
+        frame_buffer[(x + i) + (y + j) * _width] = color;
+      }
+    }
+  }
+#else
   _display->draw_fast_line_h(x, y, w, color);
   _display->draw_fast_line_h(x, y+h-1, w, color);
   _display->draw_fast_line_v(x, y, h, color);
   _display->draw_fast_line_v(x+w-1, y, h, color);
+#endif
 }
 
 void graphicSystem::draw_rect(g_rect_t rect, g_color_t color) {
@@ -253,8 +263,8 @@ void graphicSystem::fill_screen(g_color_t color) {
 
 void graphicSystem::draw_picture(int16_t x, int16_t y, int16_t w, int16_t h, const g_color_t *picture) {
 #if USE_FRAME_BUFFER
-  for(j=0; j<h; j++) {
-    for(i=0; i<w; i++) {
+  for(int16_t j=0; j<h; j++) {
+    for(int16_t i=0; i<w; i++) {
       frame_buffer[(x + i) + (y + j) * w] = picture[x + y * w];
     }
   }
