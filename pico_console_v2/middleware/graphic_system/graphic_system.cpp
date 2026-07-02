@@ -407,10 +407,20 @@ int graphicSystem::printf(const char *format, ...) {
   va_list args;
   va_start(args, format);
 
-  char string_buf[GRAPHIC_PRINTF_BUFFER_SIZE];
-  int len = vsnprintf(string_buf, sizeof(string_buf), format, args);
+  int result = vprintf(format, args);
 
-  va_end(args);
+  return result;
+}
+
+int graphicSystem::vprintf(const char *format, va_list args) {
+  char string_buf[GRAPHIC_PRINTF_BUFFER_SIZE];
+
+  int len = vsnprintf(
+    string_buf,
+    sizeof(string_buf),
+    format,
+    args
+  );
 
   if (len >= 0) {
     print(string_buf);

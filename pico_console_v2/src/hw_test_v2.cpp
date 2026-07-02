@@ -1363,7 +1363,7 @@ static int global_printer_wrapper(const char* format, ...) {
   va_list args;
   va_start(args, format);
   
-  int result = Graphic.printf(format, args); 
+  int result = Graphic.vprintf(format, args); 
   
   va_end(args);
   return result;

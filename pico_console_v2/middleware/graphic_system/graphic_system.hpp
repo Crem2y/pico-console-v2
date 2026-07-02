@@ -121,6 +121,7 @@ class graphicSystem {
     void set_font(enum g_font font);
     void print(const char *s);
     int printf(const char *format, ...);
+    int vprintf(const char *format, va_list args);
 
     void print_5x8(const char *s);
     size_t write_5x8(unicode_bmp_t C);
