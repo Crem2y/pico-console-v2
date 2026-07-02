@@ -395,7 +395,7 @@ void graphicSystem::print(const char *s) {
     print_5x8(s);
     break;
   case G_FONT_16:
-    //print_16(s);
+    print_16(s);
     break;
   default:
     print_5x8(s);
@@ -410,15 +410,17 @@ void graphicSystem::print_5x8(const char *s) {
   }
 }
 
-size_t graphicSystem::write_5x8(const uint8_t c) {
-    if (c == '\n') {
+size_t graphicSystem::write_5x8(unicode_bmp_t C) {
+    if (C == '\n') {
     cursor.y += textsize*8;
     cursor.x  = 0;
-  } else if (c == '\r') {
+  } else if (C == '\r') {
     // skip em
   } else {
-    draw_char_5x8(cursor.x, cursor.y, c, textcolor, textbgcolor, textsize);
-    //_display->drawChar_5x8(cursor.x, cursor.y, c, textcolor, textbgcolor, textsize);
+    if (C > 0x80) {
+      C = '?';
+    }
+    draw_char_5x8(cursor.x, cursor.y, C, textcolor, textbgcolor, textsize);
     cursor.x += textsize*6;
     if (wrap && (cursor.x > (_width - textsize*6))) {
       cursor.y += textsize*8;
@@ -495,4 +497,171 @@ void graphicSystem::draw_char_5x8(int16_t x, int16_t y, unsigned char c, g_color
     }
   }
 #endif
+}
+
+void graphicSystem::print_16(const char *s) {
+  uint8_t utf8_sequencing = 0;
+  char c0 = 0;
+  unicode_bmp_t C = 0;
+
+  while(*s) {
+    c0 = *s;
+    if(c0 & 0x80) { // 0b1 - utf8 sequence
+      if((c0 & 0xC0) == 0x80) { // 0b10 - continuation byte
+        if(utf8_sequencing) {
+          C = (C << 6) | (c0 & 0x3F);
+          utf8_sequencing--;
+          if(!utf8_sequencing) {
+            write_16(C);
+          }
+        } else {
+          write_16('?');
+        }
+      } else if((c0 & 0xE0) == 0xC0) { // 0b110 - 2 bytes (0x80 - 0x7FF
+        utf8_sequencing = 1;
+        C = (c0 & 0x1F);
+      } else if((c0 & 0xF0) == 0xE0) { // 0b1110 - 3 bytes (0x800 - 0xFFFF)
+        utf8_sequencing = 2;
+        C = (c0 & 0x0F);
+      } else { // 0b1111 - 4+ bytes, unsupported
+        utf8_sequencing = 0;
+      }
+      s++;
+    } else { // default ascii character
+      utf8_sequencing = 0;
+      C = c0;
+      write_16(C);
+      s++;
+    }
+  }
+}
+
+size_t graphicSystem::write_16(unicode_bmp_t C) {
+  if (C == '\n') {
+    cursor.y += 16;
+    cursor.x  = 0;
+  } else if (C == '\r') {
+    // skip em
+  } else {
+    if (C < 0x0080) {
+      draw_char_16_eng(cursor.x, cursor.y, C, textcolor, textbgcolor);
+      cursor.x += 8;
+    } else if(C >= 0xAC00 && C <= 0xD7A3) {
+      draw_char_16_kor(cursor.x, cursor.y, C, textcolor, textbgcolor);
+      cursor.x += 16;
+    } else {
+      draw_char_16_eng(cursor.x, cursor.y, '?', textcolor, textbgcolor);
+      cursor.x += 8;
+    }
+    if (wrap && (cursor.x > (_width - 16))) {
+      cursor.y += 16;
+      cursor.x = 0;
+    }
+  }
+  return 1;
+}
+
+void graphicSystem::draw_char_16_eng(int16_t x, int16_t y, const unicode_bmp_t C, g_color_t color, g_color_t bg) {
+  if((x >= _width)  || // Clip right
+     (y >= _height) || // Clip bottom
+     (x < 0)        || // Clip left
+     (y < 0))          // Clip top
+    return;
+
+  uint8_t data, temp_x, temp_y;
+  uint8_t code = (uint8_t)C;
+
+  for(temp_x = 0; temp_x < 8; temp_x++) {
+    data = font_16_E[code][temp_x];
+    for(temp_y = 0; temp_y < 8; temp_y++) {
+      if(data & 0x01) draw_pixel(x+temp_x, y+temp_y, color);
+      else            draw_pixel(x+temp_x, y+temp_y, bg);
+      data = data >> 1;
+    }
+    data = font_16_E[code][temp_x+8];
+    for(temp_y = 0; temp_y < 8; temp_y++) {
+      if(data & 0x01) draw_pixel(x+temp_x, y+temp_y+8, color);
+      else            draw_pixel(x+temp_x, y+temp_y+8, bg);
+      data = data >> 1;
+    }
+  }
+}
+
+
+// Draw a character (16x16, korean)
+void graphicSystem::draw_char_16_kor(int16_t x, int16_t y, const unicode_bmp_t C, g_color_t color, g_color_t bg) {
+  const unsigned char bul_cho1[22] = {0,0,0,0,0,0,0,0,0,1,3,3,3,1,2,4,4,4,2,1,3,0};
+  const unsigned char bul_cho2[22] = {0,5,5,5,5,5,5,5,5,6,7,7,7,6,6,7,7,7,6,6,7,5};
+  const unsigned char bul_jong[22] = {0,0,2,0,2,1,2,1,2,3,0,2,1,3,3,1,2,1,3,3,1,1};
+
+  if((x >= _width)  || // Clip right
+     (y >= _height) || // Clip bottom
+     (x < 0)        || // Clip left
+     (y < 0))          // Clip top
+    return;
+
+  uint32_t cho, jung, jong;
+  uint16_t value = C - 0xAC00;
+
+  jong = value % 28;
+  jung = ((value - jong) / 28) % 21;
+  cho = ((value - jong) / 28) / 21;
+
+  if(jong == 0x11A8) {
+    jong = 0;
+  }
+
+  uint32_t cho_5bit, joong_5bit, jong_5bit;
+  uint32_t cho_bul, joong_bul, jong_bul = 0, i, jong_flag;
+  uint16_t ch;
+  uint8_t Kbuffer[32] = {0,}; // 32 byte Korean font buffer
+
+  cho_5bit   = cho+1;  // get 5bit(14-10) of chosung
+  joong_5bit = jung+1; // get 5bit(09-05) of joongsung
+  jong_5bit  = jong;   // get 5bit(04-00) of jongsung
+
+  if(jong_5bit == 0) { // if jongsung not exist
+    jong_flag = 0;
+    cho_bul = bul_cho1[joong_5bit];
+    if((cho_5bit == 1) || (cho_5bit == 16))
+      joong_bul = 0;
+    else
+      joong_bul = 1;
+  } else {             // if jongsung exist
+    jong_flag = 1;
+    cho_bul = bul_cho2[joong_5bit];
+    if((cho_5bit == 1) || (cho_5bit == 16))
+      joong_bul = 2;
+    else
+      joong_bul = 3;
+    jong_bul = bul_jong[joong_5bit];
+  }
+
+  ch = cho_bul*20 + cho_5bit;   // get chosung font 
+  for(i = 0; i < 32; i++) Kbuffer[i] = font_16_K[ch][i];
+
+  ch = 8*20 + joong_bul*22 + joong_5bit;  // OR joongsung font
+  for(i = 0; i < 32; i++) Kbuffer[i] |= font_16_K[ch][i];
+
+  if(jong_flag) { // OR jongsung font
+    ch = 8*20 + 4*22 + jong_bul*28 + jong_5bit;
+    for(i = 0; i < 32; i++) Kbuffer[i] |= font_16_K[ch][i];
+  }
+
+  uint8_t data, temp_x, temp_y;
+
+  for(temp_x = 0; temp_x < 16; temp_x++) {
+    data = Kbuffer[temp_x];
+    for(temp_y = 0; temp_y < 8; temp_y++) {
+      if(data & 0x01) draw_pixel(x+temp_x, y+temp_y, color);
+      else            draw_pixel(x+temp_x, y+temp_y, bg);
+      data = data >> 1;
+    }
+    data = Kbuffer[temp_x+16];
+    for(temp_y = 0; temp_y < 8; temp_y++) {
+      if(data & 0x01) draw_pixel(x+temp_x, y+temp_y+8, color);
+      else            draw_pixel(x+temp_x, y+temp_y+8, bg);
+      data = data >> 1;
+    }
+  }
 }

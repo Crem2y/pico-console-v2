@@ -46,6 +46,7 @@ enum GRAPHIC_COLOR16 {
 };
 
 typedef uint16_t g_color_t;
+typedef uint16_t unicode_bmp_t;
 
 typedef struct _g_pos_t {
   int16_t x;
@@ -114,13 +115,19 @@ class graphicSystem {
     void set_cursor(int16_t x, int16_t y);
     void set_cursor(g_pos_t pos);
 
+//// text print
     void set_text_size(uint8_t s);
     void set_font(enum g_font font);
     void print(const char *s);
 
     void print_5x8(const char *s);
-    size_t write_5x8(const uint8_t c);
+    size_t write_5x8(unicode_bmp_t C);
     void draw_char_5x8(int16_t x, int16_t y, unsigned char c, g_color_t color, g_color_t bg, uint8_t size);
+
+    void print_16(const char *s);
+    size_t write_16(unicode_bmp_t C);
+    void draw_char_16_eng(int16_t x, int16_t y, const unicode_bmp_t C, g_color_t color, g_color_t bg);
+    void draw_char_16_kor(int16_t x, int16_t y, const unicode_bmp_t C, g_color_t color, g_color_t bg);
 
 //// display configuration
     void set_rotation(uint8_t r);
