@@ -1367,6 +1367,53 @@ static int global_printer_wrapper(const char* format, ...) {
   return result;
 }
 
+void display_ls(const char *dir) {
+    char cwdbuf[FF_LFN_BUF] = {0};
+    FRESULT fr; /* Return value */
+    char const *p_dir;
+    if (dir[0]) {
+        p_dir = dir;
+    } else {
+        fr = f_getcwd(cwdbuf, sizeof cwdbuf);
+        if (FR_OK != fr) {
+            Graphic.printf("f_getcwd error: %s (%d)\n", FRESULT_str(fr), fr);
+            return;
+        }
+        p_dir = cwdbuf;
+    }
+    printf("Directory Listing: %s\n", p_dir);
+    DIR dj = {};      /* Directory object */
+    FILINFO fno = {}; /* File information */
+    assert(p_dir);
+    fr = f_findfirst(&dj, &fno, p_dir, "*");
+    if (FR_OK != fr) {
+        Graphic.printf("f_findfirst error: %s (%d)\n", FRESULT_str(fr), fr);
+        return;
+    }
+    while (fr == FR_OK && fno.fname[0]) { /* Repeat while an item is found */
+        /* Create a string that includes the file name, the file size and the
+         attributes string. */
+        const char *pcWritableFile = "writable file",
+                   *pcReadOnlyFile = "read only file",
+                   *pcDirectory = "directory";
+        const char *pcAttrib;
+        /* Point pcAttrib to a string that describes the file. */
+        if (fno.fattrib & AM_DIR) {
+            pcAttrib = pcDirectory;
+        } else if (fno.fattrib & AM_RDO) {
+            pcAttrib = pcReadOnlyFile;
+        } else {
+            pcAttrib = pcWritableFile;
+        }
+        /* Create a string that includes the file name, the file size and the
+         attributes string. */
+        Graphic.printf("%s [%s] [size=%llu]\n", fno.fname, pcAttrib, fno.fsize);
+
+        fr = f_findnext(&dj, &fno); /* Search for next item */
+    }
+    f_closedir(&dj);
+}
+
 void menu_sd_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
@@ -1382,22 +1429,46 @@ void menu_sd_test(void) {
 
   int ds = sd_card_p->init(sd_card_p);
   if (STA_NODISK & ds || STA_NOINIT & ds) {
-      printf("SD card initialization failed\n");
+    printf("SD card initialization failed\n");
   }
 
   size_t au_size_bytes;
   bool ok = sd_allocation_unit(sd_card_p, &au_size_bytes);
 
+  FATFS *fs_p = &sd_card_p->state.fatfs;
+  FRESULT fr = f_mount(fs_p, sd_get_drive_prefix(sd_get_by_num(0)), 1);
+  if (FR_OK != fr) {
+      printf("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
+  }
+  sd_card_p->state.mounted = true;
+
+  bool displaying_info_old = true;
+  bool displaying_info = false;
+
   while(1) {
     sleep_ms(100);
 
     Graphic.setCursor(0,16);
-    Graphic.printf("SD card : %s", (STA_NODISK & ds) ? "not inserted" : "inserted    ");
-    if(ok) {
-      Graphic.set_font(G_FONT_16);
-      cidDmp(sd_card_p, global_printer_wrapper);
-      csdDmp(sd_card_p, global_printer_wrapper);
-      Graphic.set_font(G_FONT_5X8);
+    Graphic.printf("SD card : %s\n", (STA_NODISK & ds) ? "not inserted" : "inserted    ");
+    if(ok && (displaying_info != displaying_info_old)) {
+      displaying_info_old = displaying_info;
+      Graphic.fillRect(0,16*2,480,(320-40),LCD_BLACK);
+      if(displaying_info) {
+        Graphic.print("press A to hide info\n");
+        Graphic.set_font(G_FONT_16);
+        cidDmp(sd_card_p, global_printer_wrapper);
+        csdDmp(sd_card_p, global_printer_wrapper);
+        Graphic.set_font(G_FONT_5X8);
+      } else {
+        Graphic.print("press A to display info\n\n");
+        Graphic.set_font(G_FONT_16);
+        display_ls("");
+        Graphic.set_font(G_FONT_5X8);
+      }
+    }
+
+    if(Gamepad.is_btn_pressed(BTN_A)) {
+      displaying_info = !displaying_info;
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
