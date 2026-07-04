@@ -84,6 +84,18 @@ void audioSystem::send_bridge_set_env(uint8_t ch, uint32_t tick_us, uint8_t step
   Bridge.send(CMD_AUDIO_SET_ENV, payload_size, payload_buf);
 }
 
+void audioSystem::send_bridge_set_pitch_env(uint8_t ch, uint32_t tick_us, int8_t target_semitones, uint8_t step) {
+  int payload_size = 7;
+  uint8_t payload_buf[PAYLOAD_MAX_SIZE];
+
+  payload_buf[0] = ch;
+  memcpy(&payload_buf[1], &tick_us, sizeof(uint32_t));
+  payload_buf[5] = (uint8_t)target_semitones;
+  payload_buf[6] = step;
+
+  Bridge.send(CMD_AUDIO_SET_PIT_ENV, payload_size, payload_buf);
+}
+
 void audioSystem::send_bridge_set_master(uint8_t volume) {
   int payload_size = 1;
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];

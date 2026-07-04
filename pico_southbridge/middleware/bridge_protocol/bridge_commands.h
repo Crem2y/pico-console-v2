@@ -39,6 +39,7 @@ enum bridge_cmd {
   CMD_AUDIO_SET_WAVE    = 0x62, // [ch][wav]
   CMD_AUDIO_SET_ENV     = 0x63, // [ch][tick_us_32][step]
   CMD_AUDIO_SET_MASTER  = 0x64, // [vol]
+  CMD_AUDIO_SET_PIT_ENV = 0x65, // [ch][tick_us_32][target_semitones][step]
   CMD_AUDIO_DISABLE     = 0x6F,
 
   CMD_VIBRATION_ENABLE  = 0x70,
