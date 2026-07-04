@@ -75,37 +75,37 @@ void set_master_volume(uint8_t vol) {
     master_volume = vol;
 }
 
-void voice_env_set(int voice_idx, uint32_t tick_us, int32_t decay_step_q8) {
-    g_voices[voice_idx].env_tick_us = tick_us;
-    g_voices[voice_idx].env_decay_step_q8 = (decay_step_q8 < 0) ? 1 : decay_step_q8;
-    g_voices[voice_idx].env_next_us = get_system_time_us() + g_voices[voice_idx].env_tick_us;
+void voice_vol_env_set(int voice_idx, uint32_t tick_us, int32_t decay_step_q8) {
+    g_voices[voice_idx].vol_env_tick_us = tick_us;
+    g_voices[voice_idx].vol_env_decay_step_q8 = (decay_step_q8 < 0) ? 1 : decay_step_q8;
+    g_voices[voice_idx].vol_env_next_us = get_system_time_us() + g_voices[voice_idx].vol_env_tick_us;
 }
 
-static inline void voice_env_init(int voice_idx, uint32_t tick_us, int32_t decay_step_q8) {
-    voice_env_set(voice_idx, tick_us, decay_step_q8);
-    g_voices[voice_idx].env_q8 = 0;
+static inline void voice_vol_env_init(int voice_idx, uint32_t tick_us, int32_t decay_step_q8) {
+    voice_vol_env_set(voice_idx, tick_us, decay_step_q8);
+    g_voices[voice_idx].vol_env_q8 = 0;
 }
 
-static inline void voice_env_note_on(voice_t *v, int32_t peak_vol_q8) {
+static inline void voice_vol_env_note_on(voice_t *v, int32_t peak_vol_q8) {
     if (peak_vol_q8 < 0) peak_vol_q8 = 0;
     if (peak_vol_q8 > 256) peak_vol_q8 = 256;
     v->vol_q8 = peak_vol_q8;
-    v->env_q8 = peak_vol_q8;
-    v->env_next_us = get_system_time_us() + v->env_tick_us;
+    v->vol_env_q8 = peak_vol_q8;
+    v->vol_env_next_us = get_system_time_us() + v->vol_env_tick_us;
 }
 
 static inline void voice_env_tick(voice_t *v, uint32_t now_us) {
-    // Simple linear decay: env_q8 -= env_decay_step_q8 every env_tick_us
-    if (v->env_q8 <= 0) return;
+    // Simple linear decay: vol_env_q8 -= vol_env_decay_step_q8 every vol_env_tick_us
+    if (v->vol_env_q8 <= 0) return;
 
     // Catch up if we missed ticks (avoid depending on main loop cadence)
-    while ((int32_t)(now_us - v->env_next_us) >= 0) {
-        v->env_q8 -= v->env_decay_step_q8;
-        if (v->env_q8 <= 0) {
-            v->env_q8 = 0;
+    while ((int32_t)(now_us - v->vol_env_next_us) >= 0) {
+        v->vol_env_q8 -= v->vol_env_decay_step_q8;
+        if (v->vol_env_q8 <= 0) {
+            v->vol_env_q8 = 0;
             break;
         }
-        v->env_next_us += v->env_tick_us;
+        v->vol_env_next_us += v->vol_env_tick_us;
     }
 }
 
@@ -114,7 +114,7 @@ static inline int32_t voice_next_sample_i32(voice_t *v) {
 
     const int32_t s = (int32_t)v->table[v->pos >> 16u];
     // Apply envelope level (Q8)
-    int32_t y = (s * v->env_q8) >> 8;
+    int32_t y = (s * v->vol_env_q8) >> 8;
 
     v->pos += v->step;
     if (v->pos >= pos_max) v->pos -= pos_max;
@@ -182,12 +182,12 @@ static void set_voice_volume_q8(int voice_idx, int32_t vol_q8) {
     if (vol_q8 < 0) vol_q8 = 0;
     if (vol_q8 > 256) vol_q8 = 256;
     g_voices[voice_idx].vol_q8 = vol_q8;
-    // Do not directly change env_q8 here; env_q8 is controlled by note triggers.
+    // Do not directly change vol_env_q8 here; vol_env_q8 is controlled by note triggers.
 }
 
 void voice_note_on(int voice_idx, float freq, int32_t peak_vol_q8) {
     if (!set_voice_note(voice_idx, freq)) return;
-    voice_env_note_on(&g_voices[voice_idx], peak_vol_q8);
+    voice_vol_env_note_on(&g_voices[voice_idx], peak_vol_q8);
 }
 
 // -------------------- Audio init --------------------
@@ -269,7 +269,7 @@ void audio_init(int data_pin, int clock_pin_base, int mute_pin) {
     for (int i = 0; i < NUM_CHANNELS; i++) {
         set_voice_waveform(i, WAVE_SQUARE_50);
         set_voice_volume_q8(i, 8);
-        voice_env_init(i, 25000, 1);
+        voice_vol_env_init(i, 25000, 1);
     }
 
 

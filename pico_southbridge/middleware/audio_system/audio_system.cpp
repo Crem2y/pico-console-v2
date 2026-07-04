@@ -27,7 +27,7 @@ void audioSystem::recv_bridge_set_env(const uint8_t* payload, uint8_t payload_si
 
   uint32_t tick_us;
   memcpy(&tick_us, &payload[1], sizeof(uint32_t));
-  voice_env_set(payload[0], tick_us, payload[5]);
+  voice_vol_env_set(payload[0], tick_us, payload[5]);
 }
 
 void audioSystem::recv_bridge_set_master(const uint8_t* payload, uint8_t payload_size) {
