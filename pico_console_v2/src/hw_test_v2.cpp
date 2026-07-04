@@ -1056,25 +1056,31 @@ void menu_audio_test(void) {
 
   uint8_t master_vol = 127;
 
+  // wave config
   uint8_t wave_vol = 32;
   float wave_freq = 100.0f;
   uint8_t wave_num = WAVE_SQUARE_12;
-
+  // volume envelope config
   uint32_t env_tick = 25000;
   uint8_t env_step = 1;
+  // pitch envelope config
+  uint32_t pit_tick = 25000;
+  int8_t pit_target = 127;
+  uint8_t pit_step = 2;
 
   Audio.set_wave(4, (wave_t)wave_num);
   Audio.set_env(4, env_tick, env_step);
+  Audio.set_pitch_env(4, pit_tick, pit_target, pit_step);
 
   while(1) {
     sleep_ms(10);
 
     Graphic.setCursor(0,16*3);
-    Graphic.printf("master_vol: %d ", master_vol);
-    Graphic.setCursor(0,16*4);
-    Graphic.printf("wave: %d, freq: %.3f, vol: %d ", wave_num, wave_freq, wave_vol);
-    Graphic.setCursor(0,16*5);
-    Graphic.printf("env_tick: %d, env_step: %d  ", env_tick, env_step);
+    Graphic.printf("master_vol: %d \n", master_vol);
+    Graphic.printf("wave: %d, freq: %.3f, vol: %d \n", wave_num, wave_freq, wave_vol);
+    Graphic.printf("env_tick: %d, env_step: %d  \n", env_tick, env_step);
+    Graphic.printf("pit_tick: %d, pit_step: %d  \n", pit_tick, pit_step);
+    Graphic.printf("pit_target: %d  \n", pit_target);
 
     int8_t joy1_x = Gamepad.get_joystick_data(JOY1_X);
 
@@ -1118,6 +1124,31 @@ void menu_audio_test(void) {
       sleep_ms(100);
     }
 
+    if(Gamepad.is_btn_pressed(BTN_S2_UP) || Gamepad.is_btn_pressed(BTN_S2_DOWN) || Gamepad.is_btn_pressed(BTN_S2_LEFT) || Gamepad.is_btn_pressed(BTN_S2_RIGHT)
+      || Gamepad.is_btn_pressed(BTN_SUB1) || Gamepad.is_btn_pressed(BTN_SUB2))
+    {
+      if(Gamepad.is_btn_pressed(BTN_S2_UP)) {
+        pit_step++;
+      }
+      if(Gamepad.is_btn_pressed(BTN_S2_DOWN)) {
+        pit_step--;
+      }
+      if(Gamepad.is_btn_pressed(BTN_S2_LEFT)) {
+        pit_tick -= 1000;
+      }
+      if(Gamepad.is_btn_pressed(BTN_S2_RIGHT)) {
+        pit_tick += 1000;
+      }
+      if(Gamepad.is_btn_pressed(BTN_SUB1)) {
+        pit_target--;
+      }
+      if(Gamepad.is_btn_pressed(BTN_SUB2)) {
+        pit_target++;
+      }
+      Audio.set_pitch_env(4, pit_tick, pit_target, pit_step);
+      sleep_ms(100);
+    }
+
     if(Gamepad.is_btn_pressed(BTN_SL) || Gamepad.is_btn_pressed(BTN_SR)) {
       if(Gamepad.is_btn_pressed(BTN_SL)) {
         if(wave_num == WAVE_SQUARE_12) wave_num = WAVE_SINE;
@@ -1146,7 +1177,11 @@ void menu_audio_test(void) {
       Audio.play_music(&test_music);
     }
     if(Gamepad.is_btn_pressed(BTN_B)) {
-      Audio.play_wave(4, wave_freq, wave_vol);
+      if(wave_num == WAVE_NOISE) {
+        Audio.play_wave(4, wave_freq/1000, wave_vol);
+      } else {
+        Audio.play_wave(4, wave_freq, wave_vol);
+      }
     }
     if(Gamepad.is_btn_pressed(BTN_Y)) {
       Audio.play_wave(4, wave_freq, 0);
