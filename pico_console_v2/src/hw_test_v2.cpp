@@ -1064,7 +1064,7 @@ void menu_audio_test(void) {
   uint32_t env_tick = 25000;
   uint8_t env_step = 1;
   // pitch envelope config
-  uint32_t pit_tick = 25000;
+  int32_t pit_tick = 25000;
   int8_t pit_target = 127;
   uint8_t pit_step = 2;
 

@@ -96,16 +96,23 @@ static inline void voice_vol_env_note_on(voice_t *v, int32_t peak_vol_q8) {
     v->vol_env_next_us = get_system_time_us() + v->vol_env_tick_us;
 }
 
-void voice_pitch_env_set(int voice_idx, uint32_t tick_us, int32_t target_semitones, int32_t step) {
+static inline uint32_t pitch_env_tick_interval_us(int32_t tick_us) {
+    if (tick_us == 0) return 1;
+    if (tick_us == INT32_MIN) return (uint32_t)INT32_MAX + 1u;
+    return (tick_us < 0) ? (uint32_t)(-tick_us) : (uint32_t)tick_us;
+}
+
+void voice_pitch_env_set(int voice_idx, int32_t tick_us, int32_t target_semitones, int32_t step) {
     if (voice_idx < 0 || voice_idx >= NUM_CHANNELS) return;
-    if (tick_us == 0) tick_us = 1;
-    g_voices[voice_idx].pit_env_tick_us = tick_us;
+    g_voices[voice_idx].pit_env_tick_us = pitch_env_tick_interval_us(tick_us);
     g_voices[voice_idx].pit_env_target_semitones = target_semitones;
+    g_voices[voice_idx].pit_env_current_target_semitones = target_semitones;
+    g_voices[voice_idx].pit_env_vibrate = tick_us < 0;
     g_voices[voice_idx].pit_env_step = (step <= 0) ? 1 : step;
     g_voices[voice_idx].pit_env_next_us = get_system_time_us() + g_voices[voice_idx].pit_env_tick_us;
 }
 
-static inline void voice_pitch_env_init(int voice_idx, uint32_t tick_us, int32_t target_semitones, int32_t step) {
+static inline void voice_pitch_env_init(int voice_idx, int32_t tick_us, int32_t target_semitones, int32_t step) {
     voice_pitch_env_set(voice_idx, tick_us, target_semitones, step);
     g_voices[voice_idx].pit_env_semitones = 0;
 }
@@ -122,13 +129,33 @@ static inline uint32_t voice_step_with_pitch_env(const voice_t *v) {
 
 static inline void voice_pitch_env_note_on(voice_t *v) {
     v->pit_env_semitones = 0;
+    v->pit_env_current_target_semitones = v->pit_env_target_semitones;
     v->pit_env_next_us = get_system_time_us() + v->pit_env_tick_us;
     v->step = voice_step_with_pitch_env(v);
 }
 
+static inline bool voice_pitch_env_move_toward(voice_t *v, int32_t target) {
+    if (v->pit_env_semitones < target) {
+        v->pit_env_semitones += v->pit_env_step;
+        if (v->pit_env_semitones >= target) {
+            v->pit_env_semitones = target;
+            return true;
+        }
+    } else if (v->pit_env_semitones > target) {
+        v->pit_env_semitones -= v->pit_env_step;
+        if (v->pit_env_semitones <= target) {
+            v->pit_env_semitones = target;
+            return true;
+        }
+    } else {
+        return true;
+    }
+    return false;
+}
+
 static inline void voice_env_tick(voice_t *v, uint32_t now_us) {
     // Simple linear decay: vol_env_q8 -= vol_env_decay_step_q8 every vol_env_tick_us
-    if (v->vol_env_q8 > 0) {
+    if (v->vol_env_q8 > 0 && v->vol_env_decay_step_q8 > 0) {
         // Catch up if we missed ticks (avoid depending on main loop cadence)
         while ((int32_t)(now_us - v->vol_env_next_us) >= 0) {
             v->vol_env_q8 -= v->vol_env_decay_step_q8;
@@ -140,22 +167,23 @@ static inline void voice_env_tick(voice_t *v, uint32_t now_us) {
         }
     }
 
-    if (v->pit_env_semitones != v->pit_env_target_semitones) {
+    const bool pit_env_active = v->pit_env_vibrate
+        ? (v->pit_env_target_semitones != 0)
+        : (v->pit_env_semitones != v->pit_env_target_semitones);
+
+    if (pit_env_active) {
         while ((int32_t)(now_us - v->pit_env_next_us) >= 0) {
-            if (v->pit_env_semitones < v->pit_env_target_semitones) {
-                v->pit_env_semitones += v->pit_env_step;
-                if (v->pit_env_semitones >= v->pit_env_target_semitones) {
-                    v->pit_env_semitones = v->pit_env_target_semitones;
-                    break;
-                }
-            } else {
-                v->pit_env_semitones -= v->pit_env_step;
-                if (v->pit_env_semitones <= v->pit_env_target_semitones) {
-                    v->pit_env_semitones = v->pit_env_target_semitones;
-                    break;
-                }
+            const int32_t target = v->pit_env_vibrate
+                ? v->pit_env_current_target_semitones
+                : v->pit_env_target_semitones;
+            const bool reached = voice_pitch_env_move_toward(v, target);
+
+            if (reached && v->pit_env_vibrate) {
+                v->pit_env_current_target_semitones = -target;
             }
             v->pit_env_next_us += v->pit_env_tick_us;
+
+            if (!v->pit_env_vibrate && reached) break;
         }
         v->step = voice_step_with_pitch_env(v);
     }

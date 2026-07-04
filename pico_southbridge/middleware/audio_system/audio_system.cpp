@@ -33,8 +33,8 @@ void audioSystem::recv_bridge_set_env(const uint8_t* payload, uint8_t payload_si
 void audioSystem::recv_bridge_set_pitch_env(const uint8_t* payload, uint8_t payload_size) {
   if(payload_size < 7) return;
 
-  uint32_t tick_us;
-  memcpy(&tick_us, &payload[1], sizeof(uint32_t));
+  int32_t tick_us;
+  memcpy(&tick_us, &payload[1], sizeof(int32_t));
   voice_pitch_env_set(payload[0], tick_us, (int8_t)payload[5], payload[6]);
 }
 
