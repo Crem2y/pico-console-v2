@@ -66,19 +66,19 @@ time_ms_t audio_timer;
 time_ms_t vibration_timer;
 time_ms_t touch_timer;
 
-int inline pio_uart_readable_wrapper(void) {
+inline int pio_uart_readable_wrapper(void) {
   return pio_uart_rx_readable(&pio_rx);
 }
 
-int inline pio_uart_read_wrapper(uint8_t* data, size_t buf_size) {
+inline int pio_uart_read_wrapper(uint8_t* data, size_t buf_size) {
   return pio_uart_rx_read(&pio_rx, data, buf_size);
 }
 
-int inline pio_uart_writeable_wrapper(void) {
+inline int pio_uart_writeable_wrapper(void) {
   return pio_uart_tx_writeable(&pio_tx);
 }
 
-int inline pio_uart_write_wrapper(const uint8_t* data, size_t data_size) {
+inline int pio_uart_write_wrapper(const uint8_t* data, size_t data_size) {
   return pio_uart_tx_write(&pio_tx, data, data_size);
 }
 
