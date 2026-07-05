@@ -6,10 +6,13 @@
 #include <stdint.h>
 #include <ctype.h>
 
+#include "common.h"
 #include "ili9488_40_hstx.hpp"
 #include "psram_apsxx04.h"
 
-#define USE_FRAME_BUFFER 0
+#if ENABLE_PSRAM
+  #define USE_FRAME_BUFFER 0
+#endif
 #define USE_TEXT_BUFFER 1 // Use a buffer for text output. Print speed is improved by approximately 20%, but transparent backgrounds cannot be used in this mode.
 #define GRAPHIC_PRINTF_BUFFER_SIZE 256
 

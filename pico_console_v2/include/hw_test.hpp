@@ -8,6 +8,9 @@
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
 
+// common
+#include "common.h"
+
 // drivers
 #include "uart_rx.h"
 #include "uart_tx.h"
@@ -45,8 +48,12 @@ enum menu_main {
   MAIN_SYSTEM_INFO,
   MAIN_BTN_TEST,
   MAIN_JOYSTICK_TEST,
+#if ENABLE_LED
   MAIN_LED_TEST,
+#endif
+#if ENABLE_PSRAM
   MAIN_PSRAM_TEST,
+#endif
   MAIN_LCD_TEST,
   MAIN_TOUCH_TEST,
   MAIN_AUDIO_TEST,
@@ -61,8 +68,12 @@ enum menu_main {
 void menu_system_info();
 void menu_btn_test();
 void menu_joystick_test();
+#if ENABLE_LED
 void menu_led_test();
+#endif
+#if ENABLE_PSRAM
 void menu_psram_test();
+#endif
 void menu_lcd_test();
 void menu_touch_test();
 void menu_audio_test();

@@ -1,9 +1,12 @@
 // headers
+#include "common.h"
 #include "hw_test.hpp"
 #include "v2_hw_def.h"
 
 // hw lib init
+#if ENABLE_LED
 ledStatus Led = ledStatus(PIN_LED_WL_1, PIN_LED_WL_2, PIN_LED_WL_3, PIN_LED_WL_4);
+#endif
 ili9488_40 Lcd = ili9488_40(PIN_DP_MOSI, PIN_DP_SCK, PIN_DP_CS, PIN_DP_DC, PIN_DP_RST, PIN_DP_BL);
 xpt2046 Touch = xpt2046(HW_TOUCH_CH, PIN_TOUCH_MOSI, PIN_TOUCH_SCK, PIN_TOUCH_MISO, PIN_TOUCH_CS, PIN_TOUCH_IRQ);
 pio_uart_tx_t pio_tx;
@@ -14,7 +17,9 @@ bridgeProtocol Bridge = bridgeProtocol();
 bridgeControl SouthBridge = bridgeControl();
 power Power = power();
 charger Charger = charger();
+#if ENABLE_LED
 ledControl LedCtrl = ledControl(&Led);
+#endif
 gamepad Gamepad = gamepad();
 graphicSystem Graphic = graphicSystem(&Lcd);
 audioSystem Audio = audioSystem();
@@ -69,15 +74,12 @@ time_ms_t touch_timer;
 inline int pio_uart_readable_wrapper(void) {
   return pio_uart_rx_readable(&pio_rx);
 }
-
 inline int pio_uart_read_wrapper(uint8_t* data, size_t buf_size) {
   return pio_uart_rx_read(&pio_rx, data, buf_size);
 }
-
 inline int pio_uart_writeable_wrapper(void) {
   return pio_uart_tx_writeable(&pio_tx);
 }
-
 inline int pio_uart_write_wrapper(const uint8_t* data, size_t data_size) {
   return pio_uart_tx_write(&pio_tx, data, data_size);
 }
@@ -97,16 +99,17 @@ int main() { // uses core 0 to sub core
   SouthBridge.init();
   sleep_ms(100);
 
+#if ENABLE_LED
   LedCtrl.init();
   led_config_t led_config = {.mode = LED_BLINK_REPEAT, .brightness = 255, .blink_interval_ms = 500};
   LedCtrl.set_config(LED_CONTROL_BUILT_IN, led_config);
   LedCtrl.update();
-
-  multicore_launch_core1(core1_entry);
+#endif
 
   // initalizing hardwares
   Power.init();
   Charger.init();
+#if ENABLE_LED
   led_config = {.mode = LED_ON, .brightness = 255, .breathing_step = 10};
   LedCtrl.set_config(LED_CONTROL_1, led_config);
   LedCtrl.set_config(LED_CONTROL_2, led_config);
@@ -114,12 +117,15 @@ int main() { // uses core 0 to sub core
   LedCtrl.set_config(LED_CONTROL_4, led_config);
   LedCtrl.update();
   LOG_PRINTF("LED ok\n");
+#endif
+#if ENABLE_PSRAM
   int32_t ret = psram_init(PIN_PSRAM_CS);
   if(ret < 0) {
     LOG_PRINTF("PSRAM error : %d", ret);
     while(1);
   }
   LOG_PRINTF("PSRAM ok\n");
+#endif
   Graphic.begin();
   Graphic.fillScreen(LCD_BLACK);
   Graphic.set_bright(750);
@@ -169,7 +175,8 @@ int main() { // uses core 0 to sub core
   uart_bridge_enable_irq();
 
   LOG_PRINTF("go to main loop\n");
-  multicore_fifo_push_blocking(1);
+  multicore_launch_core1(core1_entry);
+  // multicore_fifo_push_blocking(1);
   // boot sequence end
 
   while (true) {
@@ -203,7 +210,9 @@ int main() { // uses core 0 to sub core
       Touchscreen.update();
       //LOG_PRINTF("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
     }
+#if ENABLE_LED
     LedCtrl.update();
+#endif
     if (card_det_int_pend) {
       process_card_detect_int();
     }
@@ -214,7 +223,7 @@ int main() { // uses core 0 to sub core
 
 void core1_entry() { // uses core 1 to main core
 
-  multicore_fifo_pop_blocking(); // wait until boot process is done
+  // multicore_fifo_pop_blocking(); // wait until boot process is done
 
   // boot animation
   Graphic.setTextSize(2);
@@ -289,11 +298,12 @@ void core1_entry() { // uses core 1 to main core
       }
     }
   }
-
+#if ENABLE_LED
   LedCtrl.set_mode(LED_CONTROL_1, LED_DARKER);
   LedCtrl.set_mode(LED_CONTROL_2, LED_DARKER);
   LedCtrl.set_mode(LED_CONTROL_3, LED_DARKER);
   LedCtrl.set_mode(LED_CONTROL_4, LED_DARKER);
+#endif
 
   music_note_t boot_notes[2] = {
     {0, 6, 0, 32},   // C6
@@ -329,8 +339,12 @@ main_menu_loop:
     Graphic.print(" System info\n");
     Graphic.print(" Button test\n");
     Graphic.print(" Joystick test\n");
+#if ENABLE_LED
     Graphic.print(" LED test\n");
+#endif
+#if ENABLE_PSRAM
     Graphic.print(" PSRAM test\n");
+#endif
     Graphic.print(" LCD test\n");
     Graphic.print(" Touch test\n");
     Graphic.print(" Audio test\n");
@@ -384,12 +398,16 @@ main_menu_loop:
         case MAIN_JOYSTICK_TEST:
           menu_joystick_test();
           break;
+#if ENABLE_LED
         case MAIN_LED_TEST:
           menu_led_test();
           break;
+#endif
+#if ENABLE_PSRAM
         case MAIN_PSRAM_TEST:
           menu_psram_test();
           break;
+#endif
         case MAIN_LCD_TEST:
           menu_lcd_test();
           break;
@@ -817,6 +835,7 @@ void menu_joystick_test(void) {
   }
 }
 
+#if ENABLE_LED
 void menu_led_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
@@ -867,7 +886,9 @@ void menu_led_test(void) {
     }
   }
 }
+#endif
 
+#if ENABLE_PSRAM
 void menu_psram_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
@@ -950,6 +971,7 @@ void menu_psram_test(void) {
     }
   }
 }
+#endif
 
 void menu_lcd_test(void) {
   Graphic.setTextSize(1);
@@ -1337,11 +1359,11 @@ void menu_ir_test(void) {
 
   Graphic.setCursor(0,16);
   Graphic.print("press START to change format");
-
+#if ENABLE_LED
   led_config_t led_config = {.mode = LED_OFF, .brightness = 255, .blink_interval_ms = 100};
   LedCtrl.set_config(LED_CONTROL_1, led_config); // RX indicator
   LedCtrl.set_config(LED_CONTROL_4, led_config); // TX indicator
-
+#endif
   Ir.set_enable_tx(true, IR_FORMAT_MANUAL);
   Ir.set_enable_rx(true, IR_FORMAT_MANUAL);
   
@@ -1374,7 +1396,9 @@ void menu_ir_test(void) {
 
     if(Gamepad.is_btn_pressed(BTN_A)) {
       if(Ir.is_data_ready()) {
+#if ENABLE_LED
         LedCtrl.set_mode(LED_CONTROL_4, LED_BLINK_ONCE);
+#endif
         Ir.send_bridge_tx_data(Ir.get_rx_data_format(), Ir.rx_data_buf, Ir.rx_data_len);
       }
       sleep_ms(500);
