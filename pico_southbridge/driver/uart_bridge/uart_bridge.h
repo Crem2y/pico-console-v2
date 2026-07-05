@@ -13,9 +13,6 @@ typedef struct _bridge_queue_t {
   size_t tail;
 } bridge_queue_t;
 
-extern volatile bridge_queue_t tx_queue;
-extern volatile bridge_queue_t rx_queue;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,8 +25,8 @@ void uart_bridge_disable_irq(void);
 int uart_bridge_readable(void);
 int uart_bridge_writable(void);
 
-int uart_bridge_send(size_t data_size, const uint8_t* data);
-int uart_bridge_receive(size_t buf_size, uint8_t* data);
+int uart_bridge_write(const uint8_t* data, size_t data_size);
+int uart_bridge_read(uint8_t* data, size_t buf_size);
 
 #ifdef __cplusplus
 }

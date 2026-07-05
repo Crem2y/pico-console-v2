@@ -1,8 +1,8 @@
 #pragma once
 
+#include <stdint.h>
 #include <string.h>
 #include "bridge_commands.h"
-#include "uart_bridge.h"
 
 #define BRIDGE_MSG_QUEUE_SIZE 32
 #define PAYLOAD_MAX_SIZE 16
@@ -30,6 +30,13 @@ typedef struct _bridge_protocol_t {
   uint8_t tail;                       // 0x55
 } bridge_protocol_t;
 
+typedef struct _bridge_transport_t {  
+  int (*readable)(void);  
+  int (*read)(uint8_t*, size_t);  
+  int (*writable)(void);  
+  int (*write)(const uint8_t*, size_t);  
+} bridge_transport_t;
+
 typedef enum {
   SEQ_WAIT_HEADER = 0,
   SEQ_WAIT_COMMAND,
@@ -50,6 +57,7 @@ class bridgeProtocol {
     void process_io(void);
     void dispatch_rx(void);
     void set_cmd_handler(void (*do_cmd)(const bridge_msg_t*));
+    void set_transport_handler(bridge_transport_t* handlers);
 
   private:
     ProtocolSequence parse_seq;
@@ -75,4 +83,8 @@ class bridgeProtocol {
     bridge_protocol_t encode_packet(const bridge_msg_t* msg);
 
     void (*cmd_handler)(const bridge_msg_t*);
+    int (*readable)(void);  
+    int (*read)(uint8_t* buf, size_t max_size);  
+    int (*writable)(void);  
+    int (*write)(const uint8_t* data, size_t size);  
 };

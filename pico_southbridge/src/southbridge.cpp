@@ -43,6 +43,8 @@ int main() {
 //  uartLog_init(HW_LOG_CH, PIN_LOG_TX, PIN_LOG_RX, HW_LOG_BAUD);
   stdio_init_all();
   uart_bridge_init(HW_BRIDGE_CH, PIN_BRIDGE_TX, PIN_BRIDGE_RX, HW_BRIDGE_BAUD);
+  bridge_transport_t transport = {uart_bridge_readable, uart_bridge_read, uart_bridge_writable, uart_bridge_write};
+  Bridge.set_transport_handler(&transport);
   Bridge.set_cmd_handler(bridge_do_cmd);
   MainBridge.init();
   MainBridge.my_info.hw_ver = HW_INFO_VERSION;
