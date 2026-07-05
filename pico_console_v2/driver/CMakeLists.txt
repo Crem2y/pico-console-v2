@@ -1,5 +1,7 @@
 message(STATUS "building drivers...")
 
+add_subdirectory(uart_rx)
+add_subdirectory(uart_tx)
 add_subdirectory(uart_log)
 add_subdirectory(uart_bridge)
 add_subdirectory(led_builtin)
@@ -14,6 +16,8 @@ add_subdirectory(no-OS-FatFS-SD-SDIO-SPI-RPi-Pico/src)
 add_library(driver INTERFACE)
 
 target_link_libraries(driver INTERFACE
+  uart_rx
+  uart_tx
   uart_log
   uart_bridge
   led_builtin
