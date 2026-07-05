@@ -1,10 +1,8 @@
 #include "bridge_control.hpp"
 #include "bridge_protocol.hpp"
 
-extern bridgeProtocol Bridge;
-
-bridgeControl::bridgeControl(void) {
-
+bridgeControl::bridgeControl(bridgeProtocol* bridge) {
+  Bridge = bridge;
 }
 
 void bridgeControl::init(void) {
@@ -26,11 +24,11 @@ void bridgeControl::reset_bridge(void) {
 }
 
 void bridgeControl::send_bridge_hw_info_req(void) {
-  Bridge.send(CMD_HW_INFO_REQ, 0, NULL);
+  Bridge->send(CMD_HW_INFO_REQ, 0, NULL);
 }
 
 void bridgeControl::send_bridge_sw_info_req(void) {
-  Bridge.send(CMD_SW_INFO_REQ, 0, NULL);
+  Bridge->send(CMD_SW_INFO_REQ, 0, NULL);
 }
 
 void bridgeControl::recv_bridge_hw_info_res(const uint8_t* payload, uint8_t payload_size) {

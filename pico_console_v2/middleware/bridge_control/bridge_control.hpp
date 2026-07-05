@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "system_time.h"
+#include "bridge_protocol.hpp"
 
 typedef struct _bridge_info_t {
   uint16_t hw_ver;
@@ -17,7 +18,7 @@ class bridgeControl {
     bool connected;
     bridge_info_t info;
 
-    bridgeControl(void);
+    bridgeControl(bridgeProtocol* bridge);
 
     void init(void);
     void update(void);
@@ -42,4 +43,5 @@ class bridgeControl {
 
   private:
     time_ms_t last_bridge_comm_time;
+    bridgeProtocol* Bridge;
 };

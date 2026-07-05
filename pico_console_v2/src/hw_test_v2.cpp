@@ -25,7 +25,7 @@ imu Imu = imu();
 irLink Ir = irLink();
 
 void core1_entry();
-void bridge_do_cmd(const bridge_msg_t* packet);
+void bridge_cmd_handler(const bridge_msg_t* msg);
 
 static volatile bool card_det_int_pend;
 static volatile uint card_det_int_gpio;
@@ -85,14 +85,15 @@ inline int pio_uart_write_wrapper(const uint8_t* data, size_t data_size) {
 //////// function ////////
 
 int main() { // uses core 0 to sub core
+  // log init
   uartLog_init(HW_LOG_CH, PIN_LOG_TX, PIN_LOG_RX, HW_LOG_BAUD);
+
+  // bridge init
   pio_uart_tx_init(&pio_tx, HW_BRIDGE_PIO, PIN_BRIDGE_TX, HW_BRIDGE_BAUD);
   pio_uart_rx_init(&pio_rx, HW_BRIDGE_PIO, PIN_BRIDGE_RX, HW_BRIDGE_BAUD);
   bridge_transport_t transport = {pio_uart_readable_wrapper, pio_uart_read_wrapper, pio_uart_writeable_wrapper, pio_uart_write_wrapper};
-  //uart_bridge_init(HW_BRIDGE_CH, PIN_BRIDGE_TX, PIN_BRIDGE_RX, HW_BRIDGE_BAUD);
-  //bridge_transport_t transport = {uart_bridge_readable, uart_bridge_read, uart_bridge_writable, uart_bridge_write};
   Bridge.set_transport_handler(&transport);
-  Bridge.set_cmd_handler(bridge_do_cmd);
+  Bridge.set_cmd_handler(bridge_cmd_handler);
   SouthBridge.init();
   sleep_ms(100);
 
@@ -442,15 +443,18 @@ void menu_system_info(void) {
   while(1) {
     sleep_ms(100);
 
-    Graphic.setCursor(0,16);
-    Graphic.printf("SB Connected : %s\n", SouthBridge.connected ? "Yes" : "No ");
+    Graphic.setCursor(0,16*2);
+    Graphic.setTextSize(1);
+    Graphic.printf("SW version(MAIN): 0x%04X\n", SW_INFO_VERSION);
+    Graphic.printf("build date      : %02d%02d%02d %02d%02d%02d\n\n", DATE_YY, DATE_MM, DATE_DD, TIME_HH, TIME_MM, TIME_SS);
+
     Graphic.printf("HW version      : 0x%04X\n", SouthBridge.info.hw_ver);
     Graphic.printf("HW support_flag : 0x%08X\n\n", SouthBridge.info.hw_support);
-    Graphic.printf("SW version(MAIN): 0x%04X\n", SW_INFO_VERSION);
-    Graphic.printf("date:%02d%02d%02d %02d%02d%02d\n", DATE_YY, DATE_MM, DATE_DD, TIME_HH, TIME_MM, TIME_SS);
+
+    Graphic.printf("SB Connected    : %s\n", SouthBridge.connected ? "Yes" : "No ");
     Graphic.printf("SW version (SB) : 0x%04X\n", SouthBridge.info.sw_ver);
-    Graphic.printf("date:%02d %02d\n", SouthBridge.info.build_date, SouthBridge.info.build_time);
-    Graphic.printf("SW support_flag : 0x%08X\n", SouthBridge.info.sw_support);
+    Graphic.printf("build date      : %06d %06d\n", SouthBridge.info.build_date, SouthBridge.info.build_time);
+    Graphic.printf("SW support_flag : 0x%08X\n\n", SouthBridge.info.sw_support);
 
     SouthBridge.read_hw_info();
     SouthBridge.read_sw_info();
@@ -1533,7 +1537,7 @@ void menu_sd_test(void) {
   }
 }
 
-void bridge_do_cmd(const bridge_msg_t* msg) {
+void bridge_cmd_handler(const bridge_msg_t* msg) {
   enum bridge_cmd command = (enum bridge_cmd)msg->cmd;
   SouthBridge.update_last_comm_time();
 
