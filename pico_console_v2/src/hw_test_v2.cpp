@@ -11,10 +11,18 @@ ili9488_40 Lcd = ili9488_40(PIN_DP_MOSI, PIN_DP_SCK, PIN_DP_CS, PIN_DP_DC, PIN_D
 xpt2046 Touch = xpt2046(HW_TOUCH_CH, PIN_TOUCH_MOSI, PIN_TOUCH_SCK, PIN_TOUCH_MISO, PIN_TOUCH_CS, PIN_TOUCH_IRQ);
 pio_uart_tx_t pio_tx;
 pio_uart_rx_t pio_rx;
+#if ENABLE_RFBRIDGE
+pio_uart_tx_t pio_tx_rf;
+pio_uart_rx_t pio_rx_rf;
+#endif
 
 // middleware lib init
 bridgeProtocol Bridge = bridgeProtocol();
-bridgeControl SouthBridge = bridgeControl();
+bridgeControl SouthBridge = bridgeControl(&Bridge);
+#if ENABLE_RFBRIDGE
+bridgeProtocol BridgeRf = bridgeProtocol();
+bridgeControl RfBridge = bridgeControl(&BridgeRf);
+#endif
 power Power = power();
 charger Charger = charger();
 #if ENABLE_LED
@@ -31,6 +39,9 @@ irLink Ir = irLink();
 
 void core1_entry();
 void bridge_cmd_handler(const bridge_msg_t* msg);
+#if ENABLE_RFBRIDGE
+void bridge_cmd_handler_rf(const bridge_msg_t* msg);
+#endif
 
 static volatile bool card_det_int_pend;
 static volatile uint card_det_int_gpio;
@@ -84,6 +95,20 @@ inline int pio_uart_write_wrapper(const uint8_t* data, size_t data_size) {
   return pio_uart_tx_write(&pio_tx, data, data_size);
 }
 
+#if ENABLE_RFBRIDGE
+inline int pio_uart_readable_wrapper_rf(void) {
+  return pio_uart_rx_readable(&pio_rx_rf);
+}
+inline int pio_uart_read_wrapper_rf(uint8_t* data, size_t buf_size) {
+  return pio_uart_rx_read(&pio_rx_rf, data, buf_size);
+}
+inline int pio_uart_writeable_wrapper_rf(void) {
+  return pio_uart_tx_writeable(&pio_tx_rf);
+}
+inline int pio_uart_write_wrapper_rf(const uint8_t* data, size_t data_size) {
+  return pio_uart_tx_write(&pio_tx_rf, data, data_size);
+}
+#endif
 //////// function ////////
 
 int main() { // uses core 0 to sub core
@@ -97,6 +122,15 @@ int main() { // uses core 0 to sub core
   Bridge.set_transport_handler(&transport);
   Bridge.set_cmd_handler(bridge_cmd_handler);
   SouthBridge.init();
+
+#if ENABLE_RFBRIDGE // rf bridge init
+  pio_uart_tx_init(&pio_tx_rf, HW_RF_BRIDGE_PIO, PIN_RF_BRIDGE_TX, HW_RF_BRIDGE_BAUD);
+  pio_uart_rx_init(&pio_rx_rf, HW_RF_BRIDGE_PIO, PIN_RF_BRIDGE_RX, HW_RF_BRIDGE_BAUD);
+  bridge_transport_t transport_rf = {pio_uart_readable_wrapper_rf, pio_uart_read_wrapper_rf, pio_uart_writeable_wrapper_rf, pio_uart_write_wrapper_rf};
+  BridgeRf.set_transport_handler(&transport_rf);
+  BridgeRf.set_cmd_handler(bridge_cmd_handler_rf);
+  RfBridge.init();
+#endif
   sleep_ms(100);
 
 #if ENABLE_LED
@@ -184,10 +218,17 @@ int main() { // uses core 0 to sub core
 
     Bridge.process_io();
     Bridge.dispatch_rx();
+#if ENABLE_RFBRIDGE
+    BridgeRf.process_io();
+    BridgeRf.dispatch_rx();
+#endif
 
     if(system_time_elapsed_ms(now_time, bridge_timer) > 1000) {
       bridge_timer = now_time;
       SouthBridge.update();
+#if ENABLE_RFBRIDGE
+      RfBridge.update();
+#endif
     }
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
@@ -473,9 +514,19 @@ void menu_system_info(void) {
     Graphic.printf("SW version (SB) : 0x%04X\n", SouthBridge.info.sw_ver);
     Graphic.printf("build date      : %06d %06d\n", SouthBridge.info.build_date, SouthBridge.info.build_time);
     Graphic.printf("SW support_flag : 0x%08X\n\n", SouthBridge.info.sw_support);
+#if ENABLE_RFBRIDGE
+    Graphic.printf("RF Connected    : %s\n", RfBridge.connected ? "Yes" : "No ");
+    Graphic.printf("SW version (RF) : 0x%04X\n", RfBridge.info.sw_ver);
+    Graphic.printf("build date      : %06d %06d\n", RfBridge.info.build_date, RfBridge.info.build_time);
+    Graphic.printf("SW support_flag : 0x%08X\n\n", RfBridge.info.sw_support);
+#endif
 
     SouthBridge.read_hw_info();
     SouthBridge.read_sw_info();
+#if ENABLE_RFBRIDGE
+    RfBridge.read_hw_info();
+    RfBridge.read_sw_info();
+#endif
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       return;
@@ -1601,3 +1652,22 @@ void bridge_cmd_handler(const bridge_msg_t* msg) {
     break;
   }
 }
+
+#if ENABLE_RFBRIDGE
+void bridge_cmd_handler_rf(const bridge_msg_t* msg) {
+  enum bridge_cmd command = (enum bridge_cmd)msg->cmd;
+  RfBridge.update_last_comm_time();
+
+  switch (command)
+  {
+  case CMD_HW_INFO_RES:
+    RfBridge.recv_bridge_hw_info_res(msg->payload, msg->payload_size);
+    break;
+  case CMD_SW_INFO_RES:
+    RfBridge.recv_bridge_sw_info_res(msg->payload, msg->payload_size);
+    break;
+  default:
+    break;
+  }
+}
+#endif

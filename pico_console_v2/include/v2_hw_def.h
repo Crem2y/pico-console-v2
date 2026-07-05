@@ -60,3 +60,9 @@
 #define PIN_LED_WL_2    27
 #define PIN_LED_WL_3    28
 #define PIN_LED_WL_4    29
+
+#define PIN_RF_BRIDGE_TX 26
+#define PIN_RF_BRIDGE_RX 27
+    #define HW_RF_BRIDGE_PIO   pio2
+    #define HW_RF_BRIDGE_BAUD  921600
+// reserved 28-29
