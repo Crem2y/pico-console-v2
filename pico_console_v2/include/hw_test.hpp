@@ -9,6 +9,8 @@
 #include "pico/multicore.h"
 
 // drivers
+#include "uart_rx.h"
+#include "uart_tx.h"
 #include "uart_log.h"
 #include "uart_bridge.h"
 #include "led_builtin.h"

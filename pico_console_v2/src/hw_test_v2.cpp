@@ -6,6 +6,8 @@
 ledStatus Led = ledStatus(PIN_LED_WL_1, PIN_LED_WL_2, PIN_LED_WL_3, PIN_LED_WL_4);
 ili9488_40 Lcd = ili9488_40(PIN_DP_MOSI, PIN_DP_SCK, PIN_DP_CS, PIN_DP_DC, PIN_DP_RST, PIN_DP_BL);
 xpt2046 Touch = xpt2046(HW_TOUCH_CH, PIN_TOUCH_MOSI, PIN_TOUCH_SCK, PIN_TOUCH_MISO, PIN_TOUCH_CS, PIN_TOUCH_IRQ);
+pio_uart_tx_t pio_tx;
+pio_uart_rx_t pio_rx;
 
 // middleware lib init
 bridgeProtocol Bridge = bridgeProtocol();
@@ -64,12 +66,31 @@ time_ms_t audio_timer;
 time_ms_t vibration_timer;
 time_ms_t touch_timer;
 
+int inline pio_uart_readable_wrapper(void) {
+  return pio_uart_rx_readable(&pio_rx);
+}
+
+int inline pio_uart_read_wrapper(uint8_t* data, size_t buf_size) {
+  return pio_uart_rx_read(&pio_rx, data, buf_size);
+}
+
+int inline pio_uart_writeable_wrapper(void) {
+  return pio_uart_tx_writeable(&pio_tx);
+}
+
+int inline pio_uart_write_wrapper(const uint8_t* data, size_t data_size) {
+  return pio_uart_tx_write(&pio_tx, data, data_size);
+}
+
 //////// function ////////
 
 int main() { // uses core 0 to sub core
-  // uartLog_init(HW_LOG_CH, PIN_LOG_TX, PIN_LOG_RX, HW_LOG_BAUD);
-  uart_bridge_init(HW_BRIDGE_CH, PIN_BRIDGE_TX, PIN_BRIDGE_RX, HW_BRIDGE_BAUD);
-  bridge_transport_t transport = {uart_bridge_readable, uart_bridge_read, uart_bridge_writable, uart_bridge_write};
+  uartLog_init(HW_LOG_CH, PIN_LOG_TX, PIN_LOG_RX, HW_LOG_BAUD);
+  pio_uart_tx_init(&pio_tx, HW_BRIDGE_PIO, PIN_BRIDGE_TX, HW_BRIDGE_BAUD);
+  pio_uart_rx_init(&pio_rx, HW_BRIDGE_PIO, PIN_BRIDGE_RX, HW_BRIDGE_BAUD);
+  bridge_transport_t transport = {pio_uart_readable_wrapper, pio_uart_read_wrapper, pio_uart_writeable_wrapper, pio_uart_write_wrapper};
+  //uart_bridge_init(HW_BRIDGE_CH, PIN_BRIDGE_TX, PIN_BRIDGE_RX, HW_BRIDGE_BAUD);
+  //bridge_transport_t transport = {uart_bridge_readable, uart_bridge_read, uart_bridge_writable, uart_bridge_write};
   Bridge.set_transport_handler(&transport);
   Bridge.set_cmd_handler(bridge_do_cmd);
   SouthBridge.init();

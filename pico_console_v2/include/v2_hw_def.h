@@ -26,7 +26,7 @@
 // pin definitions
 #define PIN_LOG_TX      0
 #define PIN_LOG_RX      1
-//    #define HW_LOG_CH       uart0
+    #define HW_LOG_CH       uart0
     #define HW_LOG_BAUD     115200
 #define PIN_SDIO_CLK    2
 #define PIN_SDIO_CMD    3
@@ -40,7 +40,8 @@
 // reserved 11
 #define PIN_BRIDGE_TX   12
 #define PIN_BRIDGE_RX   13
-    #define HW_BRIDGE_CH    uart0
+//    #define HW_BRIDGE_CH    uart0
+    #define HW_BRIDGE_PIO   pio1
     #define HW_BRIDGE_BAUD  921600
 #define PIN_DP_CS       14
 #define PIN_DP_DC       15
