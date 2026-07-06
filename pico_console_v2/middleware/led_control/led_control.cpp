@@ -34,7 +34,7 @@ void ledControl::update(void) {
 void ledControl::update_led(enum led_ctrl_name led_name) {
   uint32_t num = led_name;
 
-  if(led_controls[num].pwm_available) {
+  if(!led_controls[num].pwm_available) {
     switch (led_controls[num].mode) {
       case LED_OFF:
         led_controls[num].current_brightness = LED_CTRL_BRIGHTNESS_MIN;

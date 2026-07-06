@@ -72,6 +72,7 @@ static void card_detect_callback(uint gpio, uint32_t events) {
 }
 
 time_ms_t bridge_timer;
+time_ms_t led_timer;
 time_ms_t gamepad_timer;
 time_ms_t temperature_timer;
 time_ms_t audio_timer;
@@ -137,7 +138,7 @@ int main() { // uses core 0 to sub core
   // initalizing hardwares
   Power.init();
   Charger.init();
-  led_config = {.mode = LED_ON, .brightness = 255, .breathing_step = 10};
+  led_config = {.mode = LED_ON, .brightness = 255, .update_interval_ms = 20, .breathing_step = 10};
   LedCtrl.set_config(LED_CTRL_1, led_config);
   LedCtrl.set_config(LED_CTRL_2, led_config);
   LedCtrl.set_config(LED_CTRL_3, led_config);
@@ -222,6 +223,10 @@ int main() { // uses core 0 to sub core
       RfBridge.update();
 #endif
     }
+    if(system_time_elapsed_ms(now_time, led_timer) > 10) {
+      led_timer = now_time;
+      LedCtrl.update();
+    }
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
       Gamepad.update();
@@ -243,7 +248,6 @@ int main() { // uses core 0 to sub core
       Touchscreen.update();
       //LOG_PRINTF("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
     }
-    LedCtrl.update();
     if (card_det_int_pend) {
       process_card_detect_int();
     }
