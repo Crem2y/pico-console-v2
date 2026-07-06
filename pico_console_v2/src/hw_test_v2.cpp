@@ -4,9 +4,7 @@
 #include "v2_hw_def.h"
 
 // hw lib init
-#if ENABLE_LED
 ledStatus Led = ledStatus(PIN_LED_WL_1, PIN_LED_WL_2, PIN_LED_WL_3, PIN_LED_WL_4);
-#endif
 ili9488_40 Lcd = ili9488_40(PIN_DP_MOSI, PIN_DP_SCK, PIN_DP_CS, PIN_DP_DC, PIN_DP_RST, PIN_DP_BL);
 xpt2046 Touch = xpt2046(HW_TOUCH_CH, PIN_TOUCH_MOSI, PIN_TOUCH_SCK, PIN_TOUCH_MISO, PIN_TOUCH_CS, PIN_TOUCH_IRQ);
 pio_uart_tx_t pio_tx;
@@ -25,9 +23,7 @@ bridgeControl RfBridge = bridgeControl(&BridgeRf);
 #endif
 power Power = power();
 charger Charger = charger();
-#if ENABLE_LED
 ledControl LedCtrl = ledControl(&Led);
-#endif
 gamepad Gamepad = gamepad();
 graphicSystem Graphic = graphicSystem(&Lcd);
 audioSystem Audio = audioSystem();
@@ -133,25 +129,21 @@ int main() { // uses core 0 to sub core
 #endif
   sleep_ms(100);
 
-#if ENABLE_LED
   LedCtrl.init();
   led_config_t led_config = {.mode = LED_BLINK_REPEAT, .brightness = 255, .blink_interval_ms = 500};
-  LedCtrl.set_config(LED_CONTROL_BUILT_IN, led_config);
+  LedCtrl.set_config(LED_CTRL_BUILT_IN, led_config);
   LedCtrl.update();
-#endif
 
   // initalizing hardwares
   Power.init();
   Charger.init();
-#if ENABLE_LED
   led_config = {.mode = LED_ON, .brightness = 255, .breathing_step = 10};
-  LedCtrl.set_config(LED_CONTROL_1, led_config);
-  LedCtrl.set_config(LED_CONTROL_2, led_config);
-  LedCtrl.set_config(LED_CONTROL_3, led_config);
-  LedCtrl.set_config(LED_CONTROL_4, led_config);
+  LedCtrl.set_config(LED_CTRL_1, led_config);
+  LedCtrl.set_config(LED_CTRL_2, led_config);
+  LedCtrl.set_config(LED_CTRL_3, led_config);
+  LedCtrl.set_config(LED_CTRL_4, led_config);
   LedCtrl.update();
   LOG_PRINTF("LED ok\n");
-#endif
 #if ENABLE_PSRAM
   int32_t ret = psram_init(PIN_PSRAM_CS);
   if(ret < 0) {
@@ -251,9 +243,7 @@ int main() { // uses core 0 to sub core
       Touchscreen.update();
       //LOG_PRINTF("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
     }
-#if ENABLE_LED
     LedCtrl.update();
-#endif
     if (card_det_int_pend) {
       process_card_detect_int();
     }
@@ -339,12 +329,11 @@ void core1_entry() { // uses core 1 to main core
       }
     }
   }
-#if ENABLE_LED
-  LedCtrl.set_mode(LED_CONTROL_1, LED_DARKER);
-  LedCtrl.set_mode(LED_CONTROL_2, LED_DARKER);
-  LedCtrl.set_mode(LED_CONTROL_3, LED_DARKER);
-  LedCtrl.set_mode(LED_CONTROL_4, LED_DARKER);
-#endif
+
+  LedCtrl.set_mode(LED_CTRL_1, LED_DARKER);
+  LedCtrl.set_mode(LED_CTRL_2, LED_DARKER);
+  LedCtrl.set_mode(LED_CTRL_3, LED_DARKER);
+  LedCtrl.set_mode(LED_CTRL_4, LED_DARKER);
 
   music_note_t boot_notes[2] = {
     {0, 6, 0, 32},   // C6
@@ -908,10 +897,10 @@ void menu_led_test(void) {
   };
 
   led_config_t led_config = {.mode = (enum led_ctrl_mode)now_mode, .brightness = 255, .blink_interval_ms = 500, .breathing_step = 5};
-  LedCtrl.set_config(LED_CONTROL_1, led_config);
-  LedCtrl.set_config(LED_CONTROL_2, led_config);
-  LedCtrl.set_config(LED_CONTROL_3, led_config);
-  LedCtrl.set_config(LED_CONTROL_4, led_config);
+  LedCtrl.set_config(LED_CTRL_1, led_config);
+  LedCtrl.set_config(LED_CTRL_2, led_config);
+  LedCtrl.set_config(LED_CTRL_3, led_config);
+  LedCtrl.set_config(LED_CTRL_4, led_config);
 
   while(1) {
     sleep_ms(100);
@@ -920,19 +909,19 @@ void menu_led_test(void) {
       now_mode++;
       if(now_mode > LED_BREATHING_REPEAT) now_mode = (int)LED_OFF;
 
-      LedCtrl.set_mode(LED_CONTROL_1, (enum led_ctrl_mode)now_mode);
-      LedCtrl.set_mode(LED_CONTROL_2, (enum led_ctrl_mode)now_mode);
-      LedCtrl.set_mode(LED_CONTROL_3, (enum led_ctrl_mode)now_mode);
-      LedCtrl.set_mode(LED_CONTROL_4, (enum led_ctrl_mode)now_mode);
+      LedCtrl.set_mode(LED_CTRL_1, (enum led_ctrl_mode)now_mode);
+      LedCtrl.set_mode(LED_CTRL_2, (enum led_ctrl_mode)now_mode);
+      LedCtrl.set_mode(LED_CTRL_3, (enum led_ctrl_mode)now_mode);
+      LedCtrl.set_mode(LED_CTRL_4, (enum led_ctrl_mode)now_mode);
     }
     Graphic.setCursor(0,16);
     Graphic.printf("LED mode : %s", led_mode_string[now_mode]);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
-      LedCtrl.set_mode(LED_CONTROL_1, LED_OFF);
-      LedCtrl.set_mode(LED_CONTROL_2, LED_OFF);
-      LedCtrl.set_mode(LED_CONTROL_3, LED_OFF);
-      LedCtrl.set_mode(LED_CONTROL_4, LED_OFF);
+      LedCtrl.set_mode(LED_CTRL_1, LED_OFF);
+      LedCtrl.set_mode(LED_CTRL_2, LED_OFF);
+      LedCtrl.set_mode(LED_CTRL_3, LED_OFF);
+      LedCtrl.set_mode(LED_CTRL_4, LED_OFF);
       return;
     }
   }
@@ -1410,11 +1399,9 @@ void menu_ir_test(void) {
 
   Graphic.setCursor(0,16);
   Graphic.print("press START to change format");
-#if ENABLE_LED
   led_config_t led_config = {.mode = LED_OFF, .brightness = 255, .blink_interval_ms = 100};
-  LedCtrl.set_config(LED_CONTROL_1, led_config); // RX indicator
-  LedCtrl.set_config(LED_CONTROL_4, led_config); // TX indicator
-#endif
+  LedCtrl.set_config(LED_CTRL_1, led_config); // RX indicator
+  LedCtrl.set_config(LED_CTRL_4, led_config); // TX indicator
   Ir.set_enable_tx(true, IR_FORMAT_MANUAL);
   Ir.set_enable_rx(true, IR_FORMAT_MANUAL);
   
@@ -1447,9 +1434,7 @@ void menu_ir_test(void) {
 
     if(Gamepad.is_btn_pressed(BTN_A)) {
       if(Ir.is_data_ready()) {
-#if ENABLE_LED
-        LedCtrl.set_mode(LED_CONTROL_4, LED_BLINK_ONCE);
-#endif
+        LedCtrl.set_mode(LED_CTRL_4, LED_BLINK_ONCE);
         Ir.send_bridge_tx_data(Ir.get_rx_data_format(), Ir.rx_data_buf, Ir.rx_data_len);
       }
       sleep_ms(500);

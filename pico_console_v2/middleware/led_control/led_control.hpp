@@ -10,11 +10,11 @@
 #define LED_CTRL_BRIGHTNESS_MIN 0
 
 enum led_ctrl_name {
-  LED_CONTROL_BUILT_IN = 0,
-  LED_CONTROL_1,
-  LED_CONTROL_2,
-  LED_CONTROL_3,
-  LED_CONTROL_4,
+  LED_CTRL_BUILT_IN = 0,
+  LED_CTRL_1,
+  LED_CTRL_2,
+  LED_CTRL_3,
+  LED_CTRL_4,
 };
 
 enum led_ctrl_mode {
@@ -29,6 +29,7 @@ enum led_ctrl_mode {
 };
 
 typedef struct _led_control_t {
+  bool pwm_available;  
   enum led_ctrl_mode mode;
   uint8_t brightness;
   uint8_t current_brightness;
@@ -54,6 +55,7 @@ class ledControl {
     void update(void);
 
     void update_led(enum led_ctrl_name led_name);
+    void write_leds(void);
 
     void set_config(enum led_ctrl_name led_name, led_config_t config);
     void set_mode(enum led_ctrl_name led_name, enum led_ctrl_mode mode);

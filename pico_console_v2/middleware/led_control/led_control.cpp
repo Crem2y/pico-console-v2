@@ -9,6 +9,7 @@ void ledControl::init(void) {
   led->init();
 
   for(int i=0; i<LED_CTRL_NUM; i++) {
+    led_controls[i].pwm_available = true;
     led_controls[i].mode = LED_OFF;
     led_controls[i].brightness = LED_CTRL_BRIGHTNESS_MIN;
     led_controls[i].current_brightness = LED_CTRL_BRIGHTNESS_MIN;
@@ -16,6 +17,8 @@ void ledControl::init(void) {
     led_controls[i].blink_last_update_ms = 0;
     led_controls[i].breathing_step = 10;
   }
+  led_controls[LED_CTRL_BUILT_IN].pwm_available = false;
+
   update();
 }
 
@@ -25,28 +28,25 @@ void ledControl::update(void) {
   for(int i=0; i<LED_CTRL_NUM; i++) {
     update_led((enum led_ctrl_name)i);
   }
+  write_leds();
 }
 
 void ledControl::update_led(enum led_ctrl_name led_name) {
   uint32_t num = led_name;
 
-  if(led_name == LED_CONTROL_BUILT_IN) {
+  if(led_controls[num].pwm_available) {
     switch (led_controls[num].mode) {
       case LED_OFF:
-        built_in_led_set(0);
         led_controls[num].current_brightness = LED_CTRL_BRIGHTNESS_MIN;
         break;
       case LED_ON:
-        built_in_led_set(1);
         led_controls[num].current_brightness = LED_CTRL_BRIGHTNESS_MAX;
         break;
       case LED_BLINK_ONCE:
         if(system_time_elapsed_ms(current_time_ms, led_controls[num].blink_last_update_ms) >= led_controls[num].blink_interval_ms) {
           if (led_controls[num].current_brightness == 0) {
-            built_in_led_set(1);
             led_controls[num].current_brightness = LED_CTRL_BRIGHTNESS_MAX;
           } else {
-            built_in_led_set(0);
             led_controls[num].mode = LED_OFF;
             led_controls[num].current_brightness = LED_CTRL_BRIGHTNESS_MIN;
           }
@@ -56,10 +56,8 @@ void ledControl::update_led(enum led_ctrl_name led_name) {
       case LED_BLINK_REPEAT:
         if(system_time_elapsed_ms(current_time_ms, led_controls[num].blink_last_update_ms) >= led_controls[num].blink_interval_ms) {
           if (led_controls[num].current_brightness == 0) {
-            built_in_led_set(1);
             led_controls[num].current_brightness = LED_CTRL_BRIGHTNESS_MAX;
           } else {
-            built_in_led_set(0);
             led_controls[num].current_brightness = LED_CTRL_BRIGHTNESS_MIN;
           }
           led_controls[num].blink_last_update_ms = current_time_ms;
@@ -72,48 +70,35 @@ void ledControl::update_led(enum led_ctrl_name led_name) {
   } else {
     switch (led_controls[num].mode) {
     case LED_OFF:
-      led->set_bright(num, LED_PWM_MIN);
       led_controls[num].current_brightness = LED_CTRL_BRIGHTNESS_MIN;
       break;
     case LED_ON:
-    {
-      uint16_t led_pwm = (uint16_t)(led_controls[num].brightness * ((float)LED_PWM_MAX/LED_CTRL_BRIGHTNESS_MAX));
-      led->set_bright(num, led_pwm);
       led_controls[num].current_brightness = led_controls[num].brightness;
       break;
-    }
     case LED_BLINK_ONCE:
       if(system_time_elapsed_ms(current_time_ms, led_controls[num].blink_last_update_ms) >= led_controls[num].blink_interval_ms) {
-          if (led_controls[num].current_brightness == 0) {
-            uint16_t led_pwm = (uint16_t)(led_controls[num].brightness * ((float)LED_PWM_MAX/LED_CTRL_BRIGHTNESS_MAX));
-            led->set_bright(num, led_pwm);
-            led_controls[num].current_brightness = led_controls[num].brightness;
-          } else {
-            led->set_bright(num, LED_PWM_MIN);
-            led_controls[num].mode = LED_OFF;
-            led_controls[num].current_brightness = LED_CTRL_BRIGHTNESS_MIN;
-          }
-          led_controls[num].blink_last_update_ms = current_time_ms;
+        if (led_controls[num].current_brightness == LED_CTRL_BRIGHTNESS_MIN) {
+          led_controls[num].current_brightness = led_controls[num].brightness;
+        } else {
+          led_controls[num].mode = LED_OFF;
+          led_controls[num].current_brightness = LED_CTRL_BRIGHTNESS_MIN;
         }
+        led_controls[num].blink_last_update_ms = current_time_ms;
+      }
       break;
     case LED_BLINK_REPEAT:
       if(system_time_elapsed_ms(current_time_ms, led_controls[num].blink_last_update_ms) >= led_controls[num].blink_interval_ms) {
-          if (led_controls[num].current_brightness == 0) {
-            uint16_t led_pwm = (uint16_t)(led_controls[num].brightness * ((float)LED_PWM_MAX/LED_CTRL_BRIGHTNESS_MAX));
-            led->set_bright(num, led_pwm);
-            led_controls[num].current_brightness = led_controls[num].brightness;
-          } else {
-            led->set_bright(num, LED_PWM_MIN);
-            led_controls[num].current_brightness = LED_CTRL_BRIGHTNESS_MIN;
-          }
-          led_controls[num].blink_last_update_ms = current_time_ms;
+        if (led_controls[num].current_brightness == LED_CTRL_BRIGHTNESS_MIN) {
+          led_controls[num].current_brightness = led_controls[num].brightness;
+        } else {
+          led_controls[num].current_brightness = LED_CTRL_BRIGHTNESS_MIN;
         }
+        led_controls[num].blink_last_update_ms = current_time_ms;
+      }
       break;
     case LED_BRIGHTER:
       if(system_time_elapsed_ms(current_time_ms, led_controls[num].breathing_last_update_ms) >= 20) {
         if(led_controls[num].current_brightness < LED_CTRL_BRIGHTNESS_MAX) {
-          uint16_t led_pwm = (uint16_t)(led_controls[num].current_brightness * ((float)LED_PWM_MAX/LED_CTRL_BRIGHTNESS_MAX));
-          led->set_bright(num, led_pwm);
           if (led_controls[num].current_brightness < LED_CTRL_BRIGHTNESS_MAX - led_controls[num].breathing_step) {
             led_controls[num].current_brightness += led_controls[num].breathing_step;
           } else {
@@ -127,8 +112,6 @@ void ledControl::update_led(enum led_ctrl_name led_name) {
     case LED_DARKER:
       if(system_time_elapsed_ms(current_time_ms, led_controls[num].breathing_last_update_ms) >= 20) {
         if(led_controls[num].current_brightness > LED_CTRL_BRIGHTNESS_MIN) {
-          uint16_t led_pwm = (uint16_t)(led_controls[num].current_brightness * ((float)LED_PWM_MAX/LED_CTRL_BRIGHTNESS_MAX));
-          led->set_bright(num, led_pwm);
           if (led_controls[num].current_brightness > led_controls[num].breathing_step) {
             led_controls[num].current_brightness -= led_controls[num].breathing_step;
           } else {
@@ -141,8 +124,6 @@ void ledControl::update_led(enum led_ctrl_name led_name) {
       break;
     case LED_BREATHING_ONCE:
       if(system_time_elapsed_ms(current_time_ms, led_controls[num].breathing_last_update_ms) >= 20) {
-        uint16_t led_pwm = (uint16_t)(led_controls[num].current_brightness * ((float)LED_PWM_MAX/LED_CTRL_BRIGHTNESS_MAX));
-        led->set_bright(num, led_pwm);
         if (led_controls[num].breathing_direction) {
           if (led_controls[num].current_brightness < LED_CTRL_BRIGHTNESS_MAX - led_controls[num].breathing_step) {
             led_controls[num].current_brightness += led_controls[num].breathing_step;
@@ -163,8 +144,6 @@ void ledControl::update_led(enum led_ctrl_name led_name) {
       break;
     case LED_BREATHING_REPEAT:
       if(system_time_elapsed_ms(current_time_ms, led_controls[num].breathing_last_update_ms) >= 20) {
-        uint16_t led_pwm = (uint16_t)(led_controls[num].current_brightness * ((float)LED_PWM_MAX/LED_CTRL_BRIGHTNESS_MAX));
-        led->set_bright(num, led_pwm);
         if (led_controls[num].breathing_direction) {
           if (led_controls[num].current_brightness < LED_CTRL_BRIGHTNESS_MAX - led_controls[num].breathing_step) {
             led_controls[num].current_brightness += led_controls[num].breathing_step;
@@ -185,6 +164,18 @@ void ledControl::update_led(enum led_ctrl_name led_name) {
       break;
     default:
       break;
+    }
+  }
+}
+
+void ledControl::write_leds(void) {
+  for(int i=0; i<LED_CTRL_NUM; i++) {
+    if(i == LED_CTRL_BUILT_IN) {
+      bool state = (led_controls[i].current_brightness != LED_CTRL_BRIGHTNESS_MIN);
+      built_in_led_set(state);
+    } else {
+      uint16_t led_pwm = (uint16_t)(led_controls[i].current_brightness * ((float)LED_PWM_MAX / LED_CTRL_BRIGHTNESS_MAX));
+      led->set_bright(i, led_pwm);
     }
   }
 }
