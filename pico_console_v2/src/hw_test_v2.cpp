@@ -130,7 +130,7 @@ int main() { // uses core 0 to sub core
   sleep_ms(100);
 
   LedCtrl.init();
-  led_config_t led_config = {.mode = LED_BLINK_REPEAT, .brightness = 255, .blink_interval_ms = 500};
+  led_config_t led_config = {.mode = LED_BLINK_REPEAT, .brightness = 255, .update_interval_ms = 500};
   LedCtrl.set_config(LED_CTRL_BUILT_IN, led_config);
   LedCtrl.update();
 
@@ -884,6 +884,9 @@ void menu_led_test(void) {
   Graphic.setCursor(0,0);
   Graphic.print("LED test");
 
+  Graphic.setCursor(0,16);
+  Graphic.print("press START to change mode");
+
   int now_mode = LED_OFF;
   const char* led_mode_string[] = {
     "LED_OFF             ",
@@ -896,7 +899,7 @@ void menu_led_test(void) {
     "LED_BREATHING_REPEAT",
   };
 
-  led_config_t led_config = {.mode = (enum led_ctrl_mode)now_mode, .brightness = 255, .blink_interval_ms = 500, .breathing_step = 5};
+  led_config_t led_config = {.mode = (enum led_ctrl_mode)now_mode, .brightness = 255, .update_interval_ms = 500, .breathing_step = 5};
   LedCtrl.set_config(LED_CTRL_1, led_config);
   LedCtrl.set_config(LED_CTRL_2, led_config);
   LedCtrl.set_config(LED_CTRL_3, led_config);
@@ -907,14 +910,23 @@ void menu_led_test(void) {
 
     if(Gamepad.get_btn_released_duration(BTN_START) && Gamepad.get_btn_released_duration(BTN_START) < 100) {
       now_mode++;
-      if(now_mode > LED_BREATHING_REPEAT) now_mode = (int)LED_OFF;
 
-      LedCtrl.set_mode(LED_CTRL_1, (enum led_ctrl_mode)now_mode);
-      LedCtrl.set_mode(LED_CTRL_2, (enum led_ctrl_mode)now_mode);
-      LedCtrl.set_mode(LED_CTRL_3, (enum led_ctrl_mode)now_mode);
-      LedCtrl.set_mode(LED_CTRL_4, (enum led_ctrl_mode)now_mode);
+      if(now_mode == LED_BLINK_ONCE || now_mode == LED_BLINK_REPEAT) {
+        led_config.update_interval_ms = 500;
+      } else if(now_mode == LED_BRIGHTER || now_mode == LED_DARKER ||
+          now_mode == LED_BREATHING_ONCE || now_mode == LED_BREATHING_REPEAT) {
+        led_config.update_interval_ms = 20;
+      } else if(now_mode > LED_BREATHING_REPEAT) {
+        now_mode = (int)LED_OFF;
+      }
+      led_config.mode = (enum led_ctrl_mode)now_mode;
+
+      LedCtrl.set_config(LED_CTRL_1, led_config);
+      LedCtrl.set_config(LED_CTRL_2, led_config);
+      LedCtrl.set_config(LED_CTRL_3, led_config);
+      LedCtrl.set_config(LED_CTRL_4, led_config);
     }
-    Graphic.setCursor(0,16);
+    Graphic.setCursor(0,16*2);
     Graphic.printf("LED mode : %s", led_mode_string[now_mode]);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
@@ -1399,7 +1411,7 @@ void menu_ir_test(void) {
 
   Graphic.setCursor(0,16);
   Graphic.print("press START to change format");
-  led_config_t led_config = {.mode = LED_OFF, .brightness = 255, .blink_interval_ms = 100};
+  led_config_t led_config = {.mode = LED_OFF, .brightness = 255, .update_interval_ms = 100};
   LedCtrl.set_config(LED_CTRL_1, led_config); // RX indicator
   LedCtrl.set_config(LED_CTRL_4, led_config); // TX indicator
   Ir.set_enable_tx(true, IR_FORMAT_MANUAL);

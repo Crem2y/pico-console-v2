@@ -33,17 +33,16 @@ typedef struct _led_control_t {
   enum led_ctrl_mode mode;
   uint8_t brightness;
   uint8_t current_brightness;
-  time_ms_t blink_interval_ms;
-  time_ms_t blink_last_update_ms;
+  time_ms_t update_interval_ms;
+  time_ms_t last_update_ms;
   uint8_t breathing_step;
-  time_ms_t breathing_last_update_ms;
   uint32_t breathing_direction; // 1 for increasing brightness, 0 for decreasing brightness
 } led_control_t;
 
 typedef struct _led_config_t {
   enum led_ctrl_mode mode;
   uint8_t brightness;
-  time_ms_t blink_interval_ms;
+  time_ms_t update_interval_ms;
   uint8_t breathing_step;
 } led_config_t;
 
