@@ -111,6 +111,7 @@ inline int pio_uart_write_wrapper_rf(const uint8_t* data, size_t data_size) {
 int main() { // uses core 0 to sub core
   // log init
   uartLog_init(HW_LOG_CH, PIN_LOG_TX, PIN_LOG_RX, HW_LOG_BAUD);
+  uartLog_print("\n\npico console V2 init...\n\n");
 
   // bridge init
   pio_uart_tx_init(&pio_tx, HW_BRIDGE_PIO, PIN_BRIDGE_TX, HW_BRIDGE_BAUD);
@@ -144,14 +145,14 @@ int main() { // uses core 0 to sub core
   LedCtrl.set_config(LED_CTRL_3, led_config);
   LedCtrl.set_config(LED_CTRL_4, led_config);
   LedCtrl.update();
-  LOG_PRINTF("LED ok\n");
+  LOGI("LED ok\n");
 #if ENABLE_PSRAM
   int32_t ret = psram_init(PIN_PSRAM_CS);
   if(ret < 0) {
-    LOG_PRINTF("PSRAM error : %d", ret);
+    LOGE("PSRAM error : %d", ret);
     while(1);
   }
-  LOG_PRINTF("PSRAM ok\n");
+  LOGI("PSRAM ok\n");
 #endif
   Graphic.begin();
   Graphic.fillScreen(LCD_BLACK);
@@ -159,49 +160,49 @@ int main() { // uses core 0 to sub core
   Graphic.setTextColor(LCD_WHITE, LCD_BLACK);
   Graphic.setTextSize(1);
   Graphic.set_font(G_FONT_5X8);
-  LOG_PRINTF("LCD ok\n");
+  LOGI("LCD ok\n");
   Graphic.setCursor(0,0);
   Graphic.print("Touch init...");
   Touchscreen.init();
   Touchscreen.set_screen_size(480, 320);
   Touchscreen.set_calibration(200, 3800, 200, 3800); //placeholder
   Touchscreen.set_rotation(0);
-  LOG_PRINTF("Touch ok\n");
+  LOGI("Touch ok\n");
   Graphic.setCursor(0,0);
   Graphic.print("Gamepad init...");
   Gamepad.init();
   Gamepad.set_enable(true, false);
-  LOG_PRINTF("Gamepad ok\n");
+  LOGI("Gamepad ok\n");
   Graphic.setCursor(0,0);
   Graphic.print("TEMP init...");
   Temperature.init();
-  LOG_PRINTF("TEMP ok\n");
+  LOGI("TEMP ok\n");
   Graphic.setCursor(0,0);
   Graphic.print("LRA init...");
   Vibration.init();
-  LOG_PRINTF("Vibration ok\n");
+  LOGI("Vibration ok\n");
   Graphic.setCursor(0,0);
   Graphic.print("IMU init...");
   Imu.init();
-  LOG_PRINTF("IMU ok\n");
+  LOGI("IMU ok\n");
   Graphic.setCursor(0,0);
   Graphic.print("IR init...");
   Ir.init();
-  LOG_PRINTF("IR ok\n");
+  LOGI("IR ok\n");
   Graphic.setCursor(0,0);
   Graphic.print("SD init...");
   sd_init_driver();
   sd_card_t *sd_card_p = sd_get_by_num(0);
-  LOG_PRINTF("SD ok\n");
+  LOGI("SD ok\n");
   Graphic.setCursor(0,0);
   Graphic.print("               ");
-  LOG_PRINTF("all HWs ok!\n");
-  LOG_PRINTF("core freq = %ld hz\n", SYS_CLK_KHZ * 1000);
+  LOGI("all HWs ok!\n");
+  LOGI("core freq = %ld hz\n", SYS_CLK_KHZ * 1000);
   // hardware initalized
 
   uart_bridge_enable_irq();
 
-  LOG_PRINTF("go to main loop\n");
+  LOGI("go to main loop\n");
   multicore_launch_core1(core1_entry);
   // multicore_fifo_push_blocking(1);
   // boot sequence end
@@ -246,7 +247,7 @@ int main() { // uses core 0 to sub core
     if(system_time_elapsed_ms(now_time, touch_timer) > 10) {
       touch_timer = now_time;
       Touchscreen.update();
-      //LOG_PRINTF("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
+      //LOGI("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
     }
     if (card_det_int_pend) {
       process_card_detect_int();

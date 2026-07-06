@@ -23,7 +23,7 @@ enum log_level {
 #define LOGW(...) uartLog_printf(LOG_WARN,  __VA_ARGS__)
 #define LOGI(...) uartLog_printf(LOG_INFO,  __VA_ARGS__)
 #define LOGD(...) uartLog_printf(LOG_DEBUG, __VA_ARGS__)
-#define LOGT(...) uartLog_printf(LOG_DEBUG, __VA_ARGS__)
+#define LOGT(...) uartLog_printf(LOG_TRACE, __VA_ARGS__)
 
 #ifdef __cplusplus
 extern "C" {
