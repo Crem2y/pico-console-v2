@@ -52,3 +52,7 @@ MIT license, all text above must be included in any redistribution
 
 - **Neo 둥근모**, licensed under the **SIL Open Font License 1.1 (OFL)**.  
   See `Neo둥근모-OFL.txt`.
+```
+  Copyright © 2017-2024, Eunbin Jeong (Dalgona.) <project-neodgm@dalgona.dev>
+  with reserved font name "Neo둥근모" and "NeoDunggeunmo".
+```
