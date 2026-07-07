@@ -4,7 +4,8 @@
 #include "hardware/uart.h"
 #include "hardware/irq.h"
 
-#define UART_BRIDGE_BUF_SIZE 128
+#define UART_BRIDGE_TX_BUF_SIZE (4 * 1024)
+#define UART_BRIDGE_RX_BUF_SIZE (1 * 1024)
 
 typedef struct _bridge_queue_t {
   volatile char* buf;

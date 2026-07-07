@@ -8,30 +8,34 @@ static int _baudrate;
 volatile bridge_queue_t tx_queue;
 volatile bridge_queue_t rx_queue;
 
-volatile char bridge_tx_buf[UART_BRIDGE_BUF_SIZE];
-volatile char bridge_rx_buf[UART_BRIDGE_BUF_SIZE];
+volatile char bridge_tx_buf[UART_BRIDGE_TX_BUF_SIZE];
+volatile char bridge_rx_buf[UART_BRIDGE_RX_BUF_SIZE];
 
-void uart_irq_tx(void) {
+volatile void uart_irq_tx(void) {
   while (uart_is_writable(_uart) && tx_queue.head != tx_queue.tail) {
-    uart_putc(_uart, tx_queue.buf[tx_queue.head]);
+    uart_putc_raw(_uart, tx_queue.buf[tx_queue.head]);
     tx_queue.head = (tx_queue.head + 1) % tx_queue.buf_size;
   }
 }
 
-void uart_irq_rx(void) {
+volatile void uart_irq_rx(void) {
   while (uart_is_readable(_uart) && ((rx_queue.tail + 1) % rx_queue.buf_size) != rx_queue.head) {
     rx_queue.buf[rx_queue.tail] = uart_getc(_uart);
     rx_queue.tail = (rx_queue.tail + 1) % rx_queue.buf_size;
   }
 }
 
-void on_uart_irq(void) {
+volatile void on_uart_irq(void) {
   if (uart_is_readable(_uart)) {
     uart_irq_rx();
   }
-  // if (uart_is_writable(_uart)) {
-  //   uart_irq_tx();
-  // }
+  if (uart_is_writable(_uart) && (tx_queue.head != tx_queue.tail)) {
+    uart_irq_tx();
+  }
+
+  if (tx_queue.head == tx_queue.tail) {
+    uart_set_irq_enables(_uart, true, false);
+  }
 }
 
 void uart_bridge_init(uart_inst_t* uart, int tx_pin, int rx_pin, int baudrate) {
@@ -113,24 +117,29 @@ int uart_bridge_readable(void) {
  * @return int buffer size (0-UART_BRIDGE_BUF_SIZE)
  */
 int uart_bridge_writable(void) {
-  //return (tx_queue.head + tx_queue.buf_size - tx_queue.tail) % tx_queue.buf_size;
-  return UART_BRIDGE_BUF_SIZE; // test
+  size_t used = (tx_queue.tail + tx_queue.buf_size - tx_queue.head) % tx_queue.buf_size;
+  return tx_queue.buf_size - 1 - used;
 }
 
 int uart_bridge_write(const uint8_t* data, size_t data_size) {
-  if (data_size > UART_BRIDGE_BUF_SIZE || data == NULL) {
-    return -1; // Data size exceeds buffer size or data is NULL
+  if (data == NULL) return -1;
+
+  size_t writeable_bytes = uart_bridge_writable();
+  size_t write_size = writeable_bytes > data_size ? data_size : writeable_bytes;
+  for (size_t i = 0; i < write_size; i++) {
+    tx_queue.buf[(tx_queue.tail + i) % tx_queue.buf_size] = data[i];
   }
+  tx_queue.tail = (tx_queue.tail + write_size) % tx_queue.buf_size;
 
-  uart_write_blocking(_uart, data, data_size);
+  uart_set_irq_enables(_uart, true, true);
 
-  return data_size; // Success
+  return write_size; // Success
 }
 
+
 int uart_bridge_read(uint8_t* data, size_t buf_size) {
-  if (data == NULL) {
-    return -1;
-  }
+  if (data == NULL) return -1;
+
   size_t readable_bytes = uart_bridge_readable();
   size_t read_size = readable_bytes > buf_size ? buf_size : readable_bytes;
   for (size_t i = 0; i < read_size; i++) {
