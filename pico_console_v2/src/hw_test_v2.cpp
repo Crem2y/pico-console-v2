@@ -50,12 +50,12 @@ static void process_card_detect_int() {
             continue;
         if (sd_card_p->card_detect_gpio == card_det_int_gpio) {
             if (sd_card_p->state.mounted) {
-                DBG_PRINTF("(Card Detect Interrupt: unmounting %s)\n", sd_get_drive_prefix(sd_card_p));
+                LOGW("(Card Detect Interrupt: unmounting %s)\n", sd_get_drive_prefix(sd_card_p));
                 FRESULT fr = f_unmount(sd_get_drive_prefix(sd_card_p));
                 if (FR_OK == fr) {
                     sd_card_p->state.mounted = false;
                 } else {
-                    printf("f_unmount error: %s (%d)\n", FRESULT_str(fr), fr);
+                    LOGE("f_unmount error: %s (%d)\n", FRESULT_str(fr), fr);
                 }
             }
             sd_card_p->state.m_Status |= STA_NOINIT;  // in case medium is removed
@@ -111,7 +111,7 @@ inline int pio_uart_write_wrapper_rf(const uint8_t* data, size_t data_size) {
 int main() { // uses core 0 to sub core
   // log init
   uartLog_init(HW_LOG_CH, PIN_LOG_TX, PIN_LOG_RX, HW_LOG_BAUD);
-  uartLog_print("\n\npico console V2 init...\n\n");
+  uartLog_print("\n\npico console V2 booting...\n\n");
 
   // bridge init
   pio_uart_tx_init(&pio_tx, HW_BRIDGE_PIO, PIN_BRIDGE_TX, HW_BRIDGE_BAUD);
@@ -200,8 +200,6 @@ int main() { // uses core 0 to sub core
   LOGI("core freq = %ld hz\n", SYS_CLK_KHZ * 1000);
   // hardware initalized
 
-  uart_bridge_enable_irq();
-
   LOGI("go to main loop\n");
   multicore_launch_core1(core1_entry);
   // multicore_fifo_push_blocking(1);
@@ -247,7 +245,7 @@ int main() { // uses core 0 to sub core
     if(system_time_elapsed_ms(now_time, touch_timer) > 10) {
       touch_timer = now_time;
       Touchscreen.update();
-      //LOGI("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
+      //LOGT("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
     }
     if (card_det_int_pend) {
       process_card_detect_int();

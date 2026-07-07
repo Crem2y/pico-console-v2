@@ -1,9 +1,9 @@
 #pragma once
 
 #include <stdio.h>
+#include <string.h>
 
-#include "pico/stdlib.h"
-#include "hardware/uart.h"
+#include "uart_bridge.h"
 
 enum log_level {
   LOG_ERROR = 0,
@@ -30,7 +30,6 @@ extern "C" {
 #endif
 
 void uartLog_init(uart_inst_t* _uart, int tx_pin, int rx_pin, int baudrate);
-void uartLog_set_baudrate(int baudrate);
 
 void uartLog_set_level(enum log_level level);
 void uartLog_print(const char *s);
