@@ -36,7 +36,8 @@ class audioSystem {
     void init(void);
     void update(void);
 
-    void play_music(music_table_t* music_table); //placeholder
+    void play_music(music_table_t* music_table, bool loop); //placeholder
+    void stop_music(void);
 
     void play_note(uint8_t ch, uint8_t octave, uint8_t note, uint8_t volume) {
       send_bridge_note_data(ch, sound_freq_table[octave][note], volume);
@@ -75,4 +76,5 @@ class audioSystem {
     uint32_t current_note_len;
     uint32_t current_note_index;
     time_ms_t current_note_duration_ms;
+    bool current_table_looping;
 };

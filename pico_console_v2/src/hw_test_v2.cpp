@@ -356,7 +356,7 @@ void core1_entry() { // uses core 1 to main core
 
   // if SELECT+START, quiet boot
   if(!Gamepad.is_btn_pressed(BTN_SELECT)) {
-    Audio.play_music(&boot_music);
+    Audio.play_music(&boot_music, false);
   }
 
   uint8_t cursor_x = 0;
@@ -1128,6 +1128,19 @@ void menu_touch_test(void) {
   }
 }
 
+music_note_t test_notes[4] = {
+  {0, 4, 0, 32},   // C4
+  {1, 4, 4, 32},   // E4
+  {2, 4, 7, 32},   // G4
+  {3, 5, 0, 32}    // C5
+};
+
+music_table_t test_music = {
+  .len = 4,
+  .note_duration_ms = 100,
+  .notes = test_notes
+};
+
 void menu_audio_test(void) {
   Graphic.setTextSize(1);
   Graphic.setCursor(0,320-8);
@@ -1138,19 +1151,6 @@ void menu_audio_test(void) {
 
   Graphic.setCursor(0,16);
   Graphic.print("A : play music, B : play sound");
-
-  music_note_t test_notes[4] = {
-    {0, 4, 0, 32},   // C4
-    {1, 4, 4, 32},   // E4
-    {2, 4, 7, 32},   // G4
-    {3, 5, 0, 32}    // C5
-  };
-
-  music_table_t test_music = {
-    .len = 4,
-    .note_duration_ms = 100,
-    .notes = test_notes
-  };
 
   for(int i=0; i<4; i++) {
     Audio.set_env(i, 25000, 1);
@@ -1167,12 +1167,15 @@ void menu_audio_test(void) {
   uint8_t env_step = 1;
   // pitch envelope config
   int32_t pit_tick = 25000;
-  int8_t pit_target = 127;
-  uint8_t pit_step = 2;
+  int8_t pit_target = 0;
+  uint8_t pit_step = 1;
 
   Audio.set_wave(4, (wave_t)wave_num);
   Audio.set_env(4, env_tick, env_step);
   Audio.set_pitch_env(4, pit_tick, pit_target, pit_step);
+
+  Audio.set_wave(0, WAVE_SQUARE_50);
+  Audio.set_env(0, 25000, 1);
 
   while(1) {
     sleep_ms(10);
@@ -1276,7 +1279,10 @@ void menu_audio_test(void) {
     }
 
     if(Gamepad.is_btn_pressed(BTN_A)) {
-      Audio.play_music(&test_music);
+      Audio.play_music(&test_music, false);
+    }
+    if(Gamepad.is_btn_pressed(BTN_X)) {
+      Audio.stop_music();
     }
     if(Gamepad.is_btn_pressed(BTN_B)) {
       if(wave_num == WAVE_NOISE) {
