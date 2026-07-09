@@ -22,10 +22,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: carlosperate/arm-none-eabi-gcc-action@v1.10.1
+    - uses: carlosperate/arm-none-eabi-gcc-action@v1
 
     - name: Checkout submodules
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         submodules: recursive
 
@@ -37,3 +37,15 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/${{matrix.example}}/build
       run: make
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ matrix.example }}-build
+        path: |
+          ${{github.workspace}}/${{matrix.example}}/build/*.uf2
+          ${{github.workspace}}/${{matrix.example}}/build/*.elf
+          ${{github.workspace}}/${{matrix.example}}/build/*.bin
+          ${{github.workspace}}/${{matrix.example}}/build/*.hex
+        if-no-files-found: warn
+        retention-days: 7
