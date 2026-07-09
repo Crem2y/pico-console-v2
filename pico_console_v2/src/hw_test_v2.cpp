@@ -1508,7 +1508,24 @@ static int global_printer_wrapper(const char* format, ...) {
   return result;
 }
 
-void display_ls(const char *dir) {
+void display_cat(const char *path) {
+    FIL fil;
+    FRESULT fr = f_open(&fil, path, FA_READ);
+    if (FR_OK != fr) {
+        Graphic.printf("f_open error: %s (%d)\n", FRESULT_str(fr), fr);
+        return;
+    }
+    char buf[256];
+    while (f_gets(buf, sizeof buf, &fil)) {
+        Graphic.printf("%s", buf);
+    }
+    if f_error(&fil)
+        Graphic.printf("f_gets error\n");
+    fr = f_close(&fil);
+    if (FR_OK != fr) Graphic.printf("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
+}
+
+void ls_cursor(const char *dir, int cursor, char* cursor_path, uint8_t* cursor_type) {
     char cwdbuf[FF_LFN_BUF] = {0};
     FRESULT fr; /* Return value */
     char const *p_dir;
@@ -1531,6 +1548,11 @@ void display_ls(const char *dir) {
         Graphic.printf("f_findfirst error: %s (%d)\n", FRESULT_str(fr), fr);
         return;
     }
+
+    int count = 0;
+    uint8_t type = 0;
+    *cursor_type = type;
+
     while (fr == FR_OK && fno.fname[0]) { /* Repeat while an item is found */
         /* Create a string that includes the file name, the file size and the
          attributes string. */
@@ -1541,16 +1563,28 @@ void display_ls(const char *dir) {
         /* Point pcAttrib to a string that describes the file. */
         if (fno.fattrib & AM_DIR) {
             pcAttrib = pcDirectory;
+            type = 1;
         } else if (fno.fattrib & AM_RDO) {
             pcAttrib = pcReadOnlyFile;
+            type = 2;
         } else {
             pcAttrib = pcWritableFile;
+            type = 3;
         }
         /* Create a string that includes the file name, the file size and the
          attributes string. */
-        Graphic.printf("%s [%s] [size=%llu]\n", fno.fname, pcAttrib, fno.fsize);
+        if(count == cursor) {
+          strncpy(cursor_path, fno.fname, 512);
+          Graphic.set_text_color(LCD_BLACK, LCD_WHITE);
+          *cursor_type = type;
+        } else {
+          Graphic.set_text_color(LCD_WHITE, LCD_BLACK);
+        }
+        // Graphic.printf("%s [%s] [size=%llu]\n", fno.fname, pcAttrib, fno.fsize);
+        Graphic.printf("%s [%s]\n", fno.fname, pcAttrib);
 
         fr = f_findnext(&dj, &fno); /* Search for next item */
+        count++;
     }
     f_closedir(&dj);
 }
@@ -1583,34 +1617,85 @@ void menu_sd_test(void) {
   }
   sd_card_p->state.mounted = true;
 
-  bool displaying_info_old = true;
   bool displaying_info = false;
+  bool need_display_update = true;
+
+  char path[512] = "";
+  char cursor_path[512] = "";
+  uint8_t cursor = 0;
+  uint8_t cursor_type = 0;
+  bool file_reading = false;
 
   while(1) {
     sleep_ms(100);
 
     Graphic.setCursor(0,16);
     Graphic.printf("SD card : %s\n", (STA_NODISK & ds) ? "not inserted" : "inserted    ");
-    if(ok && (displaying_info != displaying_info_old)) {
-      displaying_info_old = displaying_info;
+    if(ok && need_display_update) {
+      need_display_update = false;
       Graphic.fillRect(0,16*2,480,(320-40),LCD_BLACK);
+
       if(displaying_info) {
-        Graphic.print("press A to hide info\n");
+        Graphic.print("press START to hide info\n");
         Graphic.set_font(G_FONT_16);
         cidDmp(sd_card_p, global_printer_wrapper);
         csdDmp(sd_card_p, global_printer_wrapper);
         Graphic.set_font(G_FONT_5X8);
+        strcpy(path, "");
+        cursor = 0;
+        cursor_type = 0;
       } else {
-        Graphic.print("press A to display info\n\n");
+        Graphic.print("press START to display info\n\n");
         Graphic.set_font(G_FONT_16);
-        display_ls("");
+        FRESULT fr = f_getcwd(path, 512);
+        if (FR_OK == fr) {
+          if(file_reading) {
+            Graphic.printf("data of '%s'\n", cursor_path);
+            display_cat(cursor_path);
+          } else {
+            Graphic.printf("list of '%s'\n", path);
+            ls_cursor(path, cursor, cursor_path, &cursor_type);
+          }
+        }
         Graphic.set_font(G_FONT_5X8);
+        Graphic.set_text_color(LCD_WHITE, LCD_BLACK);
       }
     }
 
-    if(Gamepad.is_btn_pressed(BTN_A)) {
+    if(Gamepad.is_btn_pressed(BTN_START)) {
       displaying_info = !displaying_info;
+      need_display_update = true;
     }
+    if(Gamepad.is_btn_pressed(BTN_A)) {
+      if(cursor_type) {
+        if(cursor_type == 1) { // directory
+          f_chdir(cursor_path);
+          cursor = 0;
+        } else { // file
+          file_reading = true;
+        }
+        need_display_update = true;
+      }
+    }
+    if(Gamepad.is_btn_pressed(BTN_B)) {
+      if(file_reading) {
+        file_reading = false;
+      } else {
+        f_chdir("..");
+        cursor = 0;
+      }
+      need_display_update = true;
+    }
+
+    if(Gamepad.is_btn_pressed(BTN_S1_UP)) {
+      if(cursor > 0) cursor--;
+      need_display_update = true;
+    }
+    if(Gamepad.is_btn_pressed(BTN_S1_DOWN)) {
+      if(cursor < 128) cursor++;
+      need_display_update = true;
+    }
+
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       return;
