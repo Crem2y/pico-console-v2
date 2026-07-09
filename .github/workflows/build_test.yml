@@ -1,0 +1,39 @@
+# This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
+# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
+name: Build test
+
+# on:
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
+#     branches: [ "main" ]
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+        fail-fast: false
+        matrix:
+          example:
+            - 'pico_console_v2'
+            - 'pico_southbridge'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: carlosperate/arm-none-eabi-gcc-action@v1.10.1
+
+    - name: Checkout submodules
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Configure CMake
+      run: mkdir ${{github.workspace}}/${{matrix.example}}/build ;
+           cd ${{github.workspace}}/${{matrix.example}}/build &&
+           cmake ..
+
+    - name: Build
+      working-directory: ${{github.workspace}}/${{matrix.example}}/build
+      run: make
