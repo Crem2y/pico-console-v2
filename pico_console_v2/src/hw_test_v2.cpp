@@ -193,6 +193,11 @@ int main() { // uses core 0 to sub core
   Graphic.print("SD init...");
   sd_init_driver();
   sd_card_t *sd_card_p = sd_get_by_num(0);
+  if (sd_card_p->use_card_detect) {
+    gpio_set_irq_enabled_with_callback(
+      sd_card_p->card_detect_gpio, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL,
+      true, &card_detect_callback);
+  }
   LOGI("SD ok\n");
   Graphic.setCursor(0,0);
   Graphic.print("               ");
