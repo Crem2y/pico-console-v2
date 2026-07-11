@@ -1749,7 +1749,10 @@ void menu_usb_test(void) {
   uint8_t hid_mode = 0; // 0: keyboard & mouse, 1: gamepad
   uint8_t key_codes[6] = {0,}; // max 6 key presses
 
+  touch_point_t touch_data = {.x = 0, .y = 0};
+  touch_point_t prev_touch_data = {.x = 0, .y = 0};
   usb_device_mouse_t mouse_data = {0,};
+
   usb_device_gamepad_t gamepad_data = {0,};
 
   Graphic.setCursor(0,16);
@@ -1804,9 +1807,16 @@ void menu_usb_test(void) {
       }
       usbDevice_update_keyboard(changed, key_codes);
 
-      mouse_data.buttons = Gamepad.is_btn_pressed(BTN_A) ? 1 : 0; //test
-      mouse_data.x = Gamepad.get_joystick_data(JOY2_X);
-      mouse_data.y = Gamepad.get_joystick_data(JOY2_Y);
+      mouse_data.buttons = Gamepad.is_btn_pressed(BTN_A) ? 0x01 : 0; 
+      touch_data = Touchscreen.get_touch_point();
+      if(touch_data.x > 0 && touch_data.y > 0) {
+        mouse_data.x = (touch_data.x - prev_touch_data.x) * 5.0f;
+        mouse_data.y = (touch_data.y - prev_touch_data.y) * 5.0f;
+      } else {
+        mouse_data.x = 0;
+        mouse_data.y = 0;
+      }
+      prev_touch_data = touch_data;
       usbDevice_update_mouse(&mouse_data);
     } else if(hid_mode == HID_MODE_GAMEPAD) { // gamepad
       gamepad_data.buttons = 0;
