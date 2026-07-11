@@ -12,6 +12,7 @@ add_subdirectory(system_time)
 add_subdirectory(temp_builtin)
 add_subdirectory(xpt2046)
 add_subdirectory(sd_card)
+add_subdirectory(usb_device)
 
 
 add_library(driver INTERFACE)
@@ -30,6 +31,7 @@ target_link_libraries(driver INTERFACE
   temp_builtin
   xpt2046
   sd_card
+  usb_device
 )
 
 message(STATUS "building drivers completed!")

@@ -42,7 +42,6 @@ pico_sdk_init()
 add_executable(${PROJECT_NAME}
   src/hw_test_v2.cpp
   src/hw_config.c
-  src/usb_descriptors.c
 )
 
 add_subdirectory(common)
@@ -62,7 +61,6 @@ target_link_libraries(${PROJECT_NAME}
   lib
   driver
   middleware
-  tinyusb_device tinyusb_board
 )
 
 target_link_options(${PROJECT_NAME} PRIVATE

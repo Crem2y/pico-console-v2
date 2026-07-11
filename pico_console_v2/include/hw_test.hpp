@@ -24,6 +24,7 @@
 #include "temp_builtin.h"
 #include "xpt2046.hpp"
 #include "sd_card.hpp"
+#include "usb_device.h"
 
 // middlewares
 #include "bridge_protocol.hpp"
