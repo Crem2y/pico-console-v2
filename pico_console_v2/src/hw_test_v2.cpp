@@ -1686,13 +1686,12 @@ void menu_sd_test(void) {
   }
 }
 
-struct PinKey
-{
-  enum btn_code pin;
-  uint8_t key;
-};
+typedef struct _btn_map_t {
+  enum btn_code btn;
+  uint32_t key;
+} btn_map_t;
 
-PinKey pin_keys[22] = { // map button code to keycode
+btn_map_t btn_keyboard[22] = { // map button code to keyboard key
   {BTN_UP, HID_KEY_ARROW_UP},
   {BTN_DOWN, HID_KEY_ARROW_DOWN},
   {BTN_LEFT, HID_KEY_ARROW_LEFT},
@@ -1716,6 +1715,27 @@ PinKey pin_keys[22] = { // map button code to keycode
   {BTN_S1_DOWN, HID_KEY_S},
   {BTN_S1_LEFT, HID_KEY_A},
   {BTN_S1_RIGHT, HID_KEY_D},
+};
+
+btn_map_t btn_gamepad[18] = { // map button code to gamepad button
+  {BTN_B, 0x00000001},
+  {BTN_A, 0x00000002},
+  {BTN_Y, 0x00000004},
+  {BTN_X, 0x00000008},
+  {BTN_SL, 0x00000010},
+  {BTN_SR, 0x00000020},
+  {BTN_ZL, 0x00000040},
+  {BTN_ZR, 0x00000080},
+  {BTN_SELECT, 0x00000100},
+  {BTN_START, 0x00000200},
+  {BTN_S1_CENTER, 0x00000400},
+  {BTN_S2_CENTER, 0x00000800},
+  {BTN_UP, 0x00001000},
+  {BTN_DOWN, 0x00002000},
+  {BTN_LEFT, 0x00004000},
+  {BTN_RIGHT, 0x00008000},
+  {BTN_SUB2, 0x00010000},
+  {BTN_SUB1, 0x00020000},
 };
 
 void menu_usb_test(void) {
@@ -1772,8 +1792,8 @@ void menu_usb_test(void) {
 
       uint8_t index = 0;
       for(int i=0; i<22; i++) {
-        if(Gamepad.is_btn_pressed(pin_keys[i].pin)) {
-          key_codes[index] = pin_keys[i].key; // set keycode
+        if(Gamepad.is_btn_pressed(btn_keyboard[i].btn)) {
+          key_codes[index] = btn_keyboard[i].key; // set keycode
           changed = true;
           index++;
           if (index >= 6) // max is 6 key presses
@@ -1789,24 +1809,12 @@ void menu_usb_test(void) {
       mouse_data.y = Gamepad.get_joystick_data(JOY2_Y);
       usbDevice_update_mouse(&mouse_data);
     } else if(hid_mode == HID_MODE_GAMEPAD) { // gamepad
-      gamepad_data.buttons  = Gamepad.is_btn_pressed(BTN_B) ? 0x01 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_A) ? 0x02 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_Y) ? 0x04 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_X) ? 0x08 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_SL) ? 0x10 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_SR) ? 0x20 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_ZL) ? 0x40 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_ZR) ? 0x80 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_SELECT) ? 0x100 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_START) ? 0x200 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_S1_CENTER) ? 0x400 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_S2_CENTER) ? 0x800 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_UP) ? 0x1000 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_DOWN) ? 0x2000 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_LEFT) ? 0x4000 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_RIGHT) ? 0x8000 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_SUB2) ? 0x10000 : 0;
-      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_SUB1) ? 0x20000 : 0;
+      gamepad_data.buttons = 0;
+      for(int i=0; i<18; i++) {
+        if(Gamepad.is_btn_pressed(btn_gamepad[i].btn)) {
+          gamepad_data.buttons |= btn_gamepad[i].key; // set button
+        }
+      }
       gamepad_data.hat = 0;
       gamepad_data.s1_x = Gamepad.get_joystick_data(JOY1_X);
       gamepad_data.s1_y = Gamepad.get_joystick_data(JOY1_Y);
