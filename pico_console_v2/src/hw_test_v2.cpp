@@ -197,7 +197,6 @@ int main() { // uses core 0 to sub core
     if(system_time_elapsed_ms(now_time, led_timer) > 10) {
       led_timer = now_time;
       LedCtrl.update();
-      usbDevice_update_10ms(); //test
     }
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
@@ -1693,7 +1692,7 @@ struct PinKey
   uint8_t key;
 };
 
-PinKey pin_keys[GP_BTN_NUM] = { // map button code to keycode
+PinKey pin_keys[22] = { // map button code to keycode
   {BTN_UP, HID_KEY_ARROW_UP},
   {BTN_DOWN, HID_KEY_ARROW_DOWN},
   {BTN_LEFT, HID_KEY_ARROW_LEFT},
@@ -1717,10 +1716,6 @@ PinKey pin_keys[GP_BTN_NUM] = { // map button code to keycode
   {BTN_S1_DOWN, HID_KEY_S},
   {BTN_S1_LEFT, HID_KEY_A},
   {BTN_S1_RIGHT, HID_KEY_D},
-  {BTN_S2_UP, HID_KEY_I},
-  {BTN_S2_DOWN, HID_KEY_K},
-  {BTN_S2_LEFT, HID_KEY_J},
-  {BTN_S2_RIGHT, HID_KEY_L}
 };
 
 void menu_usb_test(void) {
@@ -1731,35 +1726,103 @@ void menu_usb_test(void) {
   Graphic.setCursor(0,0);
   Graphic.print("USB test");
 
+  uint8_t hid_mode = 0; // 0: keyboard & mouse, 1: gamepad
   uint8_t key_codes[6] = {0,}; // max 6 key presses
+
+  usb_device_mouse_t mouse_data = {0,};
+  usb_device_gamepad_t gamepad_data = {0,};
+
+  Graphic.setCursor(0,16);
+  Graphic.print("HID mode: Keyboard & Mouse\n");
 
   while(1) {
     sleep_ms(10);
 
-    bool changed = false;
+    if(Gamepad.is_btn_pressed(BTN_UP) && Gamepad.is_btn_pressed(BTN_DOWN)) {
+      // reset hid data
+      if(hid_mode == HID_MODE_KEYBOARD_MOUSE) {
+        usbDevice_update_keyboard(false, NULL);
+        memset(&mouse_data, 0, sizeof(mouse_data));
+        usbDevice_update_mouse(&mouse_data);
+      } else if(hid_mode == HID_MODE_GAMEPAD) {
+        memset(&gamepad_data, 0, sizeof(gamepad_data));
+        usbDevice_update_gamepad(&gamepad_data);
+      }
 
-    for (size_t i = 0; i < 6; i++)
-    {
-      key_codes[i] = 0;
+      hid_mode++;
+      if(hid_mode > HID_MODE_GAMEPAD) hid_mode = HID_MODE_KEYBOARD_MOUSE;
+
+      if(hid_mode == HID_MODE_KEYBOARD_MOUSE) {
+        Graphic.setCursor(0,16);
+        Graphic.print("HID mode: Keyboard & Mouse\n");
+      } else if(hid_mode == HID_MODE_GAMEPAD) {
+        Graphic.setCursor(0,16);
+        Graphic.print("HID mode: Gamepad         \n");
+      }
+      usbDevice_set_hid_mode((enum hid_mode_t)hid_mode);
+      sleep_ms(500);
     }
 
-    uint8_t index = 0;
-    for(int i=0; i<GP_BTN_NUM; i++) {
-      if(Gamepad.is_btn_pressed(pin_keys[i].pin)) {
-        key_codes[index] = pin_keys[i].key; // set keycode
-        changed = true;
-        index++;
-        if (index >= 6) // max is 6 key presses
-        {
-          break;
+    if(hid_mode == HID_MODE_KEYBOARD_MOUSE) { // keyboard & mouse
+      bool changed = false;
+      for (size_t i = 0; i < 6; i++)
+      {
+        key_codes[i] = 0;
+      }
+
+      uint8_t index = 0;
+      for(int i=0; i<22; i++) {
+        if(Gamepad.is_btn_pressed(pin_keys[i].pin)) {
+          key_codes[index] = pin_keys[i].key; // set keycode
+          changed = true;
+          index++;
+          if (index >= 6) // max is 6 key presses
+          {
+            break;
+          }
         }
       }
+      usbDevice_update_keyboard(changed, key_codes);
+
+      mouse_data.buttons = Gamepad.is_btn_pressed(BTN_A) ? 1 : 0; //test
+      mouse_data.x = Gamepad.get_joystick_data(JOY2_X);
+      mouse_data.y = Gamepad.get_joystick_data(JOY2_Y);
+      usbDevice_update_mouse(&mouse_data);
+    } else if(hid_mode == HID_MODE_GAMEPAD) { // gamepad
+      gamepad_data.buttons  = Gamepad.is_btn_pressed(BTN_B) ? 0x01 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_A) ? 0x02 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_Y) ? 0x04 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_X) ? 0x08 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_SL) ? 0x10 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_SR) ? 0x20 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_ZL) ? 0x40 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_ZR) ? 0x80 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_SELECT) ? 0x100 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_START) ? 0x200 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_S1_CENTER) ? 0x400 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_S2_CENTER) ? 0x800 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_UP) ? 0x1000 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_DOWN) ? 0x2000 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_LEFT) ? 0x4000 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_RIGHT) ? 0x8000 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_SUB2) ? 0x10000 : 0;
+      gamepad_data.buttons |= Gamepad.is_btn_pressed(BTN_SUB1) ? 0x20000 : 0;
+      gamepad_data.hat = 0;
+      gamepad_data.s1_x = Gamepad.get_joystick_data(JOY1_X);
+      gamepad_data.s1_y = Gamepad.get_joystick_data(JOY1_Y);
+      gamepad_data.s2_x = Gamepad.get_joystick_data(JOY2_X);
+      gamepad_data.s2_y = Gamepad.get_joystick_data(JOY2_Y);
+
+      usbDevice_update_gamepad(&gamepad_data);
     }
-    usbDevice_update_keyboard(changed, key_codes);
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       sleep_ms(10);
       usbDevice_update_keyboard(false, NULL);
+      memset(&mouse_data, 0, sizeof(mouse_data));
+      usbDevice_update_mouse(&mouse_data);
+      memset(&gamepad_data, 0, sizeof(gamepad_data));
+      usbDevice_update_gamepad(&gamepad_data);
       return;
     }
   }

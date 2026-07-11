@@ -26,9 +26,54 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
   }
 }
 
+static enum hid_mode_t current_hid_mode = HID_MODE_KEYBOARD_MOUSE;
 
 static bool keyboard_pressed = false;
+static bool keyboard_pending = false;
 static uint8_t keyboard_key_codes[6] = {0};
+static bool mouse_pending = false;
+static usb_device_mouse_t mouse_state = {0};
+static bool gamepad_pending = false;
+static usb_device_gamepad_t gamepad_state = {0};
+
+static void send_keyboard_or_mouse_report(void) {
+  // skip if hid is not ready yet
+  if (!tud_hid_ready()) {
+    return;
+  }
+
+  // avoid sending multiple zero reports
+  static bool send_empty_keyboard = false;
+
+  if(keyboard_pending) {
+    if (keyboard_pressed) {
+      tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, keyboard_key_codes);
+      send_empty_keyboard = true;
+    } else {
+      // send empty key report if previously has key pressed
+      if (send_empty_keyboard) {
+        tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, NULL);
+      }
+      send_empty_keyboard = false;
+    }
+    keyboard_pending = false;
+  } else if(mouse_pending) {
+    tud_hid_mouse_report(REPORT_ID_MOUSE, mouse_state.buttons, mouse_state.x, mouse_state.y, mouse_state.vertical, mouse_state.horizontal);
+    mouse_pending = false;
+  }
+}
+
+static void send_gamepad_report(void) {
+  // skip if hid is not ready yet
+  if (!tud_hid_ready()) {
+    return;
+  }
+
+  if(gamepad_pending) {
+    tud_hid_gamepad_report(REPORT_ID_GAMEPAD, gamepad_state.s1_x, gamepad_state.s1_y, gamepad_state.s2_x, 0, gamepad_state.s2_y, 0, gamepad_state.hat, gamepad_state.buttons);
+    gamepad_pending = false;
+  }
+}
 
 static void send_hid_report(void) {
   // skip if hid is not ready yet
@@ -36,25 +81,20 @@ static void send_hid_report(void) {
     return;
   }
 
-  // avoid sending multiple zero reports
-  static bool send_empty = false;
-
-  if (keyboard_pressed) {
-    tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, keyboard_key_codes);
-    send_empty = true;
-  } else {
-    // send empty key report if previously has key pressed
-    if (send_empty) {
-      tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, NULL);
-    }
-    send_empty = false;
+  switch (current_hid_mode) {
+    case HID_MODE_KEYBOARD_MOUSE:
+      send_keyboard_or_mouse_report();
+      break;
+    case HID_MODE_GAMEPAD:
+      send_gamepad_report();
+      break;
   }
 }
 
 void hid_task(void) {
 
   // Remote wakeup
-  if (tud_suspended() && keyboard_pressed)
+  if (tud_suspended() && (keyboard_pressed || 0 != mouse_state.buttons || 0 != gamepad_state.buttons))
   {
     // Wake up host if we are in suspend mode
     // and REMOTE_WAKEUP feature is enabled by host
@@ -67,23 +107,39 @@ void hid_task(void) {
   }
 }
 
-void usbDevice_init(void) {
+inline void usbDevice_init(void) {
   tusb_init();
 }
 
-void usbDevice_update(void) {
+inline void usbDevice_update(void) {
   tud_task();
-}
-
-void usbDevice_update_10ms(void) {
   hid_task();
 }
 
-void usbDevice_update_keyboard(bool const keys_pressed, const uint8_t* key_codes) {
+void usbDevice_update_keyboard(const bool keys_pressed, const uint8_t* key_codes) {
   keyboard_pressed = keys_pressed;
   if (keys_pressed && key_codes != NULL) {
     for (size_t i = 0; i < 6; i++) {
       keyboard_key_codes[i] = key_codes[i];
     }
   }
+  keyboard_pending = true;
+}
+
+void usbDevice_update_mouse(const usb_device_mouse_t* mouse) {
+  if (mouse != NULL) {
+    memcpy(&mouse_state, mouse, sizeof(usb_device_mouse_t));
+  }
+  mouse_pending = true;
+}
+
+void usbDevice_update_gamepad(const usb_device_gamepad_t* gamepad) {
+  if (gamepad != NULL) {
+    memcpy(&gamepad_state, gamepad, sizeof(usb_device_gamepad_t));
+  }
+  gamepad_pending = true;
+}
+
+void usbDevice_set_hid_mode(enum hid_mode_t mode) {
+  current_hid_mode = mode;
 }
