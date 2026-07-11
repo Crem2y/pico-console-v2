@@ -11,11 +11,13 @@ add_subdirectory(ili9488_40_hstx)
 add_subdirectory(system_time)
 add_subdirectory(temp_builtin)
 add_subdirectory(xpt2046)
-add_subdirectory(no-OS-FatFS-SD-SDIO-SPI-RPi-Pico/src)
+add_subdirectory(sd_card)
+
 
 add_library(driver INTERFACE)
 
 target_link_libraries(driver INTERFACE
+  lib
   uart_rx
   uart_tx
   uart_log
@@ -27,7 +29,7 @@ target_link_libraries(driver INTERFACE
   system_time
   temp_builtin
   xpt2046
-  no-OS-FatFS-SD-SDIO-SPI-RPi-Pico
+  sd_card
 )
 
 message(STATUS "building drivers completed!")

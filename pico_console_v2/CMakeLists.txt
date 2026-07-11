@@ -45,6 +45,7 @@ add_executable(${PROJECT_NAME}
 )
 
 add_subdirectory(common)
+add_subdirectory(lib)
 add_subdirectory(driver)
 add_subdirectory(middleware)
 
@@ -57,6 +58,7 @@ target_link_libraries(${PROJECT_NAME}
   pico_multicore
   pico_bootsel_via_double_reset # Double tap reset into bootrom
   common
+  lib
   driver
   middleware
 )

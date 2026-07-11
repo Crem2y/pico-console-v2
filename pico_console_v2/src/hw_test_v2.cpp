@@ -7,6 +7,7 @@
 ledStatus Led = ledStatus(PIN_LED_WL_1, PIN_LED_WL_2, PIN_LED_WL_3, PIN_LED_WL_4);
 ili9488_40 Lcd = ili9488_40(PIN_DP_MOSI, PIN_DP_SCK, PIN_DP_CS, PIN_DP_DC, PIN_DP_RST, PIN_DP_BL);
 xpt2046 Touch = xpt2046(HW_TOUCH_CH, PIN_TOUCH_MOSI, PIN_TOUCH_SCK, PIN_TOUCH_MISO, PIN_TOUCH_CS, PIN_TOUCH_IRQ);
+sdCard Sd = sdCard();
 pio_uart_tx_t pio_tx;
 pio_uart_rx_t pio_rx;
 #if ENABLE_RFBRIDGE
@@ -38,38 +39,6 @@ void bridge_cmd_handler(const bridge_msg_t* msg);
 #if ENABLE_RFBRIDGE
 void bridge_cmd_handler_rf(const bridge_msg_t* msg);
 #endif
-
-static volatile bool card_det_int_pend;
-static volatile uint card_det_int_gpio;
-
-static void process_card_detect_int() {
-    card_det_int_pend = false;
-    for (size_t i = 0; i < sd_get_num(); ++i) {
-        sd_card_t *sd_card_p = sd_get_by_num(i);
-        if (!sd_card_p)
-            continue;
-        if (sd_card_p->card_detect_gpio == card_det_int_gpio) {
-            if (sd_card_p->state.mounted) {
-                LOGW("(Card Detect Interrupt: unmounting %s)\n", sd_get_drive_prefix(sd_card_p));
-                FRESULT fr = f_unmount(sd_get_drive_prefix(sd_card_p));
-                if (FR_OK == fr) {
-                    sd_card_p->state.mounted = false;
-                } else {
-                    LOGE("f_unmount error: %s (%d)\n", FRESULT_str(fr), fr);
-                }
-            }
-            sd_card_p->state.m_Status |= STA_NOINIT;  // in case medium is removed
-            sd_card_detect(sd_card_p);
-        }
-    }
-}
-
-static void card_detect_callback(uint gpio, uint32_t events) {
-    (void)events;
-    // This is actually an interrupt service routine!
-    card_det_int_gpio = gpio;
-    card_det_int_pend = true;
-}
 
 time_ms_t bridge_timer;
 time_ms_t led_timer;
@@ -191,13 +160,7 @@ int main() { // uses core 0 to sub core
   LOGI("IR ok\n");
   Graphic.setCursor(0,0);
   Graphic.print("SD init...");
-  sd_init_driver();
-  sd_card_t *sd_card_p = sd_get_by_num(0);
-  if (sd_card_p->use_card_detect) {
-    gpio_set_irq_enabled_with_callback(
-      sd_card_p->card_detect_gpio, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL,
-      true, &card_detect_callback);
-  }
+  Sd.init();
   LOGI("SD ok\n");
   Graphic.setCursor(0,0);
   Graphic.print("               ");
@@ -252,9 +215,7 @@ int main() { // uses core 0 to sub core
       Touchscreen.update();
       //LOGT("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
     }
-    if (card_det_int_pend) {
-      process_card_detect_int();
-    }
+    Sd.update();
   }
 
   return 0;
@@ -1605,22 +1566,7 @@ void menu_sd_test(void) {
   Graphic.setCursor(0,16);
   Graphic.print("Loading...");
 
-  sd_card_t *sd_card_p = sd_get_by_num(0);
-
-  int ds = sd_card_p->init(sd_card_p);
-  if (STA_NODISK & ds || STA_NOINIT & ds) {
-    printf("SD card initialization failed\n");
-  }
-
-  size_t au_size_bytes;
-  bool ok = sd_allocation_unit(sd_card_p, &au_size_bytes);
-
-  FATFS *fs_p = &sd_card_p->state.fatfs;
-  FRESULT fr = f_mount(fs_p, sd_get_drive_prefix(sd_get_by_num(0)), 1);
-  if (FR_OK != fr) {
-      printf("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
-  }
-  sd_card_p->state.mounted = true;
+  bool tried_mount = false;
 
   bool displaying_info = false;
   bool need_display_update = true;
@@ -1635,35 +1581,58 @@ void menu_sd_test(void) {
     sleep_ms(100);
 
     Graphic.setCursor(0,16);
-    Graphic.printf("SD card : %s\n", (STA_NODISK & ds) ? "not inserted" : "inserted    ");
-    if(ok && need_display_update) {
+    Graphic.print("SD card : ");
+    if(Sd.is_inserted()) {
+      if(Sd.is_mounted()) {
+        Graphic.print("mounted     \n");
+      } else {
+        if(!tried_mount) {
+          Graphic.print("mounting... \n");
+          Sd.mount();
+          tried_mount = true;
+        } else {
+          Graphic.print("not mounted \n");
+        }
+        need_display_update = true;
+      }
+    } else {
+      Graphic.print("not inserted\n");
+      need_display_update = true;
+      tried_mount = false;
+      strcpy(path, "");
+      file_reading = false;
+      cursor = 0;
+      displaying_info = false;
+    }
+
+    if(need_display_update) {
       need_display_update = false;
       Graphic.fillRect(0,16*2,480,(320-40),LCD_BLACK);
-
-      if(displaying_info) {
-        Graphic.print("press START to hide info\n");
-        Graphic.set_font(G_FONT_16);
-        cidDmp(sd_card_p, global_printer_wrapper);
-        csdDmp(sd_card_p, global_printer_wrapper);
-        Graphic.set_font(G_FONT_5X8);
-        strcpy(path, "");
-        cursor = 0;
-        cursor_type = 0;
-      } else {
-        Graphic.print("press START to display info\n\n");
-        Graphic.set_font(G_FONT_16);
-        FRESULT fr = f_getcwd(path, 512);
-        if (FR_OK == fr) {
-          if(file_reading) {
-            Graphic.printf("data of '%s'\n", cursor_path);
-            display_cat(cursor_path);
-          } else {
-            Graphic.printf("list of '%s'\n", path);
-            ls_cursor(path, cursor, cursor_path, &cursor_type);
+      if(Sd.is_inserted() && Sd.is_mounted()) {
+        if(displaying_info) {
+          Graphic.print("press START to hide info\n");
+          Graphic.set_font(G_FONT_16);
+          Sd.print_info(global_printer_wrapper);
+          Graphic.set_font(G_FONT_5X8);
+          strcpy(path, "");
+          cursor = 0;
+          cursor_type = 0;
+        } else {
+          Graphic.print("press START to display info\n\n");
+          Graphic.set_font(G_FONT_16);
+          FRESULT fr = f_getcwd(path, 512);
+          if (FR_OK == fr) {
+            if(file_reading) {
+              Graphic.printf("data of '%s'\n", cursor_path);
+              display_cat(cursor_path);
+            } else {
+              Graphic.printf("list of '%s'\n", path);
+              ls_cursor(path, cursor, cursor_path, &cursor_type);
+            }
           }
+          Graphic.set_font(G_FONT_5X8);
+          Graphic.set_text_color(LCD_WHITE, LCD_BLACK);
         }
-        Graphic.set_font(G_FONT_5X8);
-        Graphic.set_text_color(LCD_WHITE, LCD_BLACK);
       }
     }
 
