@@ -77,70 +77,6 @@ inline int pio_uart_write_wrapper_rf(const uint8_t* data, size_t data_size) {
 #endif
 //////// function ////////
 
-struct PinKey
-{
-  enum btn_code pin;
-  uint8_t key;
-};
-
-PinKey pin_keys[GP_BTN_NUM] = { // map button code to keycode
-  {BTN_UP, HID_KEY_ARROW_UP},
-  {BTN_DOWN, HID_KEY_ARROW_DOWN},
-  {BTN_LEFT, HID_KEY_ARROW_LEFT},
-  {BTN_RIGHT, HID_KEY_ARROW_RIGHT},
-  {BTN_A, HID_KEY_Z},
-  {BTN_B, HID_KEY_X},
-  {BTN_X, HID_KEY_C},
-  {BTN_Y, HID_KEY_V},
-  {BTN_SL, HID_KEY_Q},
-  {BTN_SR, HID_KEY_E},
-  {BTN_ZL, HID_KEY_R},
-  {BTN_ZR, HID_KEY_T},
-  {BTN_START, HID_KEY_F},
-  {BTN_SELECT, HID_KEY_G},
-  {BTN_SUB1, HID_KEY_CONTROL_LEFT},
-  {BTN_SUB2, HID_KEY_ALT_LEFT},
-  {BTN_S1_CENTER, HID_KEY_SPACE},
-  {BTN_S2_CENTER, HID_KEY_SHIFT_LEFT},
-
-  {BTN_S1_UP, HID_KEY_W},
-  {BTN_S1_DOWN, HID_KEY_S},
-  {BTN_S1_LEFT, HID_KEY_A},
-  {BTN_S1_RIGHT, HID_KEY_D},
-  {BTN_S2_UP, HID_KEY_I},
-  {BTN_S2_DOWN, HID_KEY_K},
-  {BTN_S2_LEFT, HID_KEY_J},
-  {BTN_S2_RIGHT, HID_KEY_L}
-};
-
-uint8_t key_codes[6] = {0,}; // max 6 key presses
-
-bool key_update(void) {
-  static bool key_pressed[GP_BTN_NUM] = {0,};
-
-  bool changed = false;
-
-  for (size_t i = 0; i < 6; i++)
-  {
-    key_codes[i] = 0;
-  }
-
-  uint8_t index = 0;
-  for(int i=0; i<GP_BTN_NUM; i++) {
-    if(Gamepad.is_btn_pressed(pin_keys[i].pin)) {
-      key_codes[index] = pin_keys[i].key; // set keycode
-      changed = true;
-      index++;
-      if (index >= 6) // max is 6 key presses
-      {
-        break;
-      }
-    }
-  }
-
-  return changed;
-}
-
 int main() { // uses core 0 to sub core
   // log init
   uartLog_init(HW_LOG_CH, PIN_LOG_TX, PIN_LOG_RX, HW_LOG_BAUD);
@@ -261,7 +197,7 @@ int main() { // uses core 0 to sub core
     if(system_time_elapsed_ms(now_time, led_timer) > 10) {
       led_timer = now_time;
       LedCtrl.update();
-      usbDevice_update_10ms(key_update(), key_codes); //test
+      usbDevice_update_10ms(); //test
     }
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
@@ -423,6 +359,7 @@ main_menu_loop:
     Graphic.print(" IR comm test\n");
     Graphic.print(" IMU test\n");
     Graphic.print(" SD card test\n");
+    Graphic.print(" USB test\n");
 
     Graphic.setTextSize(1);
     Graphic.setCursor(0,320-(8*2));
@@ -451,7 +388,7 @@ main_menu_loop:
         if(cursor_x > 0) cursor_x--;
       }
       if(Gamepad.is_btn_pressed(BTN_S1_DOWN) || Gamepad.is_btn_pressed(BTN_DOWN)) {
-        if(cursor_x < MAIN_SD_TEST) cursor_x++;
+        if(cursor_x < MAIN_USB_TEST) cursor_x++;
       }
 
       if(!Gamepad.is_btn_pressed(BTN_SELECT) && (Gamepad.is_btn_pressed(BTN_A) || Gamepad.is_btn_pressed(BTN_START))) {
@@ -503,6 +440,9 @@ main_menu_loop:
           break;
         case MAIN_SD_TEST:
           menu_sd_test();
+          break;
+        case MAIN_USB_TEST:
+          menu_usb_test();
           break;
         default:
           cursor_x = 0;
@@ -1742,6 +1682,84 @@ void menu_sd_test(void) {
 
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
+      return;
+    }
+  }
+}
+
+struct PinKey
+{
+  enum btn_code pin;
+  uint8_t key;
+};
+
+PinKey pin_keys[GP_BTN_NUM] = { // map button code to keycode
+  {BTN_UP, HID_KEY_ARROW_UP},
+  {BTN_DOWN, HID_KEY_ARROW_DOWN},
+  {BTN_LEFT, HID_KEY_ARROW_LEFT},
+  {BTN_RIGHT, HID_KEY_ARROW_RIGHT},
+  {BTN_A, HID_KEY_Z},
+  {BTN_B, HID_KEY_X},
+  {BTN_X, HID_KEY_C},
+  {BTN_Y, HID_KEY_V},
+  {BTN_SL, HID_KEY_Q},
+  {BTN_SR, HID_KEY_E},
+  {BTN_ZL, HID_KEY_R},
+  {BTN_ZR, HID_KEY_T},
+  {BTN_START, HID_KEY_F},
+  {BTN_SELECT, HID_KEY_G},
+  {BTN_SUB1, HID_KEY_CONTROL_LEFT},
+  {BTN_SUB2, HID_KEY_ALT_LEFT},
+  {BTN_S1_CENTER, HID_KEY_SPACE},
+  {BTN_S2_CENTER, HID_KEY_SHIFT_LEFT},
+
+  {BTN_S1_UP, HID_KEY_W},
+  {BTN_S1_DOWN, HID_KEY_S},
+  {BTN_S1_LEFT, HID_KEY_A},
+  {BTN_S1_RIGHT, HID_KEY_D},
+  {BTN_S2_UP, HID_KEY_I},
+  {BTN_S2_DOWN, HID_KEY_K},
+  {BTN_S2_LEFT, HID_KEY_J},
+  {BTN_S2_RIGHT, HID_KEY_L}
+};
+
+void menu_usb_test(void) {
+  Graphic.setTextSize(1);
+  Graphic.setCursor(0,320-8);
+  Graphic.print("press SELECT & START to exit menu");
+  Graphic.setTextSize(2);
+  Graphic.setCursor(0,0);
+  Graphic.print("USB test");
+
+  uint8_t key_codes[6] = {0,}; // max 6 key presses
+
+  while(1) {
+    sleep_ms(10);
+
+    bool changed = false;
+
+    for (size_t i = 0; i < 6; i++)
+    {
+      key_codes[i] = 0;
+    }
+
+    uint8_t index = 0;
+    for(int i=0; i<GP_BTN_NUM; i++) {
+      if(Gamepad.is_btn_pressed(pin_keys[i].pin)) {
+        key_codes[index] = pin_keys[i].key; // set keycode
+        changed = true;
+        index++;
+        if (index >= 6) // max is 6 key presses
+        {
+          break;
+        }
+      }
+    }
+    usbDevice_update_keyboard(changed, key_codes);
+
+    if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
+      sleep_ms(10);
+      usbDevice_update_keyboard(false, NULL);
       return;
     }
   }

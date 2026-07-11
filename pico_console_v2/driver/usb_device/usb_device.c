@@ -26,7 +26,11 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
   }
 }
 
-static void send_hid_report(bool keys_pressed, const uint8_t* key_codes) {
+
+static bool keyboard_pressed = false;
+static uint8_t keyboard_key_codes[6] = {0};
+
+static void send_hid_report(void) {
   // skip if hid is not ready yet
   if (!tud_hid_ready()) {
     return;
@@ -35,8 +39,8 @@ static void send_hid_report(bool keys_pressed, const uint8_t* key_codes) {
   // avoid sending multiple zero reports
   static bool send_empty = false;
 
-  if (keys_pressed) {
-    tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, key_codes);
+  if (keyboard_pressed) {
+    tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, keyboard_key_codes);
     send_empty = true;
   } else {
     // send empty key report if previously has key pressed
@@ -47,10 +51,10 @@ static void send_hid_report(bool keys_pressed, const uint8_t* key_codes) {
   }
 }
 
-void hid_task(bool const keys_pressed, const uint8_t* key_codes) {
+void hid_task(void) {
 
   // Remote wakeup
-  if (tud_suspended() && keys_pressed)
+  if (tud_suspended() && keyboard_pressed)
   {
     // Wake up host if we are in suspend mode
     // and REMOTE_WAKEUP feature is enabled by host
@@ -59,17 +63,27 @@ void hid_task(bool const keys_pressed, const uint8_t* key_codes) {
   else
   {
     // send a report
-    send_hid_report(keys_pressed, key_codes);
+    send_hid_report();
   }
 }
 
 void usbDevice_init(void) {
   tusb_init();
 }
+
 void usbDevice_update(void) {
   tud_task();
 }
 
-void usbDevice_update_10ms(bool const keys_pressed, const uint8_t* key_codes) {
-  hid_task(keys_pressed, key_codes);
+void usbDevice_update_10ms(void) {
+  hid_task();
+}
+
+void usbDevice_update_keyboard(bool const keys_pressed, const uint8_t* key_codes) {
+  keyboard_pressed = keys_pressed;
+  if (keys_pressed && key_codes != NULL) {
+    for (size_t i = 0; i < 6; i++) {
+      keyboard_key_codes[i] = key_codes[i];
+    }
+  }
 }

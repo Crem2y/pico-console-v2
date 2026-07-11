@@ -13,7 +13,9 @@ extern "C" {
 
 void usbDevice_init(void);
 void usbDevice_update(void);
-void usbDevice_update_10ms(bool const keys_pressed, const uint8_t* key_codes); //test
+void usbDevice_update_10ms(void);
+
+void usbDevice_update_keyboard(bool const keys_pressed, const uint8_t* key_codes);
 
 #ifdef __cplusplus
 }

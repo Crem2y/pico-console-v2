@@ -60,6 +60,7 @@ enum menu_main {
   MAIN_IR_TEST,
   MAIN_IMU_TEST,
   MAIN_SD_TEST,
+  MAIN_USB_TEST,
 };
 
 void menu_system_info();
@@ -80,3 +81,4 @@ void menu_temp_test();
 void menu_ir_test();
 void menu_imu_test();
 void menu_sd_test();
+void menu_usb_test();
