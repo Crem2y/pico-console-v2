@@ -3,6 +3,11 @@
 #include "hw_test.hpp"
 #include "v2_hw_def.h"
 
+#include "bsp/board.h"
+#include "tusb.h"
+
+#include "usb_descriptors.h"
+
 // hw lib init
 ledStatus Led = ledStatus(PIN_LED_WL_1, PIN_LED_WL_2, PIN_LED_WL_3, PIN_LED_WL_4);
 ili9488_40 Lcd = ili9488_40(PIN_DP_MOSI, PIN_DP_SCK, PIN_DP_CS, PIN_DP_DC, PIN_DP_RST, PIN_DP_BL);
@@ -76,6 +81,146 @@ inline int pio_uart_write_wrapper_rf(const uint8_t* data, size_t data_size) {
 }
 #endif
 //////// function ////////
+
+uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t *buffer, uint16_t reqlen)
+{
+    // TODO not Implemented
+    (void)instance;
+    (void)report_id;
+    (void)report_type;
+    (void)buffer;
+    (void)reqlen;
+
+    return 0;
+}
+
+void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize)
+{
+    (void)instance;
+
+    if (report_type == HID_REPORT_TYPE_OUTPUT)
+    {
+        // Set keyboard LED e.g Capslock, Numlock etc...
+        if (report_id == REPORT_ID_KEYBOARD)
+        {
+            // bufsize should be (at least) 1
+            if (bufsize < 1)
+                return;
+
+            uint8_t const kbd_leds = buffer[0];
+        }
+    }
+}
+
+uint8_t key_codes[6] = {0};
+
+static void send_hid_report(bool keys_pressed)
+{
+    // skip if hid is not ready yet
+    if (!tud_hid_ready())
+    {
+        return;
+    }
+
+    // avoid sending multiple zero reports
+    static bool send_empty = false;
+
+    if (keys_pressed)
+    {
+        tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, key_codes);
+        send_empty = true;
+    }
+    else
+    {
+        // send empty key report if previously has key pressed
+        if (send_empty)
+        {
+            tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, NULL);
+        }
+        send_empty = false;
+    }
+}
+
+struct PinKey
+{
+  const enum btn_code pin;
+  const uint8_t key;
+};
+
+const PinKey pin_keys[GP_BTN_NUM] = { // map button code to keycode
+  {BTN_UP, HID_KEY_ARROW_UP},
+  {BTN_DOWN, HID_KEY_ARROW_DOWN},
+  {BTN_LEFT, HID_KEY_ARROW_LEFT},
+  {BTN_RIGHT, HID_KEY_ARROW_RIGHT},
+  {BTN_A, HID_KEY_Z},
+  {BTN_B, HID_KEY_X},
+  {BTN_X, HID_KEY_C},
+  {BTN_Y, HID_KEY_V},
+  {BTN_SL, HID_KEY_Q},
+  {BTN_SR, HID_KEY_E},
+  {BTN_ZL, HID_KEY_R},
+  {BTN_ZR, HID_KEY_T},
+  {BTN_START, HID_KEY_F},
+  {BTN_SELECT, HID_KEY_G},
+  {BTN_SUB1, HID_KEY_CONTROL_LEFT},
+  {BTN_SUB2, HID_KEY_ALT_LEFT},
+  {BTN_S1_CENTER, HID_KEY_SPACE},
+  {BTN_S2_CENTER, HID_KEY_SHIFT_LEFT},
+
+  {BTN_S1_UP, HID_KEY_W},
+  {BTN_S1_DOWN, HID_KEY_S},
+  {BTN_S1_LEFT, HID_KEY_A},
+  {BTN_S1_RIGHT, HID_KEY_D},
+  {BTN_S2_UP, HID_KEY_I},
+  {BTN_S2_DOWN, HID_KEY_K},
+  {BTN_S2_LEFT, HID_KEY_J},
+  {BTN_S2_RIGHT, HID_KEY_L}
+};
+
+bool key_update(void) {
+  static bool key_pressed[GP_BTN_NUM] = {0,};
+
+  bool changed = false;
+
+  for (size_t i = 0; i < 6; i++)
+  {
+    key_codes[i] = 0;
+  }
+
+  uint8_t index = 0;
+  for(int i=0; i<GP_BTN_NUM; i++) {
+    if(Gamepad.is_btn_pressed(pin_keys[i].pin)) {
+      key_codes[index] = pin_keys[i].key; // set keycode
+      changed = true;
+      index++;
+      if (index >= 6) // max is 6 key presses
+      {
+        break;
+      }
+    }
+  }
+
+  return changed;
+}
+
+void hid_task(void)
+{
+    // Check for keys pressed
+    bool const keys_pressed = key_update();
+
+    // Remote wakeup
+    if (tud_suspended() && keys_pressed)
+    {
+        // Wake up host if we are in suspend mode
+        // and REMOTE_WAKEUP feature is enabled by host
+        tud_remote_wakeup();
+    }
+    else
+    {
+        // send a report
+        send_hid_report(keys_pressed);
+    }
+}
 
 int main() { // uses core 0 to sub core
   // log init
@@ -162,6 +307,10 @@ int main() { // uses core 0 to sub core
   Graphic.print("SD init...");
   Sd.init();
   LOGI("SD ok\n");
+  Graphic.print("USB init...");
+  //board_init();
+  tusb_init();
+  LOGI("USB ok\n");
   Graphic.setCursor(0,0);
   Graphic.print("               ");
   LOGI("all HWs ok!\n");
@@ -193,6 +342,7 @@ int main() { // uses core 0 to sub core
     if(system_time_elapsed_ms(now_time, led_timer) > 10) {
       led_timer = now_time;
       LedCtrl.update();
+      hid_task();
     }
     if(system_time_elapsed_ms(now_time, gamepad_timer) > 10) {
       gamepad_timer = now_time;
@@ -216,6 +366,7 @@ int main() { // uses core 0 to sub core
       //LOGT("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
     }
     Sd.update();
+    tud_task();
   }
 
   return 0;
