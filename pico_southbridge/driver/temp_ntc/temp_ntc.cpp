@@ -33,7 +33,7 @@ float tempNTC::read_temperature(void) {
   uint16_t ntc_raw = adc_read();
   float adc_v = ntc_raw / 4095.0f * 3.3f;
 
-  resistance = _r_upper * ((3.3f - adc_v) / adc_v);
+  resistance = _r_upper * (adc_v / (3.3f - adc_v));
 
   if(resistance >= ntc_table[0][1]) {
     temperature = ntc_table[0][0];
