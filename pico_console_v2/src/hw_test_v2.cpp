@@ -162,6 +162,7 @@ int main() { // uses core 0 to sub core
   Graphic.print("SD init...");
   Sd.init();
   LOGI("SD ok\n");
+  Graphic.setCursor(0,0);
   Graphic.print("USB init...");
   //board_init();
   usbDevice_init();
