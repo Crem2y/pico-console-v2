@@ -1,5 +1,25 @@
 #include "touchscreen.hpp"
 
+static inline int32_t median3(int32_t a, int32_t b, int32_t c) {
+  if (a > b) {
+    int32_t t = a;
+    a = b;
+    b = t;
+  }
+
+  if (b > c) {
+    int32_t t = b;
+    b = c;
+    c = t;
+  }
+
+  if (a > b) {
+    b = a;
+  }
+
+  return b;
+}
+
 touchscreen::touchscreen(xpt2046* touch_controller) {
   _touch_controller = touch_controller;
 }
@@ -27,34 +47,53 @@ void touchscreen::init(void) {
 
 void touchscreen::update(void) {
   // get touch point data
-  _touch_controller->get_touch_data();
+  touch_data_t raw_touch_data[3];
+  for(int i=0; i<3; i++) {
+    _touch_controller->get_touch_data();
+    raw_touch_data[i] = _touch_controller->touch_data;
+  }
 
-  touch_data_t raw_touch_data = _touch_controller->touch_data;
+  int32_t raw_x = median3(raw_touch_data[0].x, raw_touch_data[1].x, raw_touch_data[2].x);
+  int32_t raw_y = median3(raw_touch_data[0].y, raw_touch_data[1].y, raw_touch_data[2].y);
+  int32_t raw_z1 = median3(raw_touch_data[0].z1, raw_touch_data[1].z1, raw_touch_data[2].z1);
+
   if(_invert_x) {
-    raw_touch_data.x = _x_max - raw_touch_data.x;
+    raw_x = _x_max - raw_x;
   }
   if(_invert_y) {
-    raw_touch_data.y = _y_max - raw_touch_data.y;
+    raw_y = _y_max - raw_y;
   }
   if(_swap_xy) {
-    uint16_t temp = raw_touch_data.x;
-    raw_touch_data.x = raw_touch_data.y;
-    raw_touch_data.y = temp;
+    uint32_t temp = raw_x;
+    raw_x = raw_y;
+    raw_y = temp;
   }
 
-  touch_point.x = ((raw_touch_data.x - _x_min) * _screen_width) / (_x_max - _x_min);
-  touch_point.y = ((raw_touch_data.y - _y_min) * _screen_height) / (_y_max - _y_min);
-
-  // get touch state
+  static touch_point_t filtered_point;
   if(touch_state) {
-    if(raw_touch_data.z1 < TS_RELEASE_THRESHOLD) { // just released
+    filtered_point.x += (raw_x - filtered_point.x) >> 2;
+    filtered_point.y += (raw_y - filtered_point.y) >> 2;
+    raw_x = filtered_point.x;
+    raw_y = filtered_point.y;
+  }
+
+  touch_point.x = ((raw_x - _x_min) * (_screen_width - 1)) / (_x_max - _x_min);
+  touch_point.y = ((raw_y - _y_min) * (_screen_height - 1)) / (_y_max - _y_min);
+
+  // set touch state
+  if(touch_state) {
+    if(raw_z1 < TS_RELEASE_THRESHOLD) { // just released
       touch_state = false;
       last_released_point = touch_point;
+      filtered_point.x = -1;
+      filtered_point.y = -1;
     }
   } else {
-    if(raw_touch_data.z1 > TS_TOUCH_THRESHOLD) { // just touched
+    if(raw_z1 > TS_TOUCH_THRESHOLD) { // just touched
       touch_state = true;
       last_touched_point = touch_point;
+      filtered_point.x = raw_x;
+      filtered_point.y = raw_y;
     }
   }
 }

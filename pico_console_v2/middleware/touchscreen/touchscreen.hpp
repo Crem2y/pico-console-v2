@@ -4,8 +4,8 @@
 #define TS_RELEASE_THRESHOLD 100
 
 typedef struct _touch_point_t {
-  int16_t x;
-  int16_t y;
+  int32_t x;
+  int32_t y;
 } touch_point_t;
 
 class touchscreen {
