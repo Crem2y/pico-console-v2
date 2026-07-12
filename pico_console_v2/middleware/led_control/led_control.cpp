@@ -1,12 +1,20 @@
 #include "led_control.hpp"
 
+#if !ENABLE_HW_LED && ENABLE_SW_LED
+ledControl::ledControl(bridgeProtocol* bridge) {
+  Bridge = bridge;
+}
+#else
 ledControl::ledControl(ledStatus* led_ptr) {
   led = led_ptr;
 }
+#endif
 
 void ledControl::init(void) {
   built_in_led_init();
+#if ENABLE_HW_LED
   led->init();
+#endif
 
   for(int i=0; i<LED_CTRL_NUM; i++) {
     led_controls[i].pwm_available = true;
@@ -178,8 +186,13 @@ void ledControl::write_leds(void) {
       bool state = (led_controls[i].current_brightness != LED_CTRL_BRIGHTNESS_MIN);
       built_in_led_set(state);
     } else {
+#if !ENABLE_HW_LED && ENABLE_SW_LED
+      send_bridge_led_control();
+      i+=3;
+#else
       uint16_t led_pwm = (uint16_t)(led_controls[i].current_brightness * ((float)LED_PWM_MAX / LED_CTRL_BRIGHTNESS_MAX));
       led->set_bright(i, led_pwm);
+#endif
     }
   }
 }
@@ -215,3 +228,17 @@ void ledControl::set_breathing_step(enum led_ctrl_name led_name, uint8_t step) {
   uint32_t num = led_name;
   led_controls[num].breathing_step = step;
 }
+
+#if ENABLE_SW_LED
+void ledControl::send_bridge_led_control(void) {
+  int payload_size = 4;
+  uint8_t payload_buf[PAYLOAD_MAX_SIZE];
+
+  payload_buf[0] = led_controls[1].current_brightness;
+  payload_buf[1] = led_controls[2].current_brightness;
+  payload_buf[2] = led_controls[3].current_brightness;
+  payload_buf[3] = led_controls[4].current_brightness;
+
+  Bridge->send(CMD_LED_CONTROL, payload_size, payload_buf);
+}
+#endif

@@ -46,5 +46,6 @@ enum bridge_cmd {
   CMD_VIBRATION_DATA    = 0x71, // [Lfreql][Lfreqh][Lpwr][Rfreql][Rfreqh][Rpwr]
   CMD_VIBRATION_DISABLE = 0x7F,
 
-  CMD_UNKNOWN           = 0xFF
+  // Rf bridge commands
+  CMD_LED_CONTROL       = 0x11, // [LED1][LED2][LED3][LED4]
 };

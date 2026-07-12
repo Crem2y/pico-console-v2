@@ -1,9 +1,12 @@
 #pragma once
 
 #include <stdint.h>
+
+#include "common.h"
 #include "led_builtin.h"
 #include "led_status.hpp"
 #include "system_time.h"
+#include "bridge_protocol.hpp"
 
 #define LED_CTRL_NUM 5 // built-in LED + 4 external LEDs
 #define LED_CTRL_BRIGHTNESS_MAX 255
@@ -48,7 +51,11 @@ typedef struct _led_config_t {
 
 class ledControl {
   public:
+#if !ENABLE_HW_LED && ENABLE_SW_LED
+    ledControl(bridgeProtocol* bridge);
+#else
     ledControl(ledStatus* led_ptr);
+#endif
 
     void init(void);
     void update(void);
@@ -62,8 +69,17 @@ class ledControl {
     void set_blink_interval(enum led_ctrl_name led_name, time_ms_t interval_ms); // for LED_BLINK, LED_BREATHING
     void set_breathing_step(enum led_ctrl_name led_name, uint8_t step); // for LED_BREATHING
 
+#if ENABLE_SW_LED
+    void send_bridge_led_control(void);
+#endif
+
   private:
+#if ENABLE_HW_LED
     ledStatus* led;
+#endif
+#if ENABLE_SW_LED
+    bridgeProtocol* Bridge;
+#endif
     led_control_t led_controls[LED_CTRL_NUM];
     time_ms_t current_time_ms;
 };

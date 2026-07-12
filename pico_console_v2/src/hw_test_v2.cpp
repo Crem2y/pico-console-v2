@@ -24,7 +24,11 @@ bridgeControl RfBridge = bridgeControl(&BridgeRf);
 #endif
 power Power = power();
 charger Charger = charger();
+#if !ENABLE_HW_LED && ENABLE_SW_LED
+ledControl LedCtrl = ledControl(&BridgeRf);
+#else
 ledControl LedCtrl = ledControl(&Led);
+#endif
 gamepad Gamepad = gamepad();
 graphicSystem Graphic = graphicSystem(&Lcd);
 audioSystem Audio = audioSystem();

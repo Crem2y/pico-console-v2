@@ -13,6 +13,7 @@ target_link_libraries(${OUTPUT_STATIC_LIB}
   led_builtin
   led_status
   system_time
+  bridge_protocol
 )
 
 message(STATUS "building lib \"${LIB_NAME}\" completed!")
