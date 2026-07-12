@@ -1,6 +1,7 @@
 #pragma once
 
 // hardware info
+#define HW_NAME         "Pico Console V2"
 #define HW_INFO_VERSION 0x0200 // V2.0.0
 #define HW_INFO_SUPPORT 0x00000000 //placeholder
 

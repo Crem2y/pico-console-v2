@@ -26,6 +26,21 @@ void bridgeControl::send_bridge_hw_info_res(void) {
   Bridge.send(CMD_HW_INFO_RES, payload_size, payload_buf);
 }
 
+void bridgeControl::send_bridge_hw_name_res(void) {
+  int payload_size = strlen(my_info.hw_name);
+  uint8_t payload_buf[PAYLOAD_MAX_SIZE] = {0,};
+
+  if(payload_size > PAYLOAD_MAX_SIZE) {
+    payload_size = PAYLOAD_MAX_SIZE;
+  }
+  strncpy((char *)payload_buf, my_info.hw_name, payload_size);
+  if(payload_size == PAYLOAD_MAX_SIZE) {
+    payload_buf[PAYLOAD_MAX_SIZE-1] = '\0';
+  }
+
+  Bridge.send(CMD_HW_NAME_RES, payload_size, payload_buf);
+}
+
 void bridgeControl::send_bridge_sw_info_res(void) {
   int payload_size = 12;
   uint8_t payload_buf[PAYLOAD_MAX_SIZE];

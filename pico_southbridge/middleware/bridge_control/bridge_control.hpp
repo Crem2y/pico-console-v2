@@ -10,6 +10,7 @@ typedef struct _bridge_info_t {
   uint32_t build_time;
   uint32_t hw_support;
   uint32_t sw_support;
+  char hw_name[16];
 } bridge_info_t;
 
 class bridgeControl {
@@ -26,6 +27,7 @@ class bridgeControl {
     }
 
     void send_bridge_hw_info_res(void);
+    void send_bridge_hw_name_res(void);
     void send_bridge_sw_info_res(void);
 
   private:

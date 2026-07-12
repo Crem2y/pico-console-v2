@@ -5,8 +5,11 @@ enum bridge_cmd {
   CMD_NONE              = 0x00,
   CMD_HW_INFO_REQ       = 0x01,
   CMD_HW_INFO_RES       = 0x02, // [version_L][version_H][support_flag1][support_flag2] ...
-  CMD_SW_INFO_REQ       = 0x03,
-  CMD_SW_INFO_RES       = 0x04, // [version 2bytes][date, time 6bytes][support_flag 4bytes] ...
+  CMD_HW_NAME_REQ       = 0x03,
+  CMD_HW_NAME_RES       = 0x04, // [friendly name (max 16 bytes)]
+  CMD_SW_INFO_REQ       = 0x05,
+  CMD_SW_INFO_RES       = 0x06, // [version 2bytes][date, time 6bytes][support_flag 4bytes] ...
+
   CMD_PING              = 0x0F,
 
   // Southbridge commands

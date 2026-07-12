@@ -479,6 +479,7 @@ void menu_system_info(void) {
     Graphic.printf("SW version(MAIN): 0x%04X\n", SW_INFO_VERSION);
     Graphic.printf("build date      : %02d%02d%02d %02d%02d%02d\n\n", DATE_YY, DATE_MM, DATE_DD, TIME_HH, TIME_MM, TIME_SS);
 
+    Graphic.printf("HW name         : %s\n", SouthBridge.info.hw_name);
     Graphic.printf("HW version      : 0x%04X\n", SouthBridge.info.hw_ver);
     Graphic.printf("HW support_flag : 0x%08X\n\n", SouthBridge.info.hw_support);
 
@@ -488,15 +489,18 @@ void menu_system_info(void) {
     Graphic.printf("SW support_flag : 0x%08X\n\n", SouthBridge.info.sw_support);
 #if ENABLE_RFBRIDGE
     Graphic.printf("RF Connected    : %s\n", RfBridge.connected ? "Yes" : "No ");
+    Graphic.printf("RF Module name  : %s\n", RfBridge.info.hw_name);
     Graphic.printf("SW version (RF) : 0x%04X\n", RfBridge.info.sw_ver);
     Graphic.printf("build date      : %06d %06d\n", RfBridge.info.build_date, RfBridge.info.build_time);
     Graphic.printf("SW support_flag : 0x%08X\n\n", RfBridge.info.sw_support);
 #endif
 
     SouthBridge.read_hw_info();
+    SouthBridge.read_hw_name();
     SouthBridge.read_sw_info();
 #if ENABLE_RFBRIDGE
     RfBridge.read_hw_info();
+    RfBridge.read_hw_name();
     RfBridge.read_sw_info();
 #endif
 
@@ -1860,6 +1864,9 @@ void bridge_cmd_handler(const bridge_msg_t* msg) {
   case CMD_HW_INFO_RES:
     SouthBridge.recv_bridge_hw_info_res(msg->payload, msg->payload_size);
     break;
+  case CMD_HW_NAME_RES:
+    SouthBridge.recv_bridge_hw_name_res(msg->payload, msg->payload_size);
+    break;
   case CMD_SW_INFO_RES:
     SouthBridge.recv_bridge_sw_info_res(msg->payload, msg->payload_size);
     break;
@@ -1901,6 +1908,9 @@ void bridge_cmd_handler_rf(const bridge_msg_t* msg) {
   {
   case CMD_HW_INFO_RES:
     RfBridge.recv_bridge_hw_info_res(msg->payload, msg->payload_size);
+    break;
+  case CMD_HW_NAME_RES:
+    RfBridge.recv_bridge_hw_name_res(msg->payload, msg->payload_size);
     break;
   case CMD_SW_INFO_RES:
     RfBridge.recv_bridge_sw_info_res(msg->payload, msg->payload_size);

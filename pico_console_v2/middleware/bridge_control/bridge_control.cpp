@@ -11,6 +11,7 @@ void bridgeControl::init(void) {
 
   info.hw_ver = 0;
   info.hw_support = 0;
+  info.hw_name[0] = 0;
   info.sw_ver = 0;
   info.sw_support = 0;
 }
@@ -27,6 +28,10 @@ void bridgeControl::send_bridge_hw_info_req(void) {
   Bridge->send(CMD_HW_INFO_REQ, 0, NULL);
 }
 
+void bridgeControl::send_bridge_hw_name_req(void) {
+  Bridge->send(CMD_HW_NAME_REQ, 0, NULL);
+}
+
 void bridgeControl::send_bridge_sw_info_req(void) {
   Bridge->send(CMD_SW_INFO_REQ, 0, NULL);
 }
@@ -36,6 +41,13 @@ void bridgeControl::recv_bridge_hw_info_res(const uint8_t* payload, uint8_t payl
 
   memcpy(&info.hw_ver, &payload[0], sizeof(uint16_t));
   memcpy(&info.hw_support, &payload[2], sizeof(uint32_t));
+}
+
+void bridgeControl::recv_bridge_hw_name_res(const uint8_t* payload, uint8_t payload_size) {
+  if(payload_size < 1) return;
+
+  //strncpy(info.hw_name, (char*)&payload[0], payload_size);
+  memcpy(info.hw_name, &payload[0], payload_size);
 }
 
 void bridgeControl::recv_bridge_sw_info_res(const uint8_t* payload, uint8_t payload_size) {

@@ -49,6 +49,7 @@ int main() {
   MainBridge.init();
   MainBridge.my_info.hw_ver = HW_INFO_VERSION;
   MainBridge.my_info.hw_support = HW_INFO_SUPPORT;
+  strncpy(MainBridge.my_info.hw_name, HW_NAME, PAYLOAD_MAX_SIZE);
   MainBridge.my_info.build_date = DATE_YY*10000 + DATE_MM*100 + DATE_DD;
   MainBridge.my_info.build_time = TIME_HH*10000 + TIME_MM*100 + TIME_SS;
   MainBridge.my_info.sw_ver = SW_INFO_VERSION;
@@ -135,6 +136,9 @@ void bridge_do_cmd(const bridge_msg_t* msg) {
   {
   case CMD_HW_INFO_REQ:
     MainBridge.send_bridge_hw_info_res();
+    break;
+  case CMD_HW_NAME_REQ:
+    MainBridge.send_bridge_hw_name_res();
     break;
   case CMD_SW_INFO_REQ:
     MainBridge.send_bridge_sw_info_res();

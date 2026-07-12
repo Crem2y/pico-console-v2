@@ -11,6 +11,7 @@ typedef struct _bridge_info_t {
   uint32_t build_time;
   uint32_t hw_support;
   uint32_t sw_support;
+  char hw_name[16];
 } bridge_info_t;
 
 class bridgeControl {
@@ -31,14 +32,19 @@ class bridgeControl {
     void read_hw_info(void) {
       send_bridge_hw_info_req();
     }
+    void read_hw_name(void) {
+      send_bridge_hw_name_req();
+    }
     void read_sw_info(void) {
       send_bridge_sw_info_req();
     }
 
     void send_bridge_hw_info_req(void);
+    void send_bridge_hw_name_req(void);
     void send_bridge_sw_info_req(void);
 
     void recv_bridge_hw_info_res(const uint8_t* payload, uint8_t payload_size);
+    void recv_bridge_hw_name_res(const uint8_t* payload, uint8_t payload_size);
     void recv_bridge_sw_info_res(const uint8_t* payload, uint8_t payload_size);
 
   private:
