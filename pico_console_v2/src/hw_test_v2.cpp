@@ -51,6 +51,7 @@ time_ms_t temperature_timer;
 time_ms_t audio_timer;
 time_ms_t vibration_timer;
 time_ms_t touch_timer;
+time_ms_t sd_timer;
 
 inline int pio_uart_readable_wrapper(void) {
   return pio_uart_rx_readable(&pio_rx);
@@ -224,7 +225,10 @@ int main() { // uses core 0 to sub core
       Touchscreen.update();
       //LOGT("x: %d, y: %d, z1: %d, z2: %d\n", Touchscreen.touch_data.x, Touchscreen.touch_data.y, Touchscreen.touch_data.z1, Touchscreen.touch_data.z2);
     }
-    Sd.update();
+    if(system_time_elapsed_ms(now_time, sd_timer) > 10) {
+      sd_timer = now_time;
+      Sd.update();
+    }
     usbDevice_update();
   }
 
@@ -1584,7 +1588,8 @@ void menu_sd_test(void) {
   Graphic.setCursor(0,16);
   Graphic.print("Loading...");
 
-  bool tried_mount = false;
+  enum sd_status status = SD_NO_CARD;
+  enum sd_status prev_status = SD_CARD_ERR;
 
   bool displaying_info = false;
   bool need_display_update = true;
@@ -1598,35 +1603,41 @@ void menu_sd_test(void) {
   while(1) {
     sleep_ms(100);
 
-    Graphic.setCursor(0,16);
-    Graphic.print("SD card : ");
-    if(Sd.is_inserted()) {
-      if(Sd.is_mounted()) {
-        Graphic.print("mounted     \n");
-      } else {
-        if(!tried_mount) {
-          Graphic.print("mounting... \n");
-          Sd.mount();
-          tried_mount = true;
-        } else {
+    status = Sd.get_status();
+    if(prev_status != status) {
+      prev_status = status;
+      Graphic.setCursor(0,16);
+      Graphic.print("SD card : ");
+      switch(status) {
+        case SD_NO_CARD:
+          Graphic.print("not inserted\n");
+          strcpy(path, "");
+          file_reading = false;
+          cursor = 0;
+          displaying_info = false;
+          break;
+        case SD_NOT_MOUNTED:
           Graphic.print("not mounted \n");
-        }
-        need_display_update = true;
+          break;
+        case SD_MOUNTING:
+          Graphic.print("mounting... \n");
+          break;
+        case SD_MOUNTED:
+          Graphic.print("mounted     \n");
+          break;
+        case SD_CARD_ERR:
+          Graphic.print("ERROR!!     \n");
+          break;
+        default:
+          break;
       }
-    } else {
-      Graphic.print("not inserted\n");
       need_display_update = true;
-      tried_mount = false;
-      strcpy(path, "");
-      file_reading = false;
-      cursor = 0;
-      displaying_info = false;
     }
 
     if(need_display_update) {
       need_display_update = false;
-      Graphic.fillRect(0,16*2,480,(320-40),LCD_BLACK);
-      if(Sd.is_inserted() && Sd.is_mounted()) {
+      Graphic.fillRect(0,16*2,480,(320-32),LCD_BLACK);
+      if(status == SD_MOUNTED) {
         if(displaying_info) {
           Graphic.print("press START to hide info\n");
           Graphic.set_font(G_FONT_16);

@@ -44,16 +44,47 @@ void sdCard::init(void) {
       sd_card_p->card_detect_gpio, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL,
       true, &card_detect_callback);
   }
+
+  status = SD_NO_CARD;
+#if SD_CARD_AUTO_MOUNT
+  tried_mount = false;
+#endif
 }
 
 void sdCard::update(void) {
   if (card_det_int_pend) {
     process_card_detect_int();
   }
+  update_status();
+
+#if SD_CARD_AUTO_MOUNT
+  if(status == SD_NOT_MOUNTED && !tried_mount) {
+    mount();
+    tried_mount = true;
+  }
+#endif
+}
+
+void sdCard::update_status(void) {
+  if (!sd_card_p) {
+    status = SD_CARD_ERR;
+    return;
+  }
+
+  if(STA_NODISK & sd_card_p->state.m_Status) {
+    status = SD_NO_CARD;
+    tried_mount = false;
+  } else if(sd_card_p->state.mounted) {
+    status = SD_MOUNTED;
+  } else if(status != SD_MOUNTING) {
+    status = SD_NOT_MOUNTED;
+  }
 }
 
 void sdCard::mount(void) {
   if (!sd_card_p) return;
+
+  status = SD_MOUNTING;
 
   int ds = sd_card_p->init(sd_card_p);
   if (STA_NODISK & ds || STA_NOINIT & ds) {
@@ -66,19 +97,20 @@ void sdCard::mount(void) {
   FATFS *fs_p = &sd_card_p->state.fatfs;
   FRESULT fr = f_mount(fs_p, sd_get_drive_prefix(sd_get_by_num(0)), 1);
   if (FR_OK != fr) {
-      LOGE("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
+    LOGE("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
   }
   sd_card_p->state.mounted = true;
+  status = SD_MOUNTED;
 }
 
 bool sdCard::is_inserted(void) {
   if (!sd_card_p) return false;
-  return !(STA_NODISK & sd_card_p->state.m_Status);
+  return (status != SD_NO_CARD);
 }
 
 bool sdCard::is_mounted(void) {
   if (!sd_card_p) return false;
-  return sd_card_p->state.mounted;
+  return (status == SD_MOUNTED);
 }
 
 void sdCard::print_info(printer_wrapper_t printer) {
