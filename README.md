@@ -2,6 +2,8 @@
 
 ![Front view](doc/front.jpg)
 
+[![Build test](https://github.com/Crem2y/pico-console-v2/actions/workflows/build_test.yml/badge.svg)](https://github.com/Crem2y/pico-console-v2/actions/workflows/build_test.yml)
+
 A custom-built handheld console platform based on a multi-MCU architecture.
 
 The system is built around two RP2350 microcontrollers:
@@ -15,7 +17,7 @@ For the previous version of this project, see [pico-console](https://github.com/
 
 - Architecture:
     - Main CPU: RP2350A (at [rp2350a_main_board](https://github.com/Crem2y/rp2350a_main_board))
-    - Southbridge: RP2350B (handles input, peripherals, and auxiliary I/O)
+    - Southbridge: RP2350B (at [pico-console-v2-pcb](https://github.com/Crem2y/pico-console-v2-pcb). handles input, peripherals, and auxiliary I/O)
     - Custom inter-MCU communication (based on UART)
 
 - Graphics:
@@ -34,12 +36,14 @@ For the previous version of this project, see [pico-console](https://github.com/
     - microSD ([carlk3/no-OS-FatFS-SD-SDIO-SPI-RPi-Pico](https://github.com/carlk3/no-OS-FatFS-SD-SDIO-SPI-RPi-Pico))
 
 - Other:
+    - Temperture monitoring
     - Battery monitoring
     - IR communication (RAW, NEC)
     - Designed for extensibility (at southbridge)
         - Qwiic/STEMMA QT Compatible connector
         - HSTX connector (0.5mm pitch 10pin FPC connector)
         - and some GPIO pads..
+    - USB HID (Powered by TinyUSB)
 
 This project focuses on exploring scalable embedded system design, including multi-processor coordination, custom protocols, and full-stack bare-metal development.
 
@@ -49,7 +53,7 @@ This project focuses on exploring scalable embedded system design, including mul
 ```bash
 sudo apt install cmake python3 build-essential gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
 ```
-2. Clone this repository and submodules:
+2. Clone this repository with submodules:
 ```bash
 git clone --recurse-submodules https://github.com/Crem2y/pico-console-v2.git
 ```

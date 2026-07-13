@@ -56,3 +56,5 @@ MIT license, all text above must be included in any redistribution
   Copyright © 2017-2024, Eunbin Jeong (Dalgona.) <project-neodgm@dalgona.dev>
   with reserved font name "Neo둥근모" and "NeoDunggeunmo".
 ```
+- **no-OS-FatFS-SD-SDIO-SPI-RPi-Pico**, licensed under the **Apache License 2.0**.  
+  See `no-OS-FatFS-SD-SDIO-SPI-RPi-Pico-Apache-2.0.txt`.
