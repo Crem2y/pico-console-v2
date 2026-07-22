@@ -3,11 +3,18 @@
 #include <stdint.h>
 #include "system_time.h"
 
-extern const float sound_freq_table[9][12];
+#define OCTAVE_MIN -1
+#define OCTAVE_MAX 9
+#define NOTE_MIN 0
+#define NOTE_MAX 11
+#define NOTE_TABLE_MIN 0
+#define NOTE_TABLE_MAX 131
+
+extern const float sound_freq_table[];
 
 typedef struct _music_note_t { //placeholder
   uint8_t channel;
-  uint8_t octave;
+  int8_t octave;
   uint8_t note;
   uint8_t volume;
 } music_note_t;
@@ -44,8 +51,14 @@ class audioSystem {
 
     void set_enable(bool enable);
   
-    void play_note(uint8_t ch, uint8_t octave, uint8_t note, uint8_t volume) {
-      send_bridge_note_on(ch, sound_freq_table[octave][note], volume);
+    void play_note(uint8_t ch, int8_t octave, uint8_t note, uint8_t volume) {
+      if(OCTAVE_MIN > octave || OCTAVE_MAX < octave) return;
+      if(NOTE_MAX < note) return;
+      send_bridge_note_on(ch, sound_freq_table[(octave+1)*12 + note], volume);
+    }
+    void play_note_num(uint8_t ch, uint8_t note_num, uint8_t volume) {
+      if(NOTE_TABLE_MAX < note_num) return;
+      send_bridge_note_on(ch, sound_freq_table[note_num], volume);
     }
     void play_wave(uint8_t ch, float freq, uint8_t volume) {
       send_bridge_note_on(ch, freq, volume);
