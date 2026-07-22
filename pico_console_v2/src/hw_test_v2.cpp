@@ -331,7 +331,7 @@ void core1_entry() { // uses core 1 to main core
 
   Audio.set_master_config(127);
   for(int i=0; i<4; i++) {
-    Audio.set_env(i, 25000, 1);
+    Audio.set_vol_env(i, 25000, 1);
   }
 
   // if SELECT+START, quiet boot
@@ -1141,7 +1141,7 @@ void menu_audio_test(void) {
   Graphic.print("A : play music, B : play sound");
 
   for(int i=0; i<4; i++) {
-    Audio.set_env(i, 25000, 1);
+    Audio.set_vol_env(i, 25000, 1);
   }
 
   uint8_t master_vol = 127;
@@ -1159,11 +1159,11 @@ void menu_audio_test(void) {
   uint8_t pit_step = 1;
 
   Audio.set_wave(4, (wave_t)wave_num);
-  Audio.set_env(4, env_tick, env_step);
+  Audio.set_vol_env(4, env_tick, env_step);
   Audio.set_pitch_env(4, pit_tick, pit_target, pit_step);
 
   Audio.set_wave(0, WAVE_SQUARE_50);
-  Audio.set_env(0, 25000, 1);
+  Audio.set_vol_env(0, 25000, 1);
 
   while(1) {
     sleep_ms(10);
@@ -1213,7 +1213,7 @@ void menu_audio_test(void) {
       if(Gamepad.is_btn_pressed(BTN_RIGHT)) {
         if(env_tick < 10000000) env_tick = pow(env_tick, 1.01);
       }
-      Audio.set_env(4, env_tick, env_step);
+      Audio.set_vol_env(4, env_tick, env_step);
       sleep_ms(100);
     }
 
@@ -1257,10 +1257,10 @@ void menu_audio_test(void) {
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) || Gamepad.is_btn_pressed(BTN_START)) {
       if(Gamepad.is_btn_pressed(BTN_START)) {
-        if(master_vol < 240) master_vol += 10;
+        if(master_vol < 255) master_vol += 5;
       }
       if(Gamepad.is_btn_pressed(BTN_SELECT)) {
-        if(master_vol > 10) master_vol -= 10;
+        if(master_vol > 5) master_vol -= 5;
       }
       Audio.set_master_config(master_vol);
       sleep_ms(100);

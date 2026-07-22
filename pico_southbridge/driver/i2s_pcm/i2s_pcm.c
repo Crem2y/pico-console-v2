@@ -10,50 +10,9 @@
 #include "i2s_pcm.h"
 #include "system_time.h"
 
-static int16_t square_12_wave_table[WAVE_TABLE_LEN];
-static int16_t square_25_wave_table[WAVE_TABLE_LEN];
-static int16_t square_50_wave_table[WAVE_TABLE_LEN];
-static int16_t square_75_wave_table[WAVE_TABLE_LEN];
-static int16_t triangle_wave_table[WAVE_TABLE_LEN];
-static int16_t sawtooth_wave_table[WAVE_TABLE_LEN];
-static int16_t noise_wave_table[WAVE_TABLE_LEN];
-static int16_t sine_wave_table[WAVE_TABLE_LEN];
-
 static int _data_pin;
 static int _clock_pin_base;
 static int _mute_pin;
-
-// -------------------- Wave tables --------------------
-static uint32_t xorshift32(uint32_t *state)
-{
-    uint32_t x = *state;
-    x ^= x << 13;
-    x ^= x >> 17;
-    x ^= x << 5;
-    *state = x;
-    return x;
-}
-
-static void make_wave_tables(void) {
-    int16_t noise_temp = -32768;
-    uint32_t rng = 0x12345678;
-
-    for (int i = 0; i < WAVE_TABLE_LEN; i++) {
-        square_12_wave_table[i] = (i < WAVE_TABLE_LEN / 8) ? 32767 : -32768;
-        square_25_wave_table[i] = (i < WAVE_TABLE_LEN / 4) ? 32767 : -32768;
-        square_50_wave_table[i] = (i < WAVE_TABLE_LEN / 2) ? 32767 : -32768;
-        square_75_wave_table[i] = (i < (WAVE_TABLE_LEN * 3) / 4) ? 32767 : -32768;
-        // triangle ranges -32768..32767 without overflow
-        if (i < WAVE_TABLE_LEN / 2) {
-            triangle_wave_table[i] = (int16_t)(((i * 65535) / (WAVE_TABLE_LEN / 2)) - 32768);
-        } else {
-            triangle_wave_table[i] = (int16_t)((((WAVE_TABLE_LEN - i) * 65535) / (WAVE_TABLE_LEN / 2)) - 32768);
-        }
-        sawtooth_wave_table[i] = (int16_t)((( (WAVE_TABLE_LEN - i) * 65535) / WAVE_TABLE_LEN) - 32768);
-        noise_wave_table[i] = (xorshift32(&rng) & 1) ? 32767 : -32768;
-        sine_wave_table[i] = (int16_t)(32767.0f * cosf((float)i * 2.0f * (float)(M_PI / WAVE_TABLE_LEN)));
-    }
-}
 
 // convert freq to step
 static inline uint32_t step_from_hz(float f_hz, uint32_t fs_hz) {
@@ -75,7 +34,7 @@ void set_master_volume(uint8_t vol) {
     master_volume = vol;
 }
 
-void voice_vol_env_set(int voice_idx, uint32_t tick_us, int32_t decay_step_q8) {
+void set_voice_vol_env(int voice_idx, uint32_t tick_us, int32_t decay_step_q8) {
     if (voice_idx < 0 || voice_idx >= NUM_CHANNELS) return;
     if (tick_us == 0) tick_us = 1;
     g_voices[voice_idx].vol_env_tick_us = tick_us;
@@ -84,15 +43,13 @@ void voice_vol_env_set(int voice_idx, uint32_t tick_us, int32_t decay_step_q8) {
 }
 
 static inline void voice_vol_env_init(int voice_idx, uint32_t tick_us, int32_t decay_step_q8) {
-    voice_vol_env_set(voice_idx, tick_us, decay_step_q8);
-    g_voices[voice_idx].vol_env_q8 = 0;
+    set_voice_vol_env(voice_idx, tick_us, decay_step_q8);
 }
 
 static inline void voice_vol_env_note_on(voice_t *v, int32_t peak_vol_q8) {
     if (peak_vol_q8 < 0) peak_vol_q8 = 0;
     if (peak_vol_q8 > 256) peak_vol_q8 = 256;
     v->vol_q8 = peak_vol_q8;
-    v->vol_env_q8 = peak_vol_q8;
     v->vol_env_next_us = get_system_time_us() + v->vol_env_tick_us;
 }
 
@@ -102,7 +59,7 @@ static inline uint32_t pitch_env_tick_interval_us(int32_t tick_us) {
     return (tick_us < 0) ? (uint32_t)(-tick_us) : (uint32_t)tick_us;
 }
 
-void voice_pitch_env_set(int voice_idx, int32_t tick_us, int32_t target_semitones, int32_t step) {
+void set_voice_pitch_env(int voice_idx, int32_t tick_us, int32_t target_semitones, int32_t step) {
     if (voice_idx < 0 || voice_idx >= NUM_CHANNELS) return;
     g_voices[voice_idx].pit_env_tick_us = pitch_env_tick_interval_us(tick_us);
     g_voices[voice_idx].pit_env_target_semitones = target_semitones;
@@ -113,7 +70,7 @@ void voice_pitch_env_set(int voice_idx, int32_t tick_us, int32_t target_semitone
 }
 
 static inline void voice_pitch_env_init(int voice_idx, int32_t tick_us, int32_t target_semitones, int32_t step) {
-    voice_pitch_env_set(voice_idx, tick_us, target_semitones, step);
+    set_voice_pitch_env(voice_idx, tick_us, target_semitones, step);
     g_voices[voice_idx].pit_env_semitones = 0;
 }
 
@@ -155,12 +112,12 @@ static inline bool voice_pitch_env_move_toward(voice_t *v, int32_t target) {
 
 static inline void voice_env_tick(voice_t *v, uint32_t now_us) {
     // Simple linear decay: vol_env_q8 -= vol_env_decay_step_q8 every vol_env_tick_us
-    if (v->vol_env_q8 > 0 && v->vol_env_decay_step_q8 > 0) {
+    if (v->vol_q8 > 0 && v->vol_env_tick_us > 0 && v->vol_env_decay_step_q8 > 0) {
         // Catch up if we missed ticks (avoid depending on main loop cadence)
         while ((int32_t)(now_us - v->vol_env_next_us) >= 0) {
-            v->vol_env_q8 -= v->vol_env_decay_step_q8;
-            if (v->vol_env_q8 <= 0) {
-                v->vol_env_q8 = 0;
+            v->vol_q8 -= v->vol_env_decay_step_q8;
+            if (v->vol_q8 <= 0) {
+                v->vol_q8 = 0;
                 break;
             }
             v->vol_env_next_us += v->vol_env_tick_us;
@@ -189,17 +146,21 @@ static inline void voice_env_tick(voice_t *v, uint32_t now_us) {
     }
 }
 
-static inline int32_t voice_next_sample_i32(voice_t *v) {
+static inline void voice_next_sample_i32(voice_t *v, int32_t* acc_l, int32_t* acc_r) {
     const uint32_t pos_max = 0x10000u * (uint32_t)WAVE_TABLE_LEN;
 
     const int32_t s = (int32_t)v->table[v->pos >> 16u];
-    // Apply envelope level (Q8)
-    int32_t y = (s * v->vol_env_q8) >> 8;
+
+    int32_t y = (s * v->vol_q8) >> 8;
+
+    int32_t l = (y * v->vol_l_q8) >> 8;
+    int32_t r = (y * v->vol_r_q8) >> 8;
 
     v->pos += v->step;
     if (v->pos >= pos_max) v->pos -= pos_max;
 
-    return y;
+    *acc_l += l;
+    *acc_r += r;
 }
 
 static void render_buffer_mono_mix(int16_t *dst, uint32_t count) {
@@ -209,39 +170,34 @@ static void render_buffer_mono_mix(int16_t *dst, uint32_t count) {
     for (int v = 0; v < NUM_CHANNELS; v++) {
         voice_env_tick(&g_voices[v], now_us);
     }
+
     for (uint32_t i = 0; i < count; i++) {
-        int32_t acc = 0;
-        // 4 fixed voices mixed into mono
+        int32_t acc_l = 0;
+        int32_t acc_r = 0;
+
         for (int v = 0; v < NUM_CHANNELS; v++) {
-            acc += voice_next_sample_i32(&g_voices[v]);
+            voice_next_sample_i32(&g_voices[v], &acc_l, &acc_r);
         }
 
         // Simple headroom to reduce clipping when multiple voices stack.
         // For NUM_CHANNELS=4, shifting by 2 approximates /4.
-        acc >>= 4; // acc /= 16
-        acc = (acc * master_volume) / 256;
+        acc_l >>= 4; // acc /= 16
+        acc_l = (acc_l * master_volume) / 256;
+
+        acc_r >>= 4; // acc /= 16
+        acc_r = (acc_r * master_volume) / 256;
 
         // Clip to int16 range
-        if (acc > 32767) acc = 32767;
-        if (acc < -32768) acc = -32768;
-        // Left channel
-        dst[i * 2 + 0] = (int16_t)acc;
-        // Right channel
-        dst[i * 2 + 1] = (int16_t)acc;
-    }
-}
+        if (acc_l > 32767) acc_l = 32767;
+        if (acc_l < -32768) acc_l = -32768;
 
-static const int16_t *wave_table_ptr(wave_t w) {
-    switch (w) {
-        case WAVE_SQUARE_12:    return square_12_wave_table;
-        case WAVE_SQUARE_25:    return square_25_wave_table;
-        case WAVE_SQUARE_50:    return square_50_wave_table;
-        case WAVE_SQUARE_75:    return square_75_wave_table;
-        case WAVE_TRIANGLE:     return triangle_wave_table;
-        case WAVE_SAWTOOTH:     return sawtooth_wave_table;
-        case WAVE_NOISE:        return noise_wave_table;
-        case WAVE_SINE:         return sine_wave_table;
-        default:                return square_50_wave_table;
+        if (acc_r > 32767) acc_r = 32767;
+        if (acc_r < -32768) acc_r = -32768;
+
+        // Left channel
+        dst[i * 2 + 0] = (int16_t)acc_l;
+        // Right channel
+        dst[i * 2 + 1] = (int16_t)acc_r;
     }
 }
 
@@ -251,23 +207,35 @@ void set_voice_waveform(int voice_idx, wave_t w) {
     g_voices[voice_idx].wave = w;
 }
 
-static bool set_voice_note(int voice_idx, float freq) {
-    if (voice_idx < 0 || voice_idx >= NUM_CHANNELS) return false;
+void set_voice_freq(int voice_idx, float freq) {
+    if (voice_idx < 0 || voice_idx >= NUM_CHANNELS) return;
     g_voices[voice_idx].base_step = step_from_hz(freq, AUDIO_FS_HZ);
     g_voices[voice_idx].step = voice_step_with_pitch_env(&g_voices[voice_idx]);
-    return true;
 }
 
-static void set_voice_volume_q8(int voice_idx, int32_t vol_q8) {
+void set_voice_volume_q8(int voice_idx, int32_t vol_q8) {
     if (voice_idx < 0 || voice_idx >= NUM_CHANNELS) return;
+
     if (vol_q8 < 0) vol_q8 = 0;
     if (vol_q8 > 256) vol_q8 = 256;
+
     g_voices[voice_idx].vol_q8 = vol_q8;
-    // Do not directly change vol_env_q8 here; vol_env_q8 is controlled by note triggers.
+}
+
+void set_voice_lr_volume_q8(int voice_idx, int32_t vol_l_q8, int32_t vol_r_q8) {
+    if (voice_idx < 0 || voice_idx >= NUM_CHANNELS) return;
+
+    if (vol_l_q8 < 0) vol_l_q8 = 0;
+    if (vol_l_q8 > 256) vol_l_q8 = 256;
+    if (vol_r_q8 < 0) vol_r_q8 = 0;
+    if (vol_r_q8 > 256) vol_r_q8 = 256;
+
+    g_voices[voice_idx].vol_l_q8 = vol_l_q8;
+    g_voices[voice_idx].vol_r_q8 = vol_r_q8;
 }
 
 void voice_note_on(int voice_idx, float freq, int32_t peak_vol_q8) {
-    if (!set_voice_note(voice_idx, freq)) return;
+    set_voice_freq(voice_idx, freq);
     voice_vol_env_note_on(&g_voices[voice_idx], peak_vol_q8);
     voice_pitch_env_note_on(&g_voices[voice_idx]);
 }
@@ -351,6 +319,7 @@ void audio_init(int data_pin, int clock_pin_base, int mute_pin) {
     for (int i = 0; i < NUM_CHANNELS; i++) {
         set_voice_waveform(i, WAVE_SQUARE_50);
         set_voice_volume_q8(i, 8);
+        set_voice_lr_volume_q8(i, 255, 255);
         voice_vol_env_init(i, 25000, 1);
         voice_pitch_env_init(i, 25000, 0, 0);
     }
