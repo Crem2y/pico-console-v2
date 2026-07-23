@@ -75,6 +75,22 @@ void graphicSystem::init(void) {
 #endif
 }
 
+void graphicSystem::set_rotation(uint8_t r) { 
+  rotation = (r % 4);
+  if(rotation % 2) {
+    _width = ILI9488_TFTHEIGHT;
+    _height = ILI9488_TFTWIDTH;
+  } else {
+    _width = ILI9488_TFTWIDTH;
+    _height = ILI9488_TFTHEIGHT;
+  }
+  _display->set_rotation(rotation);
+}
+
+uint8_t graphicSystem::get_rotation(void) {
+  return rotation; 
+}
+
 void graphicSystem::update_full(void) {
 #if USE_FRAME_BUFFER
   _display->draw_picture(0, 0, _width, _height, frame_buffer);

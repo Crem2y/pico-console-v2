@@ -136,8 +136,8 @@ class graphicSystem {
     void draw_char_16_kor(int16_t x, int16_t y, const unicode_bmp_t C);
 
 //// display configuration
-    void set_rotation(uint8_t r) { rotation = (r % 4); _display->set_rotation(r); }
-    uint8_t get_rotation(void) { return rotation; }
+    void set_rotation(uint8_t r);
+    uint8_t get_rotation(void);
     void set_bright(uint32_t bright) { _display->set_bright(bright); }
     uint32_t get_bright(void) { return _display->get_bright(); }
 
