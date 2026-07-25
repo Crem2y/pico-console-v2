@@ -1365,20 +1365,20 @@ void menu_vibration_test(void) {
     }
 
     if(Gamepad.is_btn_pressed(BTN_SL)) {
-      Vibration.set_vibration(VIBRATION_L, freq_l, power_l);
+      Vibration.set_vibration(VIB_L, freq_l, power_l);
     } else {
-      Vibration.set_vibration(VIBRATION_L, 0, 0);
+      Vibration.set_vibration(VIB_L, 0, 0);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SR)) {
-      Vibration.set_vibration(VIBRATION_R, freq_r, power_r);
+      Vibration.set_vibration(VIB_R, freq_r, power_r);
     } else {
-      Vibration.set_vibration(VIBRATION_R, 0, 0);
+      Vibration.set_vibration(VIB_R, 0, 0);
     }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
-      Vibration.set_vibration(VIBRATION_L, 0, 0);
-      Vibration.set_vibration(VIBRATION_R, 0, 0);
+      Vibration.set_vibration(VIB_L, 0, 0);
+      Vibration.set_vibration(VIB_R, 0, 0);
       return;
     }
   }

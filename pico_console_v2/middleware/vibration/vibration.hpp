@@ -3,9 +3,15 @@
 #include <stdint.h>
 #include "system_time.h"
 
+typedef struct _vibration_data_t {
+  uint16_t freq;
+  uint8_t power;
+} vibration_data_t;
+
 enum vibration_channel {
-  VIBRATION_L = 0,
-  VIBRATION_R
+  VIB_L = 0,
+  VIB_R,
+  VIB_CH_NUM,
 };
 
 class vibration {
@@ -15,12 +21,11 @@ class vibration {
     void init(void);
     void update(void);
     void set_vibration(enum vibration_channel channel, uint16_t freq, uint8_t power);
+    void set_freq(enum vibration_channel channel, uint16_t freq);
+    void set_power(enum vibration_channel channel, uint8_t power);
 
-    int make_bridge_payload(uint8_t* payload_buf, uint max_size);
+    void send_bridge_vibration_data(uint16_t l_freq, uint8_t l_power, uint16_t r_freq, uint8_t r_power);
   private:
-    uint16_t freq[2];
-    uint8_t power[2];
-
-    uint16_t prev_freq[2];
-    uint8_t prev_power[2];
+    vibration_data_t data[VIB_CH_NUM];
+    vibration_data_t prev_data[VIB_CH_NUM];
 };
