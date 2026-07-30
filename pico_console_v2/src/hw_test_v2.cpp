@@ -1392,6 +1392,8 @@ void menu_bat_test(void) {
   Graphic.setCursor(0,0);
   Graphic.print("Battery & Power test");
 
+  uint16_t max_charge_current = Charger.get_max_charge_current();
+
   while(1) {
     sleep_ms(100);
 
@@ -1399,7 +1401,23 @@ void menu_bat_test(void) {
     Graphic.printf("Vin : %01.3fV\n", Power.get_input_voltage());
     Graphic.printf("Battery : %s\n", Charger.get_battery_exist() ? "Yes" : "No ");
     Graphic.printf("Level : % 3.1f%% (%01.3fV)\n", Charger.get_bat_level(), Charger.get_bat_voltage());
-    Graphic.printf("Charging : %s | Fault : 0x%02X", Charger.get_charging_status() ? "Yes" : "No ", Charger.get_fault_status());
+    Graphic.printf("Charging : %s | Fault : 0x%02X\n", Charger.get_charging_status() ? "Yes" : "No ", Charger.get_fault_status());
+    Graphic.printf("Charge_enable : %s\n", Charger.get_charge_enable() ? "Yes" : "No ");
+    Graphic.printf("Max current : %d mA (set by %d mA) \n", max_charge_current, Charger.get_max_charge_current());
+
+    if(Gamepad.is_btn_pressed(BTN_S1_UP)) {
+      if(max_charge_current < 1500) max_charge_current += 10;
+    }
+    if(Gamepad.is_btn_pressed(BTN_S1_DOWN)) {
+      if(max_charge_current > 0) max_charge_current -= 10;
+    }
+    if(Gamepad.is_btn_pressed(BTN_X)) {
+      Charger.enable_charge(!Charger.get_charge_enable());
+      sleep_ms(500);
+    }
+    if(Gamepad.is_btn_pressed(BTN_A)) {
+      Charger.set_max_charge_current(max_charge_current);
+    }
 
     if(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START)) {
       return;

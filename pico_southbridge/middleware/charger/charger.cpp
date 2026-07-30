@@ -25,6 +25,14 @@ void charger::init(void) {
     is_battery_exist = true;
     Bq25619->set_ignore_ts(true);
   }
+
+  Bq25619->read_reg(BQ25619_REG_CHARGE_CURRENT_LIMIT);
+  LOGI("before ichg : %dmA\n", Bq25619->get_charge_current());
+
+  Bq25619->set_charge_current(500);
+
+  Bq25619->read_reg(BQ25619_REG_CHARGE_CURRENT_LIMIT);
+  LOGI("after ichg : %dmA\n", Bq25619->get_charge_current());
 }
 
 void charger::update(void) {
@@ -73,5 +81,11 @@ void charger::send_bridge_bat_status(void) {
 }
 
 void charger::recv_bridge_bat_control(const uint8_t* payload, uint8_t payload_size) {
+  if(payload_size < 2) return;
 
+  bool charge_en = payload[0];
+  uint16_t current_ma = payload[1] * 10;
+
+  enable_charge(charge_en);
+  set_max_charge_current(current_ma);
 }

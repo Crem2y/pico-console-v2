@@ -12,6 +12,7 @@ target_include_directories(${OUTPUT_STATIC_LIB} PUBLIC
 target_link_libraries(${OUTPUT_STATIC_LIB}
   adc_vsense
   bq25619
+  uart_log
   bridge_protocol
 )
 

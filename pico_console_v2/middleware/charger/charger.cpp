@@ -14,6 +14,16 @@ void charger::init(void) {
   is_battery_exist = false;
   charging = false;
   fault = 0x00;
+
+  charge_enable = true;
+  max_charge_current = 500;
+}
+
+void charger::set_max_charge_current(uint16_t charge_ma) {
+  if(charge_ma > 1500) charge_ma = 1500;
+
+  max_charge_current = charge_ma;
+  send_bridge_bat_control(charge_enable, max_charge_current);
 }
 
 float charger::get_bat_voltage(void) {
@@ -36,8 +46,17 @@ uint8_t charger::get_fault_status(void) {
   return fault;
 }
 
-void charger::send_bridge_bat_control(void) {
-  
+void charger::send_bridge_bat_control(bool enable, uint16_t charge_ma) {
+  int payload_size = 2;
+  uint8_t payload_buf[PAYLOAD_MAX_SIZE];
+
+  uint8_t charge_en = (enable ? 0x80 : 0x00);
+  uint8_t current_ma = charge_ma / 10;
+
+  payload_buf[0] = charge_en;
+  payload_buf[1] = current_ma;
+
+  Bridge.send(CMD_BATTERY_CONTROL, payload_size, payload_buf);
 }
 
 void charger::recv_bridge_bat_status(const uint8_t* payload, uint8_t payload_size) {

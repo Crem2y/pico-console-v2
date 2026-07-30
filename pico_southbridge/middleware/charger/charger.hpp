@@ -1,5 +1,6 @@
 #pragma once
 
+#include "uart_log.h"
 #include "adc_vsense.hpp"
 #include "bq25619.hpp"
 
@@ -9,6 +10,17 @@ class charger {
 
     void init(void);
     void update(void);
+
+    void enable_charge(bool enable) {
+      Bq25619->enable_charge(enable);
+    }
+    
+    void set_max_charge_current(uint16_t charge_ma) {
+      Bq25619->set_charge_current(charge_ma);
+    }
+    uint16_t get_max_charge_current(void) {
+      return Bq25619->get_charge_current();
+    }
 
     float get_bat_voltage(void) {
       return bat_voltage;
