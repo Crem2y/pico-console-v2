@@ -28,6 +28,8 @@ void charger::init(void) {
     Bq25619->set_ignore_ts(true);
   }
 
+  Bq25619->set_input_current_limit(500);
+
   Bq25619->read_reg(BQ25619_REG_CHARGE_CURRENT_LIMIT);
   LOGI("before ichg : %dmA\n", Bq25619->get_charge_current());
 

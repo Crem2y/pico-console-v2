@@ -128,6 +128,24 @@ void bq25619::set_charge_current(uint16_t charge_current_ma) {
   i2c_write_blocking(_i2c, _address, buf, 2, false);
 }
 
+void bq25619::set_input_current_limit(uint16_t input_current_limit_ma) {
+  uint8_t iindpm = input_current_limit_ma / 100;
+
+  if(iindpm != 0) iindpm -= 1;
+  if(iindpm > 31) iindpm = 31; // 0b11111
+
+  uint8_t addr = BQ25619_REG_INPUT_CURRENT_LIMIT;
+  uint8_t buf[2] = {BQ25619_REG_INPUT_CURRENT_LIMIT, 0x00};
+
+  i2c_write_blocking(_i2c, _address, &addr, 1, true);
+  i2c_read_blocking(_i2c, _address, &reg.in_cur_lim.byte, 1, false);
+
+  reg.in_cur_lim.IINDPM = iindpm;
+
+  buf[1] = reg.in_cur_lim.byte;
+  i2c_write_blocking(_i2c, _address, buf, 2, false);
+}
+
 bool bq25619::get_charging_status(void) {
   return reg.status_0.CHRG_STAT == 0x01 || reg.status_0.CHRG_STAT == 0x02;
 }

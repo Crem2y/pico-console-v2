@@ -17,6 +17,7 @@ class charger {
     
     void set_max_charge_current(uint16_t charge_ma) {
       Bq25619->set_charge_current(charge_ma);
+      Bq25619->set_input_current_limit(charge_ma + 500);
     }
     uint16_t get_max_charge_current(void) {
       return Bq25619->get_charge_current();

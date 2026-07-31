@@ -44,6 +44,7 @@ class bq25619 {
     void enable_charge(bool enable);
     void set_ignore_ts(bool ignore);
     void set_charge_current(uint16_t charge_current_ma);
+    void set_input_current_limit(uint16_t input_current_limit_ma);
 
     bool get_charging_status(void);
     bool get_external_power_status(void);
