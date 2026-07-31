@@ -29,14 +29,7 @@ void charger::init(void) {
   }
 
   Bq25619->set_input_current_limit(500);
-
-  Bq25619->read_reg(BQ25619_REG_CHARGE_CURRENT_LIMIT);
-  LOGI("before ichg : %dmA\n", Bq25619->get_charge_current());
-
   Bq25619->set_charge_current(500);
-
-  Bq25619->read_reg(BQ25619_REG_CHARGE_CURRENT_LIMIT);
-  LOGI("after ichg : %dmA\n", Bq25619->get_charge_current());
 }
 
 void charger::update(void) {
