@@ -12,17 +12,19 @@ void charger::init(void) {
   Vbat->init();
   Bq25619->init();
 
-  charging = false;
+  is_charging = false;
+  is_external_power_present = false;
+
   fault = 0x00;
 
   sleep_ms(100);
 
   bat_voltage = Vbat->read_voltage();
   if(bat_voltage < 2.0f) {
-    is_battery_exist = false;
+    is_battery_present = false;
     Bq25619->enable_charge(false);
   } else {
-    is_battery_exist = true;
+    is_battery_present = true;
     Bq25619->set_ignore_ts(true);
   }
 
@@ -36,7 +38,25 @@ void charger::init(void) {
 }
 
 void charger::update(void) {
-  bat_voltage = Vbat->read_voltage();
+  Bq25619->update_watchdog();
+
+  Bq25619->read_reg(BQ25619_REG_CHARGER_STATUS_0);
+  is_charging = Bq25619->get_charging_status();
+  is_external_power_present = Bq25619->get_external_power_status();
+
+  Bq25619->read_reg(BQ25619_REG_CHARGER_STATUS_1);
+  fault = Bq25619->get_fault_status();
+
+  float bat_voltage_raw = Vbat->read_voltage();
+
+  if(!is_external_power_present) {
+    bat_voltage = bat_voltage_raw + 0.080; // 80mV
+  } else if(is_charging) {
+    bat_voltage = bat_voltage_raw - 0.080; // 80mV
+  } else {
+    bat_voltage = bat_voltage_raw;
+  }
+
   if(bat_voltage >= 4.2) {
     bat_level = 100;
   } else if(bat_voltage > 4.1) { // 99.9 ~ 96.0, 100mV
@@ -51,14 +71,6 @@ void charger::update(void) {
     bat_level = 0;
   }
 
-  Bq25619->update_watchdog();
-
-  Bq25619->read_reg(BQ25619_REG_CHARGER_STATUS_0);
-  charging = Bq25619->get_charging_status();
-
-  Bq25619->read_reg(BQ25619_REG_CHARGER_STATUS_1);
-  fault = Bq25619->get_fault_status();
-
   send_bridge_bat_status();
 }
 
@@ -68,7 +80,7 @@ void charger::send_bridge_bat_status(void) {
 
   uint16_t voltage_mv = (bat_voltage * 1000);
   uint16_t level_x10 = (bat_level * 10);
-  uint8_t status_flag = (is_battery_exist ? 0x80 : 0x00) | (charging ? 0x40 : 0x00);
+  uint8_t status_flag = (is_battery_present ? 0x80 : 0x00) | (is_charging ? 0x40 : 0x00) | (is_external_power_present ? 0x20 : 0x00);
 
   payload_buf[0] = voltage_mv & 0xFF;
   payload_buf[1] = voltage_mv >> 8;

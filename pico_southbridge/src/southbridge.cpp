@@ -10,8 +10,8 @@ vibrationLRA Lra = vibrationLRA(PIN_LRA_L, PIN_LRA_R);
 bq25619 Bq25619 = bq25619(HW_I2C_CH, PIN_I2C_SDA, PIN_I2C_SCL, PIN_BAT_INT);
 mpu6050 Mpu = mpu6050(HW_I2C_CH, PIN_I2C_SDA, PIN_I2C_SCL, PIN_IMU_INT);
 tempNTC TempSensor = tempNTC(PIN_NTC);
-AdcVSense VSenseVBAT = AdcVSense(PIN_VBAT, HW_VBAT_RATIO);
-AdcVSense VSenseVIN = AdcVSense(PIN_VIN, HW_VIN_RATIO);
+AdcVSense VSenseVBAT = AdcVSense(PIN_VBAT, HW_VBAT_RATIO, HW_VBAT_OFFSET);
+AdcVSense VSenseVIN = AdcVSense(PIN_VIN, HW_VIN_RATIO, HW_VIN_OFFSET);
 ir_pulse_capture_t ir_rx;
 ir_tx_t ir_tx;
 

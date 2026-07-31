@@ -132,6 +132,10 @@ bool bq25619::get_charging_status(void) {
   return reg.status_0.CHRG_STAT == 0x01 || reg.status_0.CHRG_STAT == 0x02;
 }
 
+bool bq25619::get_external_power_status(void) {
+  return reg.status_0.PG_STAT;
+}
+
 uint8_t bq25619::get_fault_status(void) {
   return reg.status_1.byte;
 }

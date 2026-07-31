@@ -1399,10 +1399,10 @@ void menu_bat_test(void) {
 
     Graphic.setCursor(0,16);
     Graphic.printf("Vin : %01.3fV\n", Power.get_input_voltage());
-    Graphic.printf("Battery : %s\n", Charger.get_battery_exist() ? "Yes" : "No ");
+    Graphic.printf("Battery : %s, Power : %s\n", Charger.get_battery_present() ? "Yes" : "No ", Charger.get_external_power_status() ? "Yes" : "No ");
     Graphic.printf("Level : % 3.1f%% (%01.3fV)\n", Charger.get_bat_level(), Charger.get_bat_voltage());
     Graphic.printf("Charging : %s | Fault : 0x%02X\n", Charger.get_charging_status() ? "Yes" : "No ", Charger.get_fault_status());
-    Graphic.printf("Charge_enable : %s\n", Charger.get_charge_enable() ? "Yes" : "No ");
+    Graphic.printf("Charge enabled : %s\n", Charger.get_charge_enable() ? "Yes" : "No ");
     Graphic.printf("Max current : %d mA (set by %d mA) \n", max_charge_current, Charger.get_max_charge_current());
 
     if(Gamepad.is_btn_pressed(BTN_S1_UP)) {

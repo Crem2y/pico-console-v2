@@ -46,6 +46,7 @@ class bq25619 {
     void set_charge_current(uint16_t charge_current_ma);
 
     bool get_charging_status(void);
+    bool get_external_power_status(void);
     uint8_t get_fault_status(void);
     uint16_t get_charge_current(void);
 

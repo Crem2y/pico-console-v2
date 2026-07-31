@@ -30,7 +30,10 @@ class charger {
     }
 
     bool get_charging_status(void) {
-      return charging;
+      return is_charging;
+    }
+    bool get_external_power_status(void) {
+      return is_external_power_present;
     }
     uint8_t get_fault_status(void)  {
       return fault;
@@ -47,8 +50,9 @@ class charger {
     float bat_voltage;
     float bat_level;
 
-    bool is_battery_exist;
+    bool is_battery_present;
+    bool is_charging;
+    bool is_external_power_present;
 
-    bool charging;
     uint8_t fault;
 };

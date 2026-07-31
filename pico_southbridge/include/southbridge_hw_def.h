@@ -70,7 +70,9 @@
 #define PIN_JOY2_Y      43
 #define PIN_VIN         44
     #define HW_VIN_RATIO   0.5f // 10k : 10k
+    #define HW_VIN_OFFSET  40 // mV
 #define PIN_VBAT        45
     #define HW_VBAT_RATIO  0.5f // 10k : 10k
+    #define HW_VBAT_OFFSET 0 // mV
 #define PIN_NTC         46
 // reserved 47

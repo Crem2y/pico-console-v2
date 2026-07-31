@@ -11,12 +11,23 @@ void charger::init(void) {
   voltage = 0.0f;
   level = 0.0f;
 
-  is_battery_exist = false;
-  charging = false;
+  is_battery_present = false;
+  is_charging = false;
+  is_external_power_present = false;
+
   fault = 0x00;
 
   charge_enable = true;
   max_charge_current = 500;
+}
+
+void charger::enable_charge(bool enable) {
+  if(is_battery_present) {
+    charge_enable = enable;
+  } else {
+    charge_enable = false;
+  }
+  send_bridge_bat_control(charge_enable, max_charge_current);
 }
 
 void charger::set_max_charge_current(uint16_t charge_ma) {
@@ -24,26 +35,6 @@ void charger::set_max_charge_current(uint16_t charge_ma) {
 
   max_charge_current = charge_ma;
   send_bridge_bat_control(charge_enable, max_charge_current);
-}
-
-float charger::get_bat_voltage(void) {
-  return voltage;
-}
-
-float charger::get_bat_level(void) {
-  return level;
-}
-
-bool charger::get_battery_exist(void) {
-  return is_battery_exist;
-}
-
-bool charger::get_charging_status(void) {
-  return charging;
-}
-
-uint8_t charger::get_fault_status(void) {
-  return fault;
 }
 
 void charger::send_bridge_bat_control(bool enable, uint16_t charge_ma) {
@@ -69,8 +60,9 @@ void charger::recv_bridge_bat_status(const uint8_t* payload, uint8_t payload_siz
   level = (float)level_x10 / 10;
 
   uint8_t status_flag = payload[4];
-  is_battery_exist = (status_flag & 0x80);
-  charging = (status_flag & 0x40);
+  is_battery_present = (status_flag & 0x80);
+  is_charging = (status_flag & 0x40);
+  is_external_power_present = (status_flag & 0x20);
 
   fault = payload[5];
 }
