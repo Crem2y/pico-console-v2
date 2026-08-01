@@ -481,7 +481,7 @@ void menu_system_info(void) {
     Graphic.setCursor(0,16*2);
     Graphic.setTextSize(1);
     Graphic.printf("SW version(MAIN): 0x%04X\n", SW_INFO_VERSION);
-    Graphic.printf("build date      : %02d%02d%02d %02d%02d%02d\n\n", DATE_YY, DATE_MM, DATE_DD, TIME_HH, TIME_MM, TIME_SS);
+    Graphic.printf("build date      : %02X%02X%02X %02X%02X%02X\n\n", DATE_YY_BCD, DATE_MM_BCD, DATE_DD_BCD, TIME_HH_BCD, TIME_MM_BCD, TIME_SS_BCD);
 
     Graphic.printf("HW name         : %s\n", SouthBridge.info.hw_name);
     Graphic.printf("HW version      : 0x%04X\n", SouthBridge.info.hw_ver);
@@ -489,13 +489,13 @@ void menu_system_info(void) {
 
     Graphic.printf("SB Connected    : %s\n", SouthBridge.connected ? "Yes" : "No ");
     Graphic.printf("SW version (SB) : 0x%04X\n", SouthBridge.info.sw_ver);
-    Graphic.printf("build date      : %06d %06d\n", SouthBridge.info.build_date, SouthBridge.info.build_time);
+    Graphic.printf("build date      : %06X %06X\n", SouthBridge.info.build_date, SouthBridge.info.build_time);
     Graphic.printf("SW support_flag : 0x%08X\n\n", SouthBridge.info.sw_support);
 #if ENABLE_RFBRIDGE
     Graphic.printf("RF Connected    : %s\n", RfBridge.connected ? "Yes" : "No ");
     Graphic.printf("RF Module name  : %s\n", RfBridge.info.hw_name);
     Graphic.printf("SW version (RF) : 0x%04X\n", RfBridge.info.sw_ver);
-    Graphic.printf("build date      : %06d %06d\n", RfBridge.info.build_date, RfBridge.info.build_time);
+    Graphic.printf("build date      : %06X %06X\n", RfBridge.info.build_date, RfBridge.info.build_time);
     Graphic.printf("SW support_flag : 0x%08X\n\n", RfBridge.info.sw_support);
 #endif
 

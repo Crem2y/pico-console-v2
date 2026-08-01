@@ -50,8 +50,8 @@ int main() {
   MainBridge.my_info.hw_ver = HW_INFO_VERSION;
   MainBridge.my_info.hw_support = HW_INFO_SUPPORT;
   strncpy(MainBridge.my_info.hw_name, HW_NAME, PAYLOAD_MAX_SIZE);
-  MainBridge.my_info.build_date = DATE_YY*10000 + DATE_MM*100 + DATE_DD;
-  MainBridge.my_info.build_time = TIME_HH*10000 + TIME_MM*100 + TIME_SS;
+  MainBridge.my_info.build_date = DATE_YY_BCD*0x10000 | DATE_MM_BCD*0x100 | DATE_DD_BCD;
+  MainBridge.my_info.build_time = TIME_HH_BCD*0x10000 | TIME_MM_BCD*0x100 | TIME_SS_BCD;
   MainBridge.my_info.sw_ver = SW_INFO_VERSION;
   MainBridge.my_info.sw_support = SW_INFO_SUPPORT;
 
