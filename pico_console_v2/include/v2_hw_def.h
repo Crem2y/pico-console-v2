@@ -23,6 +23,14 @@
 #define TIME_MM ((__TIME__ [3] - '0') * 10 + (__TIME__ [4] - '0'))
 #define TIME_SS ((__TIME__ [6] - '0') * 10 + (__TIME__ [7] - '0'))
 
+// build date (BCD)
+#define DATE_YY_BCD ((DATE_YY / 10) << 4 | (DATE_YY % 10))
+#define DATE_MM_BCD ((DATE_MM / 10) << 4 | (DATE_MM % 10))
+#define DATE_DD_BCD ((DATE_DD / 10) << 4 | (DATE_DD % 10))
+#define TIME_HH_BCD ((TIME_HH / 10) << 4 | (TIME_HH % 10))
+#define TIME_MM_BCD ((TIME_MM / 10) << 4 | (TIME_MM % 10))
+#define TIME_SS_BCD ((TIME_SS / 10) << 4 | (TIME_SS % 10))
+
 // pin definitions
 #define PIN_LOG_TX      0
 #define PIN_LOG_RX      1
