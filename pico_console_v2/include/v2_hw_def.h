@@ -1,10 +1,13 @@
 #pragma once
 
 // hardware info
+#define HW_NAME         "RP2350A Main"
 #define HW_INFO_VERSION 0x0100 // V1.0.0
+#define HW_INFO_SUPPORT 0x00000000 //placeholder
 
 // software info
 #define SW_INFO_VERSION 0x1000 // V1.0.00
+#define SW_INFO_SUPPORT 0x00000000 //placeholder
 
 // build date
 #define DATE_YY ((__DATE__ [9] - '0') * 10 + (__DATE__ [10] - '0'))
