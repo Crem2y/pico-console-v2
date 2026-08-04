@@ -78,12 +78,7 @@ int boot_partition(uint partition_num) {
     //        region_base + flash_size,
     //        flash_size);
 
-    /*
-     * IMAGE_DEF / block loop가 실제로 이 영역 첫 4 KiB에 있는지
-     * 확인하기 위한 간단한 dump.
-     */
-    const uint32_t *p = (const uint32_t *)region_base;
-
+    // const uint32_t *p = (const uint32_t *)region_base;
     // for (uint i = 0; i < 0x1000 / 4; ++i) {
     //     if (p[i] == PICOBIN_BLOCK_MARKER_START) {
     //         LOGI("PICOBIN block found at +0x%03x\n", i * 4);
@@ -179,7 +174,7 @@ inline int pio_uart_write_wrapper_rf(const uint8_t* data, size_t data_size) {
 int main() { // uses core 0 to sub core
   // log init
   uartLog_init(HW_LOG_CH, PIN_LOG_TX, PIN_LOG_RX, HW_LOG_BAUD);
-  uartLog_print("\n\npico console V2 booting...\n\n");
+  uartLog_print("\n\npico console bootloader\n\n");
 
   // bridge init
   pio_uart_tx_init(&pio_tx, HW_BRIDGE_PIO, PIN_BRIDGE_TX, HW_BRIDGE_BAUD);

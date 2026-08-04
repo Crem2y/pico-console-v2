@@ -2,6 +2,6 @@
 
 echo "Uploading..."
 
-picotool load build/pico_console_v2.uf2 -x
+picotool load build/pico_console_bootloader.uf2 -x
 
 echo "Uploading Complete!"

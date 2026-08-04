@@ -31,7 +31,11 @@ else()
 endif()
 include(pico_sdk_import.cmake)
 
-project(pico_console_v2 C CXX ASM)
+project(pico_console_bootloader C CXX ASM)
+
+set(SW_VERSION_MAJOR 1)
+set(SW_VERSION_MINOR 0)
+set(SW_VERSION_PATCH 0)
 
 # clock setup. if changed, you must (re)configure the cmake.
 #add_compile_definitions(SYS_CLK_MHZ=200) # set clock to 200MHz (RP2040 maximum clock)
@@ -61,6 +65,17 @@ target_link_libraries(${PROJECT_NAME}
   lib
   driver
   middleware
+)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+  SW_VERSION_MAJOR=${SW_VERSION_MAJOR}
+  SW_VERSION_MINOR=${SW_VERSION_MINOR}
+  SW_VERSION_PATCH=${SW_VERSION_PATCH}
+)
+
+pico_set_program_version(
+    ${PROJECT_NAME}
+    "${SW_VERSION_MAJOR}.${SW_VERSION_MINOR}.${SW_VERSION_PATCH}"
 )
 
 pico_set_uf2_family(${PROJECT_NAME} "rp2350-arm-s")
