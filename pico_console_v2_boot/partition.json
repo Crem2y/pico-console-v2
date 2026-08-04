@@ -27,7 +27,31 @@
     {
       "name": "Application 0",
       "id": 1,
-      "size": "1024K",
+      "size": "512K",
+      "families": ["rp2350-arm-s"],
+      "permissions": {
+        "secure": "rw",
+        "nonsecure": "rw",
+        "bootloader": "rw"
+      }
+    },
+
+    {
+      "name": "Application 1",
+      "id": 1,
+      "size": "512K",
+      "families": ["rp2350-arm-s"],
+      "permissions": {
+        "secure": "rw",
+        "nonsecure": "rw",
+        "bootloader": "rw"
+      }
+    },
+
+    {
+      "name": "Application 2",
+      "id": 1,
+      "size": "512K",
       "families": ["rp2350-arm-s"],
       "permissions": {
         "secure": "rw",

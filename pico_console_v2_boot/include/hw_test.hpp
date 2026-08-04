@@ -44,6 +44,9 @@
 enum menu_main {
   MAIN_SYSTEM_INFO,
   MAIN_BOOT_1,
+  MAIN_BOOT_2,
+  MAIN_BOOT_3,
+  MAIN_BOOT_TO_ROM,
 };
 
 void menu_system_info();

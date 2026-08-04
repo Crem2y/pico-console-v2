@@ -22,7 +22,7 @@ int boot_partition(uint partition_num) {
         false
     );
 
-    LOGI("load PT rc = %d\n", rc);
+    // LOGI("load PT rc = %d\n", rc);
 
     if (rc < 0)
         return rc;
@@ -35,17 +35,17 @@ int boot_partition(uint partition_num) {
         (partition_num << 24)
     );
 
-    LOGI("get PT info rc = %d\n", rc);
+    // LOGI("get PT info rc = %d\n", rc);
 
     if (rc < 0)
         return rc;
 
-    LOGI("supported flags = 0x%08lx\n", info[0]);
-    LOGI("perm/location   = 0x%08lx\n", info[1]);
-    LOGI("perm/flags      = 0x%08lx\n", info[2]);
+    // LOGI("supported flags = 0x%08lx\n", info[0]);
+    // LOGI("perm/location   = 0x%08lx\n", info[1]);
+    // LOGI("perm/flags      = 0x%08lx\n", info[2]);
 
     if (!(info[0] & PT_INFO_PARTITION_LOCATION_AND_FLAGS)) {
-        LOGE("location info not returned\n");
+        // LOGE("location info not returned\n");
         return BOOTROM_ERROR_INVALID_DATA;
     }
 
@@ -68,15 +68,15 @@ int boot_partition(uint partition_num) {
     const uint32_t region_base =
         XIP_BASE + flash_offset;
 
-    LOGI("P%u sector = %lu .. %lu\n",
-           partition_num,
-           first_sector,
-           last_sector);
+    // LOGI("P%u sector = %lu .. %lu\n",
+    //        partition_num,
+    //        first_sector,
+    //        last_sector);
 
-    LOGI("region = 0x%08lx .. 0x%08lx (%lu bytes)\n",
-           region_base,
-           region_base + flash_size,
-           flash_size);
+    // LOGI("region = 0x%08lx .. 0x%08lx (%lu bytes)\n",
+    //        region_base,
+    //        region_base + flash_size,
+    //        flash_size);
 
     /*
      * IMAGE_DEF / block loop가 실제로 이 영역 첫 4 KiB에 있는지
@@ -84,15 +84,15 @@ int boot_partition(uint partition_num) {
      */
     const uint32_t *p = (const uint32_t *)region_base;
 
-    for (uint i = 0; i < 0x1000 / 4; ++i) {
-        if (p[i] == PICOBIN_BLOCK_MARKER_START) {
-            LOGI("PICOBIN block found at +0x%03x\n", i * 4);
-        }
-    }
+    // for (uint i = 0; i < 0x1000 / 4; ++i) {
+    //     if (p[i] == PICOBIN_BLOCK_MARKER_START) {
+    //         LOGI("PICOBIN block found at +0x%03x\n", i * 4);
+    //     }
+    // }
 
-    LOGI("chain...\n");
+    // LOGI("chain...\n");
 
-    sleep_ms(1000);
+    // sleep_ms(1000);
     multicore_reset_core1();
 
     rc = rom_chain_image(
@@ -200,14 +200,14 @@ int main() { // uses core 0 to sub core
   sleep_ms(100);
 
   LedCtrl.init();
-  led_config_t led_config = {.mode = LED_BLINK_REPEAT, .brightness = 255, .update_interval_ms = 500};
+  led_config_t led_config = {.mode = LED_ON, .brightness = 255};
   LedCtrl.set_config(LED_CTRL_BUILT_IN, led_config);
   LedCtrl.update();
 
   // initalizing hardwares
   Power.init();
   Charger.init();
-  led_config = {.mode = LED_ON, .brightness = 255, .update_interval_ms = 20, .breathing_step = 10};
+  led_config = {.mode = LED_OFF, .brightness = 0, .update_interval_ms = 20, .breathing_step = 10};
   LedCtrl.set_config(LED_CTRL_1, led_config);
   LedCtrl.set_config(LED_CTRL_2, led_config);
   LedCtrl.set_config(LED_CTRL_3, led_config);
@@ -224,22 +224,16 @@ int main() { // uses core 0 to sub core
 #endif
   Graphic.begin();
   Graphic.fillScreen(LCD_BLACK);
-  Graphic.set_bright(750);
+  Graphic.set_bright(0);
   Graphic.setTextColor(LCD_WHITE, LCD_BLACK);
   Graphic.setTextSize(1);
   Graphic.set_font(G_FONT_5X8);
   LOGI("LCD ok\n");
-  Graphic.setCursor(0,0);
-  Graphic.print("Gamepad init...");
   Gamepad.init();
   Gamepad.set_enable(true, false);
   LOGI("Gamepad ok\n");
-  Graphic.setCursor(0,0);
-  Graphic.print("SD init...");
   Sd.init();
   LOGI("SD ok\n");
-  Graphic.setCursor(0,0);
-  Graphic.print("               ");
   LOGI("all HWs ok!\n");
   LOGI("core freq = %ld hz\n", SYS_CLK_KHZ * 1000);
   // hardware initalized
@@ -291,78 +285,13 @@ void core1_entry() { // uses core 1 to main core
 
   // multicore_fifo_pop_blocking(); // wait until boot process is done
 
-  Graphic.setTextSize(2);
-  Graphic.setCursor(150,160);
-  Graphic.print("PICO BOOTLOADER");
-
-  Graphic.setCursor(480-(6*2*9),320-(8*2));
-  Graphic.print("by Crem2y");
-  Graphic.setTextSize(1);
-  Graphic.setCursor(206,200);
-  Graphic.print("press START");
-  Graphic.setCursor(183,210);
-  Graphic.print("or touch the screen");
-
-  Graphic.setCursor(0,0);
-  Graphic.print("press L/R to change bright");
-
-  time_ms_t btn_time_ms = 0;
-  time_ms_t display_time_ms = 0;
-  bool display_text = false;
-  bool display_bridge_status = false;
-  while(true) {
-    time_ms_t now_time = get_system_time_ms();
-    if(Gamepad.is_btn_pressed(BTN_START)) break;
-
-    if(system_time_elapsed_ms(now_time, btn_time_ms) > 200) {
-      btn_time_ms = now_time;
-
-      uint16_t bright = Graphic.get_bright();
-      if(Gamepad.is_btn_pressed(BTN_SL) && bright > 50) {
-        Graphic.set_bright(bright - 50);
-        Graphic.setCursor(0,8);
-        Graphic.printf("bright : %d ", bright - 50);
-      }
-      if(Gamepad.is_btn_pressed(BTN_SR) && bright < 1000) {
-        Graphic.set_bright(bright + 50);
-        Graphic.setCursor(0,8);
-        Graphic.printf("bright : %d ", bright + 50);
-      }
-
-      Graphic.setCursor(480-66,0);
-      Graphic.printf("BAT:% 3.1f%%", Charger.get_bat_level());
-    }
-
-    if(system_time_elapsed_ms(now_time, display_time_ms) > 1000) {
-      display_time_ms = now_time;
-      if(display_text) {
-        Graphic.fillRect(206,200,(6*11),8,LCD_BLACK);
-      } else {
-        Graphic.setCursor(206,200);
-        Graphic.print("press START");
-      }
-      display_text = !display_text;
-    }
-
-    // to remove flickering
-    if(!SouthBridge.connected) {
-      if(!display_bridge_status) {
-        Graphic.setCursor(162,240);
-        Graphic.print("southbridge disconnected!");
-        display_bridge_status = true;
-      }
-    } else {
-      if(display_bridge_status) {
-        Graphic.fillRect(162,240,(26*6),8,LCD_BLACK);
-        display_bridge_status = false;
-      }
-    }
+  sleep_ms(100);
+  if(!(Gamepad.is_btn_pressed(BTN_SELECT) && Gamepad.is_btn_pressed(BTN_START))) {
+    boot_partition_num = 1;
+    sleep_ms(5000);
   }
 
-  LedCtrl.set_mode(LED_CTRL_1, LED_DARKER);
-  LedCtrl.set_mode(LED_CTRL_2, LED_DARKER);
-  LedCtrl.set_mode(LED_CTRL_3, LED_DARKER);
-  LedCtrl.set_mode(LED_CTRL_4, LED_DARKER);
+  Graphic.set_bright(750);
 
   uint8_t cursor_x = 0;
   uint8_t cursor_x_old = 0;
@@ -375,7 +304,10 @@ main_menu_loop:
     Graphic.setTextSize(2);
     Graphic.setCursor(0,0);
     Graphic.print(" System info\n");
-    Graphic.print(" Boot to 1\n");
+    Graphic.print(" Boot to partion 1\n");
+    Graphic.print(" Boot to partion 2\n");
+    Graphic.print(" Boot to partion 3\n");
+    Graphic.print(" Boot to bootrom\n");
 
     Graphic.setTextSize(1);
     Graphic.setCursor(0,320-(8*2));
@@ -404,7 +336,7 @@ main_menu_loop:
         if(cursor_x > 0) cursor_x--;
       }
       if(Gamepad.is_btn_pressed(BTN_S1_DOWN) || Gamepad.is_btn_pressed(BTN_DOWN)) {
-        if(cursor_x < MAIN_BOOT_1) cursor_x++;
+        if(cursor_x < MAIN_BOOT_TO_ROM) cursor_x++;
       }
 
       if(!Gamepad.is_btn_pressed(BTN_SELECT) && (Gamepad.is_btn_pressed(BTN_A) || Gamepad.is_btn_pressed(BTN_START))) {
@@ -416,6 +348,18 @@ main_menu_loop:
           break;
         case MAIN_BOOT_1:
           boot_partition_num = 1;
+          sleep_ms(5000);
+          break;
+        case MAIN_BOOT_2:
+          boot_partition_num = 2;
+          sleep_ms(5000);
+          break;
+        case MAIN_BOOT_3:
+          boot_partition_num = 3;
+          sleep_ms(5000);
+          break;
+        case MAIN_BOOT_TO_ROM:
+          reset_usb_boot(0, 0);
           break;
         default:
           cursor_x = 0;
@@ -446,7 +390,7 @@ void menu_system_info(void) {
     Graphic.setCursor(0,16*2);
     Graphic.setTextSize(1);
     Graphic.printf("SW version(MAIN): 0x%04X\n", SW_INFO_VERSION);
-    Graphic.printf("build date      : %02d%02d%02d %02d%02d%02d\n\n", DATE_YY, DATE_MM, DATE_DD, TIME_HH, TIME_MM, TIME_SS);
+    Graphic.printf("build date      : %02X%02X%02X %02X%02X%02X\n\n", DATE_YY_BCD, DATE_MM_BCD, DATE_DD_BCD, TIME_HH_BCD, TIME_MM_BCD, TIME_SS_BCD);
 
     Graphic.printf("HW name         : %s\n", SouthBridge.info.hw_name);
     Graphic.printf("HW version      : 0x%04X\n", SouthBridge.info.hw_ver);
@@ -454,13 +398,13 @@ void menu_system_info(void) {
 
     Graphic.printf("SB Connected    : %s\n", SouthBridge.connected ? "Yes" : "No ");
     Graphic.printf("SW version (SB) : 0x%04X\n", SouthBridge.info.sw_ver);
-    Graphic.printf("build date      : %06d %06d\n", SouthBridge.info.build_date, SouthBridge.info.build_time);
+    Graphic.printf("build date      : %06X %06X\n", SouthBridge.info.build_date, SouthBridge.info.build_time);
     Graphic.printf("SW support_flag : 0x%08X\n\n", SouthBridge.info.sw_support);
 #if ENABLE_RFBRIDGE
     Graphic.printf("RF Connected    : %s\n", RfBridge.connected ? "Yes" : "No ");
     Graphic.printf("RF Module name  : %s\n", RfBridge.info.hw_name);
     Graphic.printf("SW version (RF) : 0x%04X\n", RfBridge.info.sw_ver);
-    Graphic.printf("build date      : %06d %06d\n", RfBridge.info.build_date, RfBridge.info.build_time);
+    Graphic.printf("build date      : %06X %06X\n", RfBridge.info.build_date, RfBridge.info.build_time);
     Graphic.printf("SW support_flag : 0x%08X\n\n", RfBridge.info.sw_support);
 #endif
 
