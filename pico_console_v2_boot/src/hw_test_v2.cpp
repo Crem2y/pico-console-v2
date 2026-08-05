@@ -90,12 +90,15 @@ int boot_partition(uint partition_num) {
     // sleep_ms(1000);
     multicore_reset_core1();
 
-    rc = rom_chain_image(
-        workarea,
-        sizeof(workarea),
-        region_base,
-        flash_size
-    );
+    reset_block(RESETS_RESET_PIO0_BITS);
+    reset_block(RESETS_RESET_PIO1_BITS);
+    reset_block(RESETS_RESET_PIO2_BITS);
+
+    unreset_block_wait(RESETS_RESET_PIO0_BITS);
+    unreset_block_wait(RESETS_RESET_PIO1_BITS);
+    unreset_block_wait(RESETS_RESET_PIO2_BITS);
+
+    rc = rom_chain_image(workarea, sizeof(workarea), region_base, flash_size);
 
     LOGE("chain failed: %d\n", rc);
 
