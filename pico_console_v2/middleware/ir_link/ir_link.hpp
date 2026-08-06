@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "system_time.h"
 
 #define IR_LINK_MAX_DATA_SIZE 224 // (16-2)*16 = 224 - 1 byte for format - 1 byte for sequencing
 
@@ -35,11 +36,17 @@ class irLink {
     bool is_data_ready(void);
     int get_raw_data_pulses(void);
 
+    time_ms_t get_last_rx_time(void) {
+      return last_rx_data_time;
+    }
+
     void recv_bridge_rx_data(const uint8_t* payload, size_t payload_size);
 
     void send_bridge_enable_tx(bool enable, enum ir_format format);
     void send_bridge_enable_rx(bool enable, enum ir_format format);
     void send_bridge_tx_data(enum ir_format format, const uint8_t* data, size_t len);
+  
   private:
     bool is_rx_data_ready;
+    time_ms_t last_rx_data_time;
 };

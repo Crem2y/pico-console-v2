@@ -1462,23 +1462,46 @@ void menu_ir_test(void) {
   LedCtrl.set_config(LED_CTRL_4, led_config); // TX indicator
   Ir.set_enable_tx(true, IR_FORMAT_MANUAL);
   Ir.set_enable_rx(true, IR_FORMAT_MANUAL);
+
+  time_ms_t last_rx_data_time = Ir.get_last_rx_time();
   
   while(1) {
     sleep_ms(100);
 
     Graphic.setCursor(0,16*2);
     Graphic.printf("format setting: %s", Ir.get_rx_format() == IR_FORMAT_NEC ? "NEC" : "RAW");
-    if(Ir.is_data_ready() && Ir.get_rx_format() == Ir.get_rx_data_format()) {
+
+    time_ms_t rx_data_time = Ir.get_last_rx_time();
+    if(last_rx_data_time != rx_data_time) {
+      last_rx_data_time = rx_data_time;
+      LedCtrl.set_mode(LED_CTRL_1, LED_BLINK_ONCE);
       if(Ir.get_rx_data_format() == IR_FORMAT_MANUAL) {
         Graphic.setCursor(0,16*3);
-        Graphic.printf("data: %d pulses\n", Ir.get_raw_data_pulses());
+        Graphic.printf("data: %d pulses \n", Ir.get_raw_data_pulses());
         Graphic.printf("%d, %d, %d, %d ... \n", ((uint16_t*)Ir.rx_data_buf)[0], ((uint16_t*)Ir.rx_data_buf)[1], ((uint16_t*)Ir.rx_data_buf)[2], ((uint16_t*)Ir.rx_data_buf)[3]);
         Graphic.print("press A to send data");
+
+        // display signal
+        int x = 25;
+        int signal = 1;
+        Graphic.fillRect(0, 160, 480, 50, LCD_BLACK);
+        for(int i=0; i<Ir.get_raw_data_pulses(); i++) {
+          if(signal) {
+            Graphic.fillRect(x, 160, ((uint16_t*)Ir.rx_data_buf)[i] / 200, 50, LCD_WHITE);
+          } else {
+            Graphic.fillRect(x, 160+49, ((uint16_t*)Ir.rx_data_buf)[i] / 200, 1, LCD_WHITE);
+          }
+          x += ((uint16_t*)Ir.rx_data_buf)[i] / 200;
+          if (x > 480) break;
+
+          if(signal == 1) signal = 0;
+          else signal = 1;
+        }
       } else if (Ir.get_rx_data_format() == IR_FORMAT_NEC) {
         Graphic.setCursor(0,16*3);
         Graphic.print("data:\n");
         Graphic.printf("%02X %02X %02X %02X\n", Ir.rx_data_buf[0], Ir.rx_data_buf[1], Ir.rx_data_buf[2], Ir.rx_data_buf[3]);
-        Graphic.printf("press A to send data");
+        Graphic.print("press A to send data");
       }
     }
 

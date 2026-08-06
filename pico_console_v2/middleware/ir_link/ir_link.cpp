@@ -10,6 +10,7 @@ irLink::irLink(void) {
 void irLink::init(void) {
   rx_data_format = IR_FORMAT_UNKNOWN;
   rx_format = IR_FORMAT_UNKNOWN;
+  last_rx_data_time = 0;
 }
 
 enum ir_format irLink::get_rx_format(void) {
@@ -100,7 +101,11 @@ void irLink::recv_bridge_rx_data(const uint8_t* payload, size_t payload_size) {
   }
   rx_data_len += (payload_size - 2);
 
-  if(sequence_index != sequence_length) {
-    return; // wait for more sequences
+  if(sequence_index == sequence_length) {
+    // received all data
+    last_rx_data_time = get_system_time_ms();
+  } else {
+    // wait for more sequences
+    return;
   }
 }
