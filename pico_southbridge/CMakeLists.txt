@@ -49,6 +49,7 @@ add_executable(${PROJECT_NAME}
   src/southbridge.cpp
 )
 
+add_subdirectory(common)
 add_subdirectory(driver)
 add_subdirectory(middleware)
 
@@ -60,6 +61,7 @@ target_link_libraries(${PROJECT_NAME}
   pico_stdlib
   pico_multicore
   pico_bootsel_via_double_reset # Double tap reset into bootrom
+  common
   driver
   middleware
 )

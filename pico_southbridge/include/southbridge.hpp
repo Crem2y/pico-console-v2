@@ -6,6 +6,9 @@
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
 
+// common
+#include "common.h"
+
 // drivers
 // #include "uart_log.h"
 #include "uart_bridge.h"

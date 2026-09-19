@@ -20,7 +20,11 @@ bridgeProtocol Bridge = bridgeProtocol();
 bridgeControl MainBridge = bridgeControl();
 power Power = power(&VSenseVIN);
 charger Charger = charger(&VSenseVBAT, &Bq25619);
+#if ENABLE_JOYSTICK
 gamepad Gamepad = gamepad(&BtnMatrix, &Joy1, &Joy2);
+#else
+gamepad Gamepad = gamepad(&BtnMatrix, NULL, NULL);
+#endif
 audioSystem Audio = audioSystem();
 temperature Temperature = temperature(&TempSensor);
 vibration Vibration = vibration(&Lra);
