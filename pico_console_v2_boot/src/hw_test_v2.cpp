@@ -221,7 +221,7 @@ int main() { // uses core 0 to sub core
   LOGI("PSRAM ok\n");
 #endif
   Graphic.begin();
-  Graphic.fillScreen(LCD_BLACK);
+//  Graphic.fillScreen(LCD_BLACK);
   Graphic.set_bright(0);
   Graphic.setTextColor(LCD_WHITE, LCD_BLACK);
   Graphic.setTextSize(1);
@@ -295,8 +295,8 @@ void core1_entry() { // uses core 1 to main core
   uint8_t cursor_x_old = 0;
 
 main_menu_loop:
-  Graphic.fillScreen(LCD_BLACK);
-  Graphic.setTextColor(LCD_WHITE, LCD_BLACK);
+  Graphic.fillScreen(LCD_BLUE);
+  Graphic.setTextColor(LCD_WHITE, LCD_BLUE);
 
   while (1) {
     Graphic.setTextSize(2);
@@ -338,7 +338,7 @@ main_menu_loop:
       }
 
       if(!Gamepad.is_btn_pressed(BTN_SELECT) && (Gamepad.is_btn_pressed(BTN_A) || Gamepad.is_btn_pressed(BTN_START))) {
-        Graphic.fillScreen(LCD_BLACK);
+        Graphic.fillScreen(LCD_BLUE);
         switch (cursor_x)
         {
         case MAIN_SYSTEM_INFO:
